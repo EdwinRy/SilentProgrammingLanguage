@@ -10,10 +10,17 @@ namespace SilentC
     {
         static void Main(string[] args)
         {
-            if(args.Contains("-c"))
+            string fileToCompile;
+
+
+            for(int i = 0; i < args.Count(); i++)
             {
-                string CompileFilePath;
+                if(args[i] == "-c")
+                {
+                    fileToCompile = args[i + 1];
+                }
             }
+
         }
 
         static void Main()

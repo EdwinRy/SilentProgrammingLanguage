@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace SilentC.SilentLib.Types
 {
+
+    enum ByteCode
+    {
+        
+    }
+
     struct Integer
     {
         int value;
@@ -46,7 +52,7 @@ namespace SilentC.SilentLib.Types
 
         void ToString()
         {
-            Console.WriteLine("Function at:" + &this );
+            Console.WriteLine("Function at:" + this );
         }
     }
 
