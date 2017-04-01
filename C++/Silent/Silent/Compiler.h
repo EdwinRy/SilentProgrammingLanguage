@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <stdlib.h>
 #include <vector>
 
 namespace Silent {
@@ -7,11 +8,6 @@ namespace Silent {
 	class Compiler {
 
     private:
-
-        class s_Instruction 
-        {
-
-        };
 
         class s_Boolean
         {
@@ -37,15 +33,23 @@ namespace Silent {
             bool constant;
         };
 
+        class s_Instruction
+        {
+
+        };
+
         class s_Function
         {
 
         };
 
+        class s_Structs {
+
+        };
+
         class s_GlobalScope {
+            std::vector<s_Structs> structures;
             std::vector<s_Function> functions;
-            std::vector<s_Boolean> globalBooleans;
-            std::vector<s_Integer> globalIntegers;
             std::vector<s_Char> globalChars;
         };
 
