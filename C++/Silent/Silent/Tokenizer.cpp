@@ -1,6 +1,6 @@
 #include "Tokenizer.h"
 
-Silent::Tokenizer::Tokenizer()
+Tokenizer::Tokenizer()
 {
    
 }

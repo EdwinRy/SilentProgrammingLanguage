@@ -1,15 +1,13 @@
 #pragma once
 
-namespace Silent {
-    class Interpreter
-    {
-    private:
+class Interpreter
+{
+private:
 
-        int programCounter;
-        int stackPointer;
+    int programCounter;
+    int stackPointer;
 
-    public:
-        void interpret(char *filepath);
+public:
+    void interpret(char *filepath);
 
-    };
-}
+};

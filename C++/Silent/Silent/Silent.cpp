@@ -23,10 +23,6 @@ void PrintHelp()
 
 int main(int argc, char *argv[]) 
 {
-
-
-	using namespace Silent;
-
 	char *inputFile;
 	char *outputFile;
 

@@ -1,10 +1,10 @@
 #include "Compiler.h"
 
-Silent::Compiler::Compiler()
+Compiler::Compiler()
 {
 }
 
-void Silent::Compiler::compile(const char *filePath, const char *outputPath)
+void Compiler::compile(const char *filePath, const char *outputPath)
 {
 
     char *file_contents;
@@ -18,6 +18,8 @@ void Silent::Compiler::compile(const char *filePath, const char *outputPath)
     file_contents = new char[input_file_size];
     fread(file_contents, sizeof(char), input_file_size, input_file);
     fclose(input_file);
+
+    printf(file_contents);
 
 }
 

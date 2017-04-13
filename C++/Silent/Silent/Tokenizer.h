@@ -3,18 +3,16 @@
 #include <stdio.h>
 
 
-namespace Silent {
-	class Tokenizer {
+class Tokenizer {
 				   
-	public:
-		Tokenizer();
+public:
+	Tokenizer();
 
-	};
+};
 
 
-    enum Tokens {
+enum Tokens {
 
-    }; 
+}; 
     
 
-}

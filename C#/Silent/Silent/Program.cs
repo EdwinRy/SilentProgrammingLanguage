@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SilentC.SilentLib
+namespace Silent
 {
-    class Storage
+    class Program
     {
-        int MAX_SIZE = 16 * 1024; //16kB stack
+        static void Main(string[] args)
+        {
+        }
     }
 }
