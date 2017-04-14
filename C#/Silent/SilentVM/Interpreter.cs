@@ -7,7 +7,7 @@ using SilentVM;
 
 namespace SilentVM
 {
-    class Interpreter
+    public class Interpreter
     {
 
         public bool running;
@@ -18,26 +18,41 @@ namespace SilentVM
         int instruction;
         string data;
 
-        public void Interpret(string byteCode)
+        public Interpreter()
         {
-            source = byteCode.Split('\n');
-
             stack = new Stack();
             running = true;
             programCounter = -1;
+        }
+
+        public void Interpret(string[] byteCode)
+        {
+            source = byteCode;
 
             while (running)
             {
                 Fetch();
                 Decode();
                 Execute(instruction, data);
+
+                /*
+                for(int i = 0; i < stack.memory.ToArray().Length; i++)
+                {
+                    Console.WriteLine(stack.memory[i]);
+                } */
             }
 
         }
 
         private void Fetch()
         {
+            
             programCounter += 1;
+
+            if (programCounter > source.Length)
+            {
+                Environment.Exit(1);
+            }
         }
 
         private void Decode()
@@ -86,6 +101,7 @@ namespace SilentVM
             }
         }
 
+        /*
         private enum instructions : byte
         {
             Halt,
@@ -98,6 +114,6 @@ namespace SilentVM
             Subtract,
             Multiply,
             Divide
-        }
+        } */
     }
 }

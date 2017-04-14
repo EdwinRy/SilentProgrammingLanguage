@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Silent", "Silent\Silent.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilentVM", "SilentVM\SilentVM.csproj", "{2B124FC0-C177-41ED-BB50-300709C28CD5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilentCompiler", "SilentCompiler\SilentCompiler.csproj", "{249E6584-E61C-460E-83FE-ED8C61B0514E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{2B124FC0-C177-41ED-BB50-300709C28CD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B124FC0-C177-41ED-BB50-300709C28CD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B124FC0-C177-41ED-BB50-300709C28CD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{249E6584-E61C-460E-83FE-ED8C61B0514E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{249E6584-E61C-460E-83FE-ED8C61B0514E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{249E6584-E61C-460E-83FE-ED8C61B0514E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{249E6584-E61C-460E-83FE-ED8C61B0514E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,14 +9,14 @@ namespace SilentVM
     class Stack
     {
         public int stackPointer;
-        private List<string> memory;
+        public List<string> memory;
         private List<string> storage;
 
         public Stack()
         {
             memory = new List<string>();
             storage = new List<string>();
-            stackPointer = 0;
+            stackPointer = -1;
         }
 
         public void Push(string data)
@@ -44,6 +44,7 @@ namespace SilentVM
 
             Pop();Pop();
             Push(result);
+            Console.WriteLine(memory[stackPointer]);
         }
 
         public void Subtract()
