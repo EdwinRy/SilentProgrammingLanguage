@@ -9,16 +9,20 @@ namespace SilentVM
     class Stack
     {
         public int stackPointer;
-        public List<string> memory;
-        private List<string> storage;
+
+        private List<string> memory;
+        public List<string> storage;
 
         public Stack()
         {
             memory = new List<string>();
+
             storage = new List<string>();
+
             stackPointer = -1;
         }
 
+        //MEMORY OPERATIONS
         public void Push(string data)
         {
             memory.Add(data);
@@ -34,23 +38,41 @@ namespace SilentVM
         public void Store(string data)
         {
             storage.Add(data);
+        }
+
+        public void SetAt(string data)
+        {
+            storage[int.Parse(data)] = memory[stackPointer];
             Pop();
         }
 
+        public void ClearMemory()
+        {
+            memory.Clear();
+            stackPointer = -1;
+        }
+
+        public void ClearStorage()
+        {
+            storage.Clear();
+        }
+
+        //MATHS OPERATIONS
         public void Add()
         {
-            string result = (int.Parse(memory[stackPointer]) + 
-                int.Parse(memory[stackPointer-1])).ToString();
+            string result = (
+                float.Parse(memory[stackPointer - 1]) +
+                float.Parse(memory[stackPointer])).ToString();
 
             Pop();Pop();
             Push(result);
-            Console.WriteLine(memory[stackPointer]);
         }
 
         public void Subtract()
         {
-            string result = (int.Parse(memory[stackPointer - 1]) -
-                  int.Parse(memory[stackPointer])).ToString();
+            string result = (
+                float.Parse(memory[stackPointer - 1]) -
+                float.Parse(memory[stackPointer])).ToString();
 
             Pop(); Pop();
             Push(result);
@@ -58,8 +80,9 @@ namespace SilentVM
 
         public void Multiply()
         {
-            string result = (int.Parse(memory[stackPointer - 1]) *
-                  int.Parse(memory[stackPointer])).ToString();
+            string result = (
+                float.Parse(memory[stackPointer - 1]) *
+                float.Parse(memory[stackPointer])).ToString();
 
             Pop(); Pop();
             Push(result);
@@ -67,17 +90,69 @@ namespace SilentVM
 
         public void Divide()
         {
-            string result = (int.Parse(memory[stackPointer - 1]) /
-                  int.Parse(memory[stackPointer])).ToString();
+            string result = (
+                float.Parse(memory[stackPointer - 1]) /
+                float.Parse(memory[stackPointer])).ToString();
 
             Pop(); Pop();
             Push(result);
         }
+        
+        //LOGICAL OPERATIONS
 
-        public void Clear()
+        public void SmallerThan()
         {
-            memory.Clear();
-            stackPointer = 0;
+            string leftSide = memory[stackPointer - 1];
+            string rightSide = memory[stackPointer];
+
+            Pop(); Pop();
+
+            if (float.Parse(leftSide) < float.Parse(rightSide))
+            {
+                Push("1");
+            }
+
+            else
+            {
+                Push("0");
+            }
         }
+
+        public void LargerThan()
+        {
+            string leftSide = memory[stackPointer - 1];
+            string rightSide = memory[stackPointer];
+
+            Pop(); Pop();
+
+            if (float.Parse(leftSide) > float.Parse(rightSide))
+            {
+                Push("1");
+            }
+
+            else
+            {
+                Push("0");
+            }
+        }
+
+        public void Equal()
+        {
+            string leftSide = memory[stackPointer - 1];
+            string rightSide = memory[stackPointer];
+
+            Pop(); Pop();
+
+            if (float.Parse(leftSide) == float.Parse(rightSide))
+            {
+                Push("1");
+            }
+
+            else
+            {
+                Push("0");
+            }
+        }
+
     }
 }

@@ -9,12 +9,18 @@ namespace SilentVM
 {
     public class Interpreter
     {
-
+        //State of execution
         public bool running;
         private int programCounter;
+
+        //Memory
         private Stack stack;
+
+        //Script
         private string[] source;
         string[] instructionLine;
+
+        //Current state
         int instruction;
         string data;
 
@@ -34,12 +40,6 @@ namespace SilentVM
                 Fetch();
                 Decode();
                 Execute(instruction, data);
-
-                /*
-                for(int i = 0; i < stack.memory.ToArray().Length; i++)
-                {
-                    Console.WriteLine(stack.memory[i]);
-                } */
             }
 
         }
@@ -66,54 +66,107 @@ namespace SilentVM
         {
             switch (instruction)
             {
-                case 0:
-                    stack.Clear();
+
+                //System
+
+                case (int)instructions.Halt:
+                    stack.ClearMemory();
+                    stack.ClearStorage();
                     running = false;
                     //Environment.Exit(1);
                     break;
-                case 1:
-                    stack.Clear();
+
+                case (int)instructions.ClearMemory:
+                    stack.ClearMemory();
                     break;
-                case 2:
+
+                case (int)instructions.ClearStorage:
+                    stack.ClearStorage();
+                    break;
+
+                case (int)instructions.GoTo:
                     programCounter = int.Parse(data);
                     break;
-                case 3:
+
+
+                //Memory
+
+                case (int)instructions.Store:
                     stack.Store(data);
                     break;
-                case 4:
+
+                case (int)instructions.SetAt:
+                    stack.SetAt(data);
+                    break;
+
+                case (int)instructions.Push:
                     stack.Push(data);
                     break;
-                case 5:
+
+                case (int)instructions.Pop:
                     stack.Pop();
                     break;
-                case 6:
+
+                //Maths
+
+                case (int)instructions.Add:
                     stack.Add();
                     break;
-                case 7:
+
+                case (int)instructions.Subtract:
                     stack.Subtract();
                     break;
-                case 8:
+
+                case (int)instructions.Multiply:
                     stack.Multiply();
                     break;
-                case 9:
+
+                case (int)instructions.Divide:
                     stack.Divide();
+                    break;
+
+                //Logic
+
+                case (int)instructions.SmallerThan:
+                    stack.SmallerThan();
+                    break;
+
+                case (int)instructions.LargerThan:
+                    stack.LargerThan();
+                    break;
+
+                case (int)instructions.Equal:
+                    stack.Equal();
                     break;
             }
         }
 
-        /*
+             
         private enum instructions : byte
         {
+            //System operations : 3
             Halt,
-            Clear,
+            ClearMemory,
+            ClearStorage,
             GoTo,
-            Store,
+
+            //Memory operations : 4
             Push,
             Pop,
+            Store,
+            SetAt,
+
+            //Maths operations : 4
             Add,
             Subtract,
             Multiply,
-            Divide
-        } */
+            Divide,
+
+            //Logical operations : 3
+            SmallerThan,
+            LargerThan,
+            Equal,
+
+        } 
     }
 }
