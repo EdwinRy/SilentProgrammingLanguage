@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace SilentVM
 {
-    class Stack
+    public class Stack
     {
         public int stackPointer;
 
-        private List<string> memory;
-        public List<string> storage;
+        public List<string> memory;
+        private List<string> storage;
 
         public Stack()
         {
@@ -99,7 +99,6 @@ namespace SilentVM
         }
         
         //LOGICAL OPERATIONS
-
         public void SmallerThan()
         {
             string leftSide = memory[stackPointer - 1];

@@ -11,7 +11,6 @@ namespace Silent
     {
         static void Main(string[] args)
         {
-            bool running = true;
 
             for(int i = 0; i < args.Length; i++)
             {

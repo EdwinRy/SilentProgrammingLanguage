@@ -14,7 +14,8 @@ namespace SilentVM
         private int programCounter;
 
         //Memory
-        private Stack stack;
+        public Stack stack;
+        public Dictionary<string,Action> libraries;
 
         //Script
         private string[] source;
@@ -88,6 +89,9 @@ namespace SilentVM
                     programCounter = int.Parse(data);
                     break;
 
+                case (int)instructions.Call:
+                    libraries[data].Invoke();
+                    break;
 
                 //Memory
 
@@ -144,11 +148,12 @@ namespace SilentVM
              
         private enum instructions : byte
         {
-            //System operations : 3
+            //System operations : 5
             Halt,
             ClearMemory,
             ClearStorage,
             GoTo,
+            Call,
 
             //Memory operations : 4
             Push,

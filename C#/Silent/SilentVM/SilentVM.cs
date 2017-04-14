@@ -9,8 +9,8 @@ namespace SilentVM
 {
     public class SilentVM
     {
-        string[] byteCode;
-        Interpreter interpreter;
+        private string[] byteCode;
+        private Interpreter interpreter;
 
         public SilentVM()
         {
@@ -30,6 +30,26 @@ namespace SilentVM
         public void Stop()
         {
             interpreter.running = false;
+        }
+
+        public void AddFunction(string functionName, Action function)
+        {
+            interpreter.libraries.Add(functionName, function);
+        }
+
+        public List<string> getMemory()
+        {
+            return interpreter.stack.memory;
+        }
+
+        public void pushData(string data)
+        {
+            interpreter.stack.Push(data);
+        }
+
+        public void popData()
+        {
+            interpreter.stack.Pop();
         }
 
     }
