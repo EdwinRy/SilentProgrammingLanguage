@@ -15,7 +15,7 @@ namespace SilentVM
 
         //Memory
         public Stack stack;
-        public Dictionary<string,Action> libraries;
+        public Dictionary<string,Action> libraries = new Dictionary<string, Action>();
 
         //Script
         private string[] source;
@@ -166,15 +166,25 @@ namespace SilentVM
                 case (int)instructions.Equal:
                     stack.Equal();
                     break;
+
+                case (int)instructions.IfTrue:
+                    IfTrue(data);
+                    break;
             }
+        }
+
+        public void IfTrue(string data)
+        {
+            if (stack.memory[stack.stackPointer] == "1")
+                programCounter = int.Parse(data);
         }
 
              
         private enum instructions : byte
         {
             //System operations : 5
-            Halt,           
-            ClearMemory,    
+            Halt,                           
+            ClearMemory,                    
             ClearStorage,   
             GoTo,           
             Call,           
@@ -197,10 +207,11 @@ namespace SilentVM
             Multiply,       
             Divide,         
 
-            //Logical operations : 3
+            //Logical operations : 4
             SmallerThan,    
             LargerThan,     
-            Equal,           
+            Equal,
+            IfTrue
 
         } 
     }

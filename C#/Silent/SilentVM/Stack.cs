@@ -19,7 +19,7 @@ namespace SilentVM
 
             storage = new List<string>();
 
-            stackPointer = -1;
+            stackPointer = 0;
         }
 
         //MEMORY OPERATIONS
@@ -55,19 +55,16 @@ namespace SilentVM
         public void StoreTop()
         {
             storage.Add(memory[stackPointer]);
-            Pop();
         }
 
         public void StoreBack()
         {
             storage.Add(memory[stackPointer]);
-            PopBack();
         }
 
         public void SetAt(string data)
         {
             storage[int.Parse(data)] = memory[stackPointer];
-            Pop();
         }
 
         public void Load(string data)
