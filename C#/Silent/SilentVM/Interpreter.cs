@@ -95,20 +95,44 @@ namespace SilentVM
 
                 //Memory
 
-                case (int)instructions.Store:
-                    stack.Store(data);
-                    break;
-
-                case (int)instructions.SetAt:
-                    stack.SetAt(data);
-                    break;
-
                 case (int)instructions.Push:
                     stack.Push(data);
                     break;
 
                 case (int)instructions.Pop:
                     stack.Pop();
+                    break;
+
+                case (int)instructions.PushBack:
+                    stack.PushBack(data);
+                    break;
+
+                case (int)instructions.PopBack:
+                    stack.PopBack();
+                    break;
+
+                case (int)instructions.Store:
+                    stack.Store(data);
+                    break;
+
+                case (int)instructions.StoreTop:
+                    stack.StoreTop();
+                    break;
+
+                case (int)instructions.StoreBack:
+                    stack.StoreBack();
+                    break;
+
+                case (int)instructions.SetAt:
+                    stack.SetAt(data);
+                    break;
+
+                case (int)instructions.Load:
+                    stack.Load(data);
+                    break;
+
+                case (int)instructions.LoadBack:
+                    stack.LoadBack(data);
                     break;
 
                 //Maths
@@ -149,28 +173,34 @@ namespace SilentVM
         private enum instructions : byte
         {
             //System operations : 5
-            Halt,
-            ClearMemory,
-            ClearStorage,
-            GoTo,
-            Call,
+            Halt,           
+            ClearMemory,    
+            ClearStorage,   
+            GoTo,           
+            Call,           
 
-            //Memory operations : 4
-            Push,
-            Pop,
+            //Memory operations : 10
+            Push,           
+            Pop,            
+            PushBack,
+            PopBack,
             Store,
+            StoreTop,
+            StoreBack,
             SetAt,
+            Load,
+            LoadBack,
 
             //Maths operations : 4
-            Add,
-            Subtract,
-            Multiply,
-            Divide,
+            Add,            
+            Subtract,       
+            Multiply,       
+            Divide,         
 
             //Logical operations : 3
-            SmallerThan,
-            LargerThan,
-            Equal,
+            SmallerThan,    
+            LargerThan,     
+            Equal,           
 
         } 
     }

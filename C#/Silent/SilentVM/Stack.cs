@@ -35,15 +35,49 @@ namespace SilentVM
             stackPointer -= 1;
         }
 
+        public void PushBack(string data)
+        {
+            memory.Insert(0, data);
+            stackPointer += 1;
+        }
+
+        public void PopBack()
+        {
+            memory.RemoveAt(0);
+            stackPointer -= 1;
+        }
+
         public void Store(string data)
         {
             storage.Add(data);
+        }
+
+        public void StoreTop()
+        {
+            storage.Add(memory[stackPointer]);
+            Pop();
+        }
+
+        public void StoreBack()
+        {
+            storage.Add(memory[stackPointer]);
+            PopBack();
         }
 
         public void SetAt(string data)
         {
             storage[int.Parse(data)] = memory[stackPointer];
             Pop();
+        }
+
+        public void Load(string data)
+        {
+            Push(storage[int.Parse(data)]);
+        }
+
+        public void LoadBack(string data)
+        {
+            PushBack(storage[int.Parse(data)]);
         }
 
         public void ClearMemory()
