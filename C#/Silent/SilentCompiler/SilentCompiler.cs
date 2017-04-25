@@ -96,16 +96,18 @@ namespace SilentCompiler
         AccessModifiers AccessModifier;
         List<Variable> variables;
         List<string> Instructions;
+        List<Variable> Parameters;
+        Variable ReturnValue;
     }
 
     public struct Function
     {
         string FunctionName;
         PrimitiveDataType ReturnType;
-
         List<Variable> variables;
         List<string> Instructions;
-        string ReturnValue;
+        List<Variable> Parameters;
+        Variable ReturnValue;
     }
 
     public struct Struct
