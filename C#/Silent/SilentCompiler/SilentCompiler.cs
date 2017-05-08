@@ -11,6 +11,8 @@ namespace SilentCompiler
     {
 
         string[] Source;
+        string path;
+        List<string> modules = new List<string>();
         List<string> ByteCode = new List<string>();
         GlobalScope MainScope = new GlobalScope();
 
@@ -21,6 +23,7 @@ namespace SilentCompiler
 
         public void Compile(string filePath)
         {
+            path = filePath;
             string source = File.ReadAllText(filePath);
 
             Source = source.Split(' ');
@@ -50,6 +53,11 @@ namespace SilentCompiler
                     endIndex = -1;
                 }
 
+                else
+                {
+                    break;
+                }
+
             }
         }
 
@@ -58,6 +66,10 @@ namespace SilentCompiler
             if (instruction.StartsWith("#include"))
             {
                 string include = instruction.Split(' ')[1].Remove(-1);
+                if (!modules.Contains(include))
+                {
+                    modules.Add(include);
+                }
             }
         }
 
