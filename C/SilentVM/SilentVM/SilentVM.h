@@ -2,32 +2,43 @@
 #ifndef SILENTVM
 #define SILENTVM
 
+#include <stdlib.h>
+#include <stdio.h>
 
 typedef struct SilentStack {
 
     char* memory;
     char* storage;
+    int stackPointer;
+    int storagePointer;
 
 }SilentStack;
 
 
 typedef struct SilentVM {
 
-    SilentStack stack;
+    SilentStack* stack;
+    char* script;
+    int programCounter;
+    char running;
 
 }SilentVM;
 
 
-void CreateSilentVM(SilentVM *vm, SilentStack *stack, int *ScriptLength);
+//SilentVM functions
+void CreateSilentVM(SilentVM *vm, SilentStack *stack);
 void DeleteSilentVM(SilentVM *vm);
 
-void CreateSilentStack(SilentStack *stack, int stackSize);
+void CreateSilentStack(SilentStack *stack, int stackSize, int StorageSize);
 void DeleteSilentStack(SilentStack *stack);
 
 void UpdateStackSize(SilentStack *stack, int newStackSize);
+void UpdateStorageSize(SilentStack *stack, int newStackSize);
+
+void ExecuteScript(SilentVM *vm, char* script);
 
 
-#endif // !SilentVM
 
 
 
+#endif

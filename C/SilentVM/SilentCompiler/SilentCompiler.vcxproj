@@ -115,6 +115,9 @@
   <ItemGroup>
     <ClInclude Include="SilentCompiler.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SilentCompiler.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

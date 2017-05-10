@@ -3,3 +3,5 @@
 struct SilentCompiler {
 
 };
+
+void Compile();
