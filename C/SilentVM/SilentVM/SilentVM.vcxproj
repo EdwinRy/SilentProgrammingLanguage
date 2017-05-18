@@ -113,7 +113,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="SilentStack.h" />
     <ClInclude Include="SilentVM.h" />
   </ItemGroup>
   <ItemGroup>

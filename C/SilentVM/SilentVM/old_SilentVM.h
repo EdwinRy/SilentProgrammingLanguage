@@ -1,4 +1,6 @@
 #pragma once
+#ifndef SILENTVM
+#define SILENTVM
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,3 +36,10 @@ void UpdateStackSize(SilentStack *stack, int newStackSize);
 void UpdateStorageSize(SilentStack *stack, int newStackSize);
 
 void ExecuteScript(SilentVM *vm, char* script);
+
+
+
+
+
+
+#endif
