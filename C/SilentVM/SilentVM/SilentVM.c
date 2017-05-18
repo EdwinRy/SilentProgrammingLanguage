@@ -1,55 +1,67 @@
 #include "SilentVM.h"
 #include "SilentStack.h"
 
-#define DATATOINTFLOAT(memory,location, x) (x) = *(int*)((memory) + (location));
+#define DATATOINT(memory,location, x) (x) = *(int*)((memory) + (location));
+#define DATATOFLOAT(memory,location, x) (x) = *(float*)((memory) + (location));
 
 #define Bytecode_Halt 0
 #define Bytecode_GoTo 1
 #define Bytecode_Call 2
+
 #define Bytecode_ClearMemory 3
 #define Bytecode_ClearStorage 4
 
 #define Bytecode_PushByte 5
-#define Bytecode_PushIntFloat 6
+#define Bytecode_PushInt 6
+#define Bytecode_PushFloat 7
 
-#define Bytecode_PopByte 7
-#define Bytecode_PopIntFloat 8
-#define Bytecode_PopBackByte 9
-#define Bytecode_PopBackIntFloat 10
+#define Bytecode_PopByte 8
+#define Bytecode_PopInt 9
+#define Bytecode_PopFloat 10
 
 #define Bytecode_StoreByte 11
-#define Bytecode_StoreIntFloat 12
-#define Bytecode_LoadByte 13
-#define Bytecode_LoadIntFloat 14
-#define Bytecode_SetByte 15
-#define Bytecode_SetIntFloat 16
-#define Bytecode_DeleteByte 17
-#define Bytecode_DeleteIntFloat 18
+#define Bytecode_StoreInt 12
+#define Bytecode_StoreFloat 13
 
-#define Bytecode_AddByte 19
-#define Bytecode_AddIntFloat 20
-#define Bytecode_SubtractByte 21
-#define Bytecode_SubtractIntFloat 22
-#define Bytecode_MultiplyByte 23
-#define Bytecode_MultiplyIntFloat 24
-#define Bytecode_DivideByte 25
-#define Bytecode_DivideIntFloat 26
+#define Bytecode_LoadByte 14
+#define Bytecode_LoadInt 15
+#define Bytecode_LoadFloat 16
 
-#define Bytecode_Byte2Int 27
-#define Bytecode_Byte2Float 28
-#define Bytecode_Int2Float 29
-#define Bytecode_Float2Int 30
+#define Bytecode_SetByte 17
+#define Bytecode_SetInt 18
+#define Bytecode_SetFloat 19
 
-#define Bytecode_SmallerThan 31
-#define Bytecode_BiggerThan 32
-#define Bytecode_Equal 33
+#define Bytecode_AddByte 20
+#define Bytecode_AddInt 21
+#define Bytecode_AddFloat 22
 
-#define Bytecode_If 34
-#define Bytecode_IfNot 35
+#define Bytecode_SubtractByte 23
+#define Bytecode_SubtractInt 24
+#define Bytecode_SubtractFloat 25
 
-#define Bytecode_And 36
-#define Bytecode_Or 37
-#define Bytecode_Not 38
+#define Bytecode_MultiplyByte 26
+#define Bytecode_MultiplyInt 27
+#define Bytecode_MultiplyFloat 28
+
+#define Bytecode_DivideByte 29
+#define Bytecode_DivideInt 30
+#define Bytecode_DivideFloat 31
+
+#define Bytecode_Byte2Int 32
+#define Bytecode_Byte2Float 33
+#define Bytecode_Int2Float 34
+#define Bytecode_Float2Int 35
+
+#define Bytecode_SmallerThan 36
+#define Bytecode_BiggerThan 37
+#define Bytecode_Equal 38
+
+#define Bytecode_If 39
+#define Bytecode_IfNot 40
+
+#define Bytecode_And 41
+#define Bytecode_Or 42
+#define Bytecode_Not 43
 
 
 
@@ -313,92 +325,153 @@ void ExecuteScript(SilentVM *vm, char *script)
         {
         case Bytecode_Halt:
             vm->running = 0;
+
         case Bytecode_GoTo:
             vm->programCounter = vm->script[vm->programCounter + 1];
+
         case Bytecode_Call:
-            vm->programCounter++;
-            vm->programCounter = *(int*)((vm->script)+(vm->programCounter));
+            //vm->programCounter++;
+            vm->programCounter = *(int*)((vm->script)+(++(vm->programCounter)));
+
+  
         case Bytecode_ClearMemory:
             memset(vm->stack->memory, 0, vm->stack->stackPointer);
             vm->stack->stackPointer = 0;
+
         case Bytecode_ClearStorage:
             memset(vm->stack->storage, 0, vm->stack->storagePointer);
             vm->stack->storagePointer = 0;
+
+
         case Bytecode_PushByte:
-            PushByte(vm);
-        case Bytecode_PushIntFloat:
-            PushIntFloat(vm);
+            vm->stack->memory[vm->stack->stackPointer++] = vm->script[++(vm->programCounter)];
+
+        case Bytecode_PushInt:
+            //Copy 4 bytes of data over
+            memcpy(vm->stack->memory + vm->stack->stackPointer, vm->script + ++(vm->programCounter), 4);
+            vm->stack->stackPointer += 4;
+
+        case Bytecode_PushFloat:
+            memcpy(vm->stack->memory + vm->stack->stackPointer, vm->script + ++(vm->programCounter), 4);
+            vm->stack->stackPointer += 4;
+
+
         case Bytecode_PopByte:
-            PopByte(vm);
-        case Bytecode_PopIntFloat:
-            PopIntFloat(vm);
-        case Bytecode_PopBackByte:
-            PopBackByte(vm);
-        case Bytecode_PopBackIntFloat:
-            PopBackIntFloat(vm);
+            vm->stack->stackPointer--;
+
+        case Bytecode_PopInt:
+            vm->stack->stackPointer -= 4;
+
+        case Bytecode_PopFloat:
+            vm->stack->stackPointer -= 4;
+
 
         case Bytecode_StoreByte:
-            StoreByte(vm);
-        case Bytecode_StoreIntFloat:
-            StoreIntFloat(vm);
+            memcpy(vm->stack->storage + vm->stack->storagePointer++, vm->script + ++(vm->programCounter), 1);
+
+        case Bytecode_StoreInt:
+            memcpy(vm->stack->storage + vm->stack->storagePointer++, vm->script + ++(vm->programCounter), 4);
+
+        case Bytecode_StoreFloat:
+            memcpy(vm->stack->storage + vm->stack->storagePointer++, vm->script + ++(vm->programCounter), 4);
+
+
         case Bytecode_LoadByte:
             LoadByte(vm);
-        case Bytecode_LoadIntFloat:
+
+        case Bytecode_LoadInt:
             LoadIntFloat(vm);
+
+        case Bytecode_LoadFloat:
+            LoadIntFloat(vm);
+
+
         case Bytecode_SetByte:
             SetByte(vm);
-        case Bytecode_SetIntFloat:
+
+        case Bytecode_SetInt:
             SetIntFloat(vm);
-        case Bytecode_DeleteByte:
-            DeleteByte(vm);
-        case Bytecode_DeleteIntFloat:
-            DeleteIntFloat(vm);
+
+        case Bytecode_SetFloat:
+            SetIntFloat(vm);
+
 
         case Bytecode_AddByte:
             AddByte(vm);
-        case Bytecode_AddIntFloat:
+
+        case Bytecode_AddInt:
             AddIntFloat(vm);
+
+        case Bytecode_AddFloat:
+            AddIntFloat(vm);
+
 
         case Bytecode_SubtractByte:
             SubtractByte(vm);
-        case Bytecode_SubtractIntFloat:
+
+        case Bytecode_SubtractInt:
             SubtractIntFloat(vm);
+
+        case Bytecode_SubtractFloat:
+            SubtractIntFloat(vm);
+
 
         case Bytecode_MultiplyByte:
             MultiplyByte(vm);
-        case Bytecode_MultiplyIntFloat:
+
+        case Bytecode_MultiplyInt:
             MultiplyIntFloat(vm);
+
+        case Bytecode_MultiplyFloat:
+            MultiplyIntFloat(vm);
+
 
         case Bytecode_DivideByte:
             DivideByte(vm);
-        case Bytecode_DivideIntFloat:
+
+        case Bytecode_DivideInt:
             DivideIntFloat(vm);
+
+        case Bytecode_DivideFloat:
+            DivideIntFloat(vm);
+
 
         case Bytecode_Byte2Int:
             Byte2Int(vm);
+
         case Bytecode_Byte2Float:
             Byte2Float(vm);
+
         case Bytecode_Int2Float:
             Int2Float(vm);
+
         case Bytecode_Float2Int:
             Float2Int(vm);
 
+
         case Bytecode_SmallerThan:
             SmallerThan(vm);
+
         case Bytecode_BiggerThan:
             BiggerThan(vm);
+
         case Bytecode_Equal:
             Equal(vm);
 
+
         case Bytecode_If:
             If(vm);
+
         case Bytecode_IfNot:
             IfNot(vm);
 
+
         case Bytecode_And:
             And(vm);
+
         case Bytecode_Or:
             Or(vm);
+
         case Bytecode_Not:
             Not(vm);
 
