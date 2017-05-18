@@ -50,6 +50,7 @@
 #define Bytecode_Not 38
 
 
+#define TOINT(memory, location, x) (x) = *(int*)((memory) + (location));
 
 //Bytecode Operations
 void Halt(SilentVM  *vm) 
