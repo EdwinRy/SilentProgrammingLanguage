@@ -1,6 +1,4 @@
 #pragma once
-#ifndef SILENTVM
-#define SILENTVM
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,17 +27,10 @@ typedef struct SilentVM {
 SilentVM* CreateSilentVM(SilentStack *stack);
 void DeleteSilentVM(SilentVM *vm);
 
-SilentStack* CreateSilentStack(int stackSize, int StorageSize);
+SilentStack* CreateSilentStack(int MemorySize, int StorageSize);
 void DeleteSilentStack(SilentStack *stack);
 
 void UpdateStackSize(SilentStack *stack, int newStackSize);
 void UpdateStorageSize(SilentStack *stack, int newStackSize);
 
-void ExecuteScript(SilentVM *vm, char* script);
-
-
-
-
-
-
-#endif
+void ExecuteScript(SilentVM *vm);
