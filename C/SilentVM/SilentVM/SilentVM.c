@@ -64,7 +64,7 @@
 #define Bytecode_Not 43
 
 
-
+/*
 //Bytecode Operations
 void Halt(SilentVM  *vm) 
 {
@@ -272,12 +272,25 @@ void And(SilentStack *stack){}
 void Or(SilentStack *stack){}
 void Not(SilentStack *stack){}
 
+*/
 
+//Silent stack memory
+void ClearMemory(SilentStack *stack)
+{
+    free(stack->memory);
+    stack->stackPointer = 0;
+}
+void ClearStorage(SilentStack *stack)
+{
+    free(stack->storage);
+    stack->storagePointer = 0;
+}
 
 SilentVM* CreateSilentVM(SilentStack *stack)
 {
     SilentVM* vm = malloc(sizeof(SilentVM));
     vm->stack = stack;
+	vm->programCounter = 0;
 
     return vm;
 }
@@ -325,163 +338,207 @@ void ExecuteScript(SilentVM *vm, char *script)
         {
         case Bytecode_Halt:
             vm->running = 0;
+			break;
 
         case Bytecode_GoTo:
             vm->programCounter = vm->script[vm->programCounter + 1];
-
+			break;
+			
         case Bytecode_Call:
             //vm->programCounter++;
             vm->programCounter = *(int*)((vm->script)+(++(vm->programCounter)));
-
+			break;
+			
   
         case Bytecode_ClearMemory:
             memset(vm->stack->memory, 0, vm->stack->stackPointer);
             vm->stack->stackPointer = 0;
-
+			break;
+			
         case Bytecode_ClearStorage:
             memset(vm->stack->storage, 0, vm->stack->storagePointer);
             vm->stack->storagePointer = 0;
-
+			break;
+			
 
         case Bytecode_PushByte:
             vm->stack->memory[vm->stack->stackPointer++] = vm->script[++(vm->programCounter)];
-
+			break;
+			
         case Bytecode_PushInt:
             //Copy 4 bytes of data over
             memcpy(vm->stack->memory + vm->stack->stackPointer, vm->script + ++(vm->programCounter), 4);
             vm->stack->stackPointer += 4;
-
+			break;
+			
         case Bytecode_PushFloat:
             memcpy(vm->stack->memory + vm->stack->stackPointer, vm->script + ++(vm->programCounter), 4);
             vm->stack->stackPointer += 4;
-
+			break;
+			
 
         case Bytecode_PopByte:
             vm->stack->stackPointer--;
-
+			break;
+			
         case Bytecode_PopInt:
             vm->stack->stackPointer -= 4;
-
+			break;
+			
         case Bytecode_PopFloat:
             vm->stack->stackPointer -= 4;
-
+			break;
+			
 
         case Bytecode_StoreByte:
             memcpy(vm->stack->storage + vm->stack->storagePointer++, vm->script + ++(vm->programCounter), 1);
-
+			break;
+			
         case Bytecode_StoreInt:
             memcpy(vm->stack->storage + vm->stack->storagePointer++, vm->script + ++(vm->programCounter), 4);
-
+			break;
+			
         case Bytecode_StoreFloat:
             memcpy(vm->stack->storage + vm->stack->storagePointer++, vm->script + ++(vm->programCounter), 4);
-
+			break;
+			
 
         case Bytecode_LoadByte:
-            LoadByte(vm);
-
+            //LoadByte(vm);
+			break;
+			
         case Bytecode_LoadInt:
-            LoadIntFloat(vm);
-
+            //LoadIntFloat(vm);
+			break;
+			
         case Bytecode_LoadFloat:
-            LoadIntFloat(vm);
-
+            //LoadIntFloat(vm);
+			break;
+			
 
         case Bytecode_SetByte:
-            SetByte(vm);
-
+            //SetByte(vm);
+			break;
+			
         case Bytecode_SetInt:
-            SetIntFloat(vm);
-
+            //SetIntFloat(vm);
+			break;
+			
         case Bytecode_SetFloat:
-            SetIntFloat(vm);
-
+            //SetIntFloat(vm);
+			break;
+			
 
         case Bytecode_AddByte:
-            AddByte(vm);
-
+            //AddByte(vm);
+			break;
+			
         case Bytecode_AddInt:
-            AddIntFloat(vm);
-
+            //AddIntFloat(vm);
+			break;
+			
         case Bytecode_AddFloat:
-            AddIntFloat(vm);
-
+            //AddIntFloat(vm);
+			break;
+			
 
         case Bytecode_SubtractByte:
-            SubtractByte(vm);
-
+            //SubtractByte(vm);
+			break;
+			
         case Bytecode_SubtractInt:
-            SubtractIntFloat(vm);
-
+            //SubtractIntFloat(vm);
+			break;
+			
         case Bytecode_SubtractFloat:
-            SubtractIntFloat(vm);
-
-
+            //SubtractIntFloat(vm);
+			break;
+			
+	
         case Bytecode_MultiplyByte:
-            MultiplyByte(vm);
-
+            //MultiplyByte(vm);
+			break;
+			
         case Bytecode_MultiplyInt:
-            MultiplyIntFloat(vm);
-
+            //MultiplyIntFloat(vm);
+			break;
+			
         case Bytecode_MultiplyFloat:
-            MultiplyIntFloat(vm);
-
+            //MultiplyIntFloat(vm);
+			break;
+			
 
         case Bytecode_DivideByte:
-            DivideByte(vm);
-
+            //DivideByte(vm);
+			break;
+			
         case Bytecode_DivideInt:
-            DivideIntFloat(vm);
-
+            //DivideIntFloat(vm);
+			break;
+			
         case Bytecode_DivideFloat:
-            DivideIntFloat(vm);
-
+            //DivideIntFloat(vm);
+			break;
+			
 
         case Bytecode_Byte2Int:
-            Byte2Int(vm);
-
+            //Byte2Int(vm);
+			break;
+			
         case Bytecode_Byte2Float:
-            Byte2Float(vm);
-
+            //Byte2Float(vm);
+			break;
+			
         case Bytecode_Int2Float:
-            Int2Float(vm);
-
+            //Int2Float(vm);
+			break;
+			
         case Bytecode_Float2Int:
-            Float2Int(vm);
-
+            //Float2Int(vm);
+			break;
+			
 
         case Bytecode_SmallerThan:
-            SmallerThan(vm);
-
+            //SmallerThan(vm);
+			break;
+			
         case Bytecode_BiggerThan:
-            BiggerThan(vm);
-
+            //BiggerThan(vm);
+			break;
+			
         case Bytecode_Equal:
-            Equal(vm);
-
+            //Equal(vm);
+			break;
+			
 
         case Bytecode_If:
-            If(vm);
-
+            //If(vm);
+			break;
+			
         case Bytecode_IfNot:
-            IfNot(vm);
-
+            //IfNot(vm);
+			break;
+			
 
         case Bytecode_And:
-            And(vm);
-
+            //And(vm);
+			break;
+			
         case Bytecode_Or:
-            Or(vm);
-
+            //Or(vm);
+			break;
+			
         case Bytecode_Not:
-            Not(vm);
-
+            //Not(vm);
+			break;
+			
         }
 
         vm->programCounter += 1;
     }
 
-    ClearMemory(vm);
-    ClearStorage(vm);
+    ClearMemory(vm->stack);
+    ClearStorage(vm->stack);
     free(vm->stack);
     free(vm);
 }
