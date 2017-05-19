@@ -1,9 +1,10 @@
-#include "include\SilentVM.h"
+#include "SilentVM.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 int main() {
 
-
-    SilentStack* stack = CreateSilentStack(100, 100);
+    SilentStack* stack = CreateSilentStack(50, 50);
     SilentVM* vm = CreateSilentVM(stack);
 
     DeleteSilentStack(stack);
