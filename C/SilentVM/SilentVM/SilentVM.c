@@ -1,4 +1,5 @@
 #include "SilentVM.h"
+#include <stdio.h>
 
 #define DATATOINT(memory,location, x) (x) = *(int*)((memory) + (location));
 #define DATATOFLOAT(memory,location, x) (x) = *(float*)((memory) + (location));
@@ -80,23 +81,23 @@ SilentVM* CreateSilentVM(SilentStack *stack)
     SilentVM* vm = malloc(sizeof(SilentVM));
     vm->script = malloc(1);
     vm->stack = stack;
-	(*vm).programCounter = 0;
+	vm->programCounter = 0;
     return vm;
 }
 
 void DeleteSilentVM(SilentVM * vm)
 {
-    //free(vm->script);    
+    free(vm->script);    
     free(vm);
 }
 
 SilentStack* CreateSilentStack(int MemorySize, int StorageSize)
 {
-    SilentStack* stack = malloc(sizeof(stack));
+    SilentStack* stack = malloc(sizeof(SilentStack));
     stack->memory = malloc(MemorySize);
     stack->storage = malloc(StorageSize);
-    stack->stackPointer = malloc(sizeof(int));
-    stack->storagePointer = malloc(sizeof(int));
+    stack->stackPointer = 0;
+    stack->storagePointer = 0;
     return stack;
 }
 
@@ -105,6 +106,7 @@ void DeleteSilentStack(SilentStack *stack)
 {
     free(stack->memory);
     free(stack->storage);
+    free(stack);
 }
 
 void UpdateStackSize(SilentStack *stack, int NewStackSize)
@@ -117,6 +119,11 @@ void UpdateStorageSize(SilentStack *stack, int NewStackSize)
     realloc(stack->storage, NewStackSize);
 }
 
+void AddFunction(SilentVM* vm, void (*FunctionPointer[])()) 
+{
+    FunctionPointer[1]();
+}
+
 void ExecuteScript(SilentVM *vm, char *script)
 {
     free(vm->script);
@@ -124,9 +131,11 @@ void ExecuteScript(SilentVM *vm, char *script)
     vm->running = 1;
 
     while (vm->running) {
-        switch (vm->script[vm->programCounter]) 
+
+        switch (*(vm->script + vm->programCounter)) 
         {
         case Bytecode_Halt:
+            printf("stop\n");
             vm->running = 0;
 			break;
 
@@ -141,6 +150,7 @@ void ExecuteScript(SilentVM *vm, char *script)
 			
   
         case Bytecode_ClearMemory:
+            printf("clear\n");
             memset(vm->stack->memory, 0, vm->stack->stackPointer);
             vm->stack->stackPointer = 0;
 			break;
@@ -152,7 +162,9 @@ void ExecuteScript(SilentVM *vm, char *script)
 			
 
         case Bytecode_PushByte:
-            vm->stack->memory[vm->stack->stackPointer++] = vm->script[++(vm->programCounter)];
+            vm->stack->memory[vm->stack->stackPointer++] = vm->script[++vm->programCounter];
+
+            printf("push\n");
 			break;
 			
         case Bytecode_PushInt:
@@ -220,6 +232,7 @@ void ExecuteScript(SilentVM *vm, char *script)
 			
 
         case Bytecode_AddByte:
+            printf("add\n");
             //AddByte(vm);
 			break;
 			
@@ -326,9 +339,4 @@ void ExecuteScript(SilentVM *vm, char *script)
 
         vm->programCounter += 1;
     }
-
-    ClearMemory(vm->stack);
-    ClearStorage(vm->stack);
-    free(vm->stack);
-    free(vm);
 }

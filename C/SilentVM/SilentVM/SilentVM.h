@@ -19,6 +19,9 @@ typedef struct SilentVM {
     int programCounter;
     char running;
 
+    void(*FunctionPointer)();
+    int functionCounter;
+
 }SilentVM;
 
 
