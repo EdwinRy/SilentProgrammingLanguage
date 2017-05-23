@@ -8,11 +8,11 @@ int main() {
     SilentVM* vm = CreateSilentVM(stack);
 
     char* script = malloc(10);
-    script[0] = 5;
-    script[1] = 2;
-    script[2] = 5;
-    script[3] = 2;
-    script[4] = 20;
+    script[0] = 1;
+    script[1] = 0;
+    script[2] = 0;
+    script[3] = 0;
+    script[4] = 0;
     script[5] = 3;
     script[6] = 0;
     script[7];

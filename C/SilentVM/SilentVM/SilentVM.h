@@ -19,8 +19,8 @@ typedef struct SilentVM {
     int programCounter;
     char running;
 
-    void(*FunctionPointer)();
-    int functionCounter;
+    void (*FunctionPointer)();
+    int FunctionCounter;
 
 }SilentVM;
 
@@ -35,4 +35,5 @@ void DeleteSilentStack(SilentStack *stack);
 void UpdateStackSize(SilentStack *stack, int newStackSize);
 void UpdateStorageSize(SilentStack *stack, int newStackSize);
 
+void AddFunction(SilentVM* vm, void(*FunctionPointer)());
 void ExecuteScript(SilentVM *vm, char* script);
