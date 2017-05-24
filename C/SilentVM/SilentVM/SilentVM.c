@@ -119,9 +119,14 @@ void UpdateStorageSize(SilentStack *stack, int NewStackSize)
     realloc(stack->storage, NewStackSize);
 }
 
-void AddFunction(SilentVM* vm, void (*FunctionPointer)()) 
+void PrepareFunctions(SilentVM* vm, int NumberOfFunctions)
 {
-    vm->FunctionPointer[vm->FunctionCounter] = FunctionPointer;
+    vm->FunctionPointers = malloc(NumberOfFunctions + sizeof(*vm->FunctionPointers));
+}
+
+void AddFunctions(SilentVM* vm, void (**FunctionPointers)(SilentStack* stack))
+{
+    vm->FunctionPointers = FunctionPointers;
 }
 
 void ExecuteScript(SilentVM *vm, char *script)
@@ -139,12 +144,15 @@ void ExecuteScript(SilentVM *vm, char *script)
 			break;
 
         case Bytecode_GoTo:
+            //printf("%i \n", *((int*)(vm->script + (++vm->programCounter))));
             vm->programCounter = *((int*)(vm->script + (++vm->programCounter)));
+            vm->programCounter--;
 			break;
 			
         case Bytecode_Call:
             //vm->programCounter++;
-            (*vm->FunctionPointer[*((int*)(vm->script + (++vm->programCounter)))])();
+            (*vm->FunctionPointers[*((int*)(vm->script + (++vm->programCounter)))])(vm->stack);
+            vm->programCounter += 3;
 			break;
 			
   
