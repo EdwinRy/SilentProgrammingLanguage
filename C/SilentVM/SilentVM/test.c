@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void swag() 
+void swag(SilentStack* stack)
 {
-    printf("first kek\n");
+    printf("memeory: %i \n",*((int*)stack->memory));
 }
 
 void sweg() 
@@ -27,9 +27,9 @@ int main()
     AddFunctions(vm, FunctionPointers);
 
     char* script = malloc(20);
-    script[0] = 1;
-    script[1] = 5;
-    script[2] = 0;
+    script[0] = 6;
+    script[1] = 0;
+    script[2] = 1;
     script[3] = 0;
     script[4] = 0;
     script[5] = 2;
@@ -37,13 +37,13 @@ int main()
     script[7] = 0;
     script[8] = 0;
     script[9] = 0;
-    script[10] = 2;
-    script[11] = 1;
+    script[10] = 3;
+    script[11] = 0;
     script[12] = 0;
     script[13] = 0;
     script[14] = 0;
     script[15] = 0;
-    script[16] = 3;
+    script[16] = 0;
     script[17] = 0;
 
     ExecuteScript(vm, script);

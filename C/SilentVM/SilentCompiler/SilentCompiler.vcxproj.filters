@@ -18,9 +18,15 @@
     <ClInclude Include="SilentCompiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SilentLexer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SilentCompiler.cpp">
+    <ClCompile Include="SilentCompiler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SilentLexer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

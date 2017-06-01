@@ -6,8 +6,9 @@ typedef struct SilentStack {
 
     char* memory;
     char* storage;
-    int stackPointer;
-    int storagePointer;
+    char* storagePointers;
+    unsigned int stackPointer;
+    unsigned int storagePointer;
 
 }SilentStack;
 
@@ -16,11 +17,11 @@ typedef struct SilentVM {
 
     SilentStack* stack;
     char* script;
-    int programCounter;
+    unsigned int programCounter;
     char running;
 
     void (**FunctionPointers)(SilentStack* stack);
-    int FunctionCounter;
+    unsigned int FunctionCounter;
 
 }SilentVM;
 
@@ -32,9 +33,9 @@ void DeleteSilentVM(SilentVM *vm);
 SilentStack* CreateSilentStack(int stackSize, int StorageSize);
 void DeleteSilentStack(SilentStack *stack);
 
-void UpdateStackSize(SilentStack *stack, int newStackSize);
-void UpdateStorageSize(SilentStack *stack, int newStackSize);
+void UpdateStackSize(SilentStack *stack, unsigned int newStackSize);
+void UpdateStorageSize(SilentStack *stack, unsigned int newStackSize);
 
-void PrepareFunctions(SilentVM* vm, int NumberOfFunctions);
+void PrepareFunctions(SilentVM* vm, unsigned int NumberOfFunctions);
 void AddFunctions(SilentVM* vm, void (**FunctionPointer)(SilentStack* stack));
 void ExecuteScript(SilentVM *vm, char* script);

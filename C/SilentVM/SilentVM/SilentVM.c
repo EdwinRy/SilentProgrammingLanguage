@@ -1,9 +1,6 @@
 #include "SilentVM.h"
 #include <stdio.h>
 
-#define DATATOINT(memory,location, x) (x) = *(int*)((memory) + (location));
-#define DATATOFLOAT(memory,location, x) (x) = *(float*)((memory) + (location));
-
 #define Bytecode_Halt 0
 #define Bytecode_GoTo 1
 #define Bytecode_Call 2
@@ -64,6 +61,8 @@
 #define Bytecode_Not 43
 
 
+
+
 //Silent stack memory
 void ClearMemory(SilentStack *stack)
 {
@@ -109,17 +108,17 @@ void DeleteSilentStack(SilentStack *stack)
     free(stack);
 }
 
-void UpdateStackSize(SilentStack *stack, int NewStackSize)
+void UpdateStackSize(SilentStack *stack, unsigned int NewStackSize)
 {
     realloc(stack->memory, NewStackSize);
 }
 
-void UpdateStorageSize(SilentStack *stack, int NewStackSize)
+void UpdateStorageSize(SilentStack *stack, unsigned int NewStackSize)
 {
     realloc(stack->storage, NewStackSize);
 }
 
-void PrepareFunctions(SilentVM* vm, int NumberOfFunctions)
+void PrepareFunctions(SilentVM* vm, unsigned int NumberOfFunctions)
 {
     vm->FunctionPointers = malloc(NumberOfFunctions + sizeof(*vm->FunctionPointers));
 }
@@ -139,62 +138,65 @@ void ExecuteScript(SilentVM *vm, char *script)
 
         switch (vm->script[vm->programCounter]) 
         {
-        case Bytecode_Halt:
+        case Bytecode_Halt:   //
             vm->running = 0;
 			break;
 
-        case Bytecode_GoTo:
+        case Bytecode_GoTo:     //
             //printf("%i \n", *((int*)(vm->script + (++vm->programCounter))));
-            vm->programCounter = *((int*)(vm->script + (++vm->programCounter)));
+            vm->programCounter = *((unsigned int*)(vm->script + (++vm->programCounter)));
             vm->programCounter--;
 			break;
 			
-        case Bytecode_Call:
+        case Bytecode_Call:     //
             //vm->programCounter++;
-            (*vm->FunctionPointers[*((int*)(vm->script + (++vm->programCounter)))])(vm->stack);
+            (*vm->FunctionPointers[*((unsigned int*)(vm->script + (++vm->programCounter)))])(vm->stack);
             vm->programCounter += 3;
 			break;
 			
   
-        case Bytecode_ClearMemory:
-            printf("clear\n");
+        case Bytecode_ClearMemory:     //
+            //printf("clear memory\n");
             memset(vm->stack->memory, 0, vm->stack->stackPointer);
             vm->stack->stackPointer = 0;
 			break;
 			
-        case Bytecode_ClearStorage:
+        case Bytecode_ClearStorage:    //
             memset(vm->stack->storage, 0, vm->stack->storagePointer);
             vm->stack->storagePointer = 0;
 			break;
 			
 
-        case Bytecode_PushByte:
+        case Bytecode_PushByte:     //
             vm->stack->memory[vm->stack->stackPointer++] = vm->script[++vm->programCounter];
 
-            printf("push\n");
+            //printf("push\n");
 			break;
 			
-        case Bytecode_PushInt:
+        case Bytecode_PushInt:       //
             //Copy 4 bytes of data over
-            memcpy(vm->stack->memory + vm->stack->stackPointer, vm->script + ++(vm->programCounter), 4);
-            vm->stack->stackPointer += 4;
+            //memcpy(vm->stack->memory + vm->stack->stackPointer, vm->script + ++(vm->programCounter), 4);
+            vm->stack->memory[vm->stack->stackPointer++] = *((int*)(vm->script + (++vm->programCounter)));
+            vm->programCounter += 3;
+            vm->stack->stackPointer += 3;
 			break;
 			
-        case Bytecode_PushFloat:
+        case Bytecode_PushFloat:     //
             memcpy(vm->stack->memory + vm->stack->stackPointer, vm->script + ++(vm->programCounter), 4);
+            vm->programCounter += 3;
             vm->stack->stackPointer += 4;
 			break;
 			
 
-        case Bytecode_PopByte:
+        case Bytecode_PopByte:      //
             vm->stack->stackPointer--;
 			break;
 			
-        case Bytecode_PopInt:
+        case Bytecode_PopInt:      //
             vm->stack->stackPointer -= 4;
 			break;
 			
-        case Bytecode_PopFloat:
+        case Bytecode_PopFloat:      //
             vm->stack->stackPointer -= 4;
 			break;
 			

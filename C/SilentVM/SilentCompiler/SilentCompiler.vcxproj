@@ -113,10 +113,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="SilentLexer.h" />
     <ClInclude Include="SilentCompiler.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SilentCompiler.cpp" />
+    <ClCompile Include="SilentCompiler.c" />
+    <ClCompile Include="SilentLexer.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
