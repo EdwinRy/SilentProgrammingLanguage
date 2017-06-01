@@ -33,7 +33,8 @@ namespace SilentCompiler
 
                     if (temp[i].EndsWith("+"))
                     {
-                        AddToEnd = true; 
+                        AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains("+"))
@@ -67,6 +68,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("-"))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains("-"))
@@ -99,6 +101,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("/"))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains("/"))
@@ -131,6 +134,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("*"))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains("*"))
@@ -163,6 +167,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("=="))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-2,2);
                     }
 
                     if (temp[i].Contains("=="))
@@ -195,6 +200,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("!="))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-2,2);
                     }
 
                     if (temp[i].Contains("!="))
@@ -227,6 +233,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith(">="))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-2,2);
                     }
 
                     if (temp[i].Contains(">="))
@@ -259,6 +266,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("<="))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-2,2);
                     }
 
                     if (temp[i].Contains("<="))
@@ -291,6 +299,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith(";"))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains(";"))
@@ -323,6 +332,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("("))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains("("))
@@ -355,6 +365,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith(")"))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains(")"))
@@ -387,6 +398,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("{"))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains("{"))
@@ -419,6 +431,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("}"))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains("}"))
@@ -451,6 +464,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("["))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains("["))
@@ -483,6 +497,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("]"))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains("]"))
@@ -515,6 +530,7 @@ namespace SilentCompiler
                     if (temp[i].EndsWith("="))
                     {
                         AddToEnd = true;
+                        temp[i].Remove(-1);
                     }
 
                     if (temp[i].Contains("="))
