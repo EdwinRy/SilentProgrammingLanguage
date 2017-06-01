@@ -557,14 +557,31 @@ namespace SilentCompiler
 
             }
 
-            for(int i = 0;i < temp.Count; i++)
+            for(int i = 0; i < temp1.Count; i++)
             {
-
-                if (temp[i].Contains("new")){}
-                else if (temp[i].Contains("void")) { }
-                else if (temp[i].Contains("int")) { }
-                else if (temp[i].Contains("float")) { }
-                else if (temp[i].Contains("char")) { }
+                if (temp1[i] == "new") { tokens.Add(Tokens.New); }
+                if (temp1[i] == "void") { tokens.Add(Tokens.Void); }
+                if (temp1[i] == "int") { tokens.Add(Tokens.Integer); }
+                if (temp1[i] == "float") { tokens.Add(Tokens.Float); }
+                if (temp1[i] == "char") { tokens.Add(Tokens.Char); }
+                if (temp1[i] == "+") { tokens.Add(Tokens.Add); }
+                if (temp1[i] == "-") { tokens.Add(Tokens.Subtract); }
+                if (temp1[i] == "*") { tokens.Add(Tokens.Multiple); }
+                if (temp1[i] == "/") { tokens.Add(Tokens.Divide); }
+                if (temp1[i] == "==") { tokens.Add(Tokens.Equal); }
+                if (temp1[i] == "=") { tokens.Add(Tokens.Assign); }
+                if (temp1[i] == ">=") { tokens.Add(Tokens.MoreThan); }
+                if (temp1[i] == "<=") { tokens.Add(Tokens.LessThan); }
+                if (temp1[i] == "!=") { tokens.Add(Tokens.IsNot); }
+                if (temp1[i] == ";") { tokens.Add(Tokens.Semicolon); }
+                if (temp1[i] == "[") { tokens.Add(Tokens.OpenBracket); }
+                if (temp1[i] == "]") { tokens.Add(Tokens.CloseBracket); }
+                if (temp1[i] == "(") { tokens.Add(Tokens.OpenParentheses); }
+                if (temp1[i] == ")") { tokens.Add(Tokens.CloseParentheses); }
+                if (temp1[i] == "{") { tokens.Add(Tokens.OpenCurlyBracket); }
+                if (temp1[i] == "}") { tokens.Add(Tokens.CloseCurlyBracket); }
+                if (temp1[i] == "return") { tokens.Add(Tokens.Return); }
+                if (temp1[i] == "using") { tokens.Add(Tokens.Using); }
 
             }
 
