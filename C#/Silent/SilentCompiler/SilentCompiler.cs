@@ -21,8 +21,17 @@ namespace SilentCompiler
 
     public enum Tokens
     {
+        Public,
+        Private,
+        Static,
+        Class,
         New,      
-        Void,       
+        Void,
+        While,
+        For,
+        If,
+        Elif,
+        Else,
         Integer,     
         Float,       
         Char,

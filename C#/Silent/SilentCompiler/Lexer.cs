@@ -582,10 +582,16 @@ namespace SilentCompiler
                 if (temp1[i] == "}") { tokens.Add(Tokens.CloseCurlyBracket); }
                 if (temp1[i] == "return") { tokens.Add(Tokens.Return); }
                 if (temp1[i] == "using") { tokens.Add(Tokens.Using); }
-
+                if (temp1[i] == "public") { tokens.Add(Tokens.Public); }
+                if (temp1[i] == "private") { tokens.Add(Tokens.Private); }
+                if (temp1[i] == "static") { tokens.Add(Tokens.Static); }
+                if (temp1[i] == "class") { tokens.Add(Tokens.Class); }
+                if (temp1[i] == "while") { tokens.Add(Tokens.Class); }
+                if (temp1[i] == "for") { tokens.Add(Tokens.Class); }
+                if (temp1[i] == "if") { tokens.Add(Tokens.Class); }
+                if (temp1[i] == "elif") { tokens.Add(Tokens.Class); }
+                if (temp1[i] == "else") { tokens.Add(Tokens.Class); }
             }
-
-
 
             return tokens;
         }
