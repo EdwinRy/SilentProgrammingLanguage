@@ -19,7 +19,7 @@ namespace SilentCompiler
 
             for(int i = 0; i < tokens.Count; i++)
             {
-                //Console.WriteLine(tokens[i]);
+                Console.WriteLine(tokens[i]);
             }
         }
     }
