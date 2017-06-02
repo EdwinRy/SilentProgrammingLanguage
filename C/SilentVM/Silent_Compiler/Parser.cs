@@ -11,96 +11,193 @@ namespace SilentCompiler
         List<Tokens> tokens;
         List<string> values;
 
+        List<silent_Namespace> namespaces;
+        List<silent_Class> classes;
+        List<silent_Struct> structs;
+        List<silent_Variable> variables;
+        List<silent_Array> arrays;
+        List<silent_Function> functions;
+        List<silent_Expression> expressions;
+
         public void Parse(List<Tokens> tokens, List<string> values)
         {
             this.tokens = tokens;
             this.values = values;
 
+            namespaces = new List<silent_Namespace>();
+            classes = new List<silent_Class>();
+            structs = new List<silent_Struct>();
+            variables = new List<silent_Variable>();
+            arrays = new List<silent_Array>();
+            functions = new List<silent_Function>();
+            expressions = new List<silent_Expression>();
+
+            for (int i = 0; i <= tokens.Count; i++)
+            {
+                if(tokens[i] == Tokens.Namespace)
+                {
+                    namespaces.Add(sortNamespace(i));
+                }
+
+                if(tokens[i] == Tokens.Function)
+                {
+                    functions.Add(sortFunction(i));
+                }
+
+            }
+
         }
 
-        private List<silent_Function> SortFunctions()
+        silent_Function sortFunction(int pos)
         {
-            List<silent_Function> functions = new List<silent_Function>();
+            silent_Function function = new silent_Function();
 
-
-            return functions;
+            return function;
         }
 
-        private void SortVariables()
+        silent_Namespace sortNamespace(int pos)
         {
-            List<silent_Variable> variables = new List<silent_Variable>();
+            int startPos = pos;
+            int endPos;
 
+            int noScopes = 0;
+
+            for(int i = 0; i < tokens.Count; i++)
+            {
+                if(i >= startPos)
+                {
+                    if(tokens[i] == Tokens.OpenBracket)
+                    {
+                        noScopes++;
+                    }
+
+                    if(tokens[i] == Tokens.CloseBracket)
+                    {
+                        noScopes--;
+                    }
+
+                    if(noScopes < 0)
+                    {
+                        endPos = i;
+                        tokens.RemoveRange(startPos, (endPos - startPos));
+                        break;
+                    }
+
+                }
+
+            }
+
+            silent_Namespace Namespace = new silent_Namespace();
+            Namespace.name = this.values[CountVal(pos)];
+            
+            
+            return Namespace;
+        }
+
+        int CountVal(int pos)
+        {
+            int counter = 0;
+
+            for(int i = 0; i < pos; i++)
+            {
+                if (tokens[i] == Tokens.Value) counter++;
+            }
+
+            return counter;
         }
 
     }
 
     struct silent_Namespace
     {
-        string name;
-        List<silent_Function> functions;
-        List<silent_Variable> variables;
-        List<silent_Class> classes;
+        public string name;
+        public List<silent_Function> functions;
+        public List<silent_Variable> variables;
+        public List<silent_Class> classes;
     }
 
     struct silent_Class
     {
-        string name;
+        public string name;
+        public List<silent_Method> methods;
+        public List<silent_ClassVariable> members;
+        public silent_Constructor constructor;
     }
 
     struct silent_Variable
     {
-        string name;
-        Types variableType;
-        string data;
+        public string name;
+        public Types variableType;
+        public string data;
     }
+
+    struct silent_ClassVariable
+    {
+        public string name;
+        public Types variableType;
+        public string data;
+        public silent_Class owner;
+        public AccessModifiers accessModifier;
+    }   
 
     struct silent_Expression
     {
-        string name;
-        List<Tokens> tokens;
-        List<string> values;
+        public string name;
+        public List<Tokens> tokens;
+        public List<string> values;
     }
 
     struct silent_Array
     {
-        string name;
-        List<silent_Variable> variables;
-        int Length;
+        public string name;
+        public List<silent_Variable> variables;
+        public int Length;
     }
 
     struct silent_Struct
     {
-        string name;
-        List<silent_Variable> variables;
-        List<silent_Array> arrays;
+        public string name;
+        public List<silent_Variable> variables;
+        public List<silent_Array> arrays;
+    }
+
+    struct silent_Constructor
+    {
+        public string name;
+        public List<silent_Expression> expressions;
+
+        public List<silent_Variable> localVariables;
+        public List<silent_Struct> localStructs;
+        public List<silent_Array> localArrays;
     }
 
     struct silent_Function
     {
-        string name;
-        List<silent_Expression> expressions;
-        silent_Variable returnType;
+        public string name;
+        public List<silent_Expression> expressions;
+        public silent_Variable returnType;
 
-        List<silent_Variable> localVariables;
-        List<silent_Struct> localStructs;
-        List<silent_Array> localArrays;
+        public List<silent_Variable> localVariables;
+        public List<silent_Struct> localStructs;
+        public List<silent_Array> localArrays;
     }
 
     struct silent_Method
     {
-        AccessModifiers access;
-        string name;
-        List<silent_Expression> expressions;
-        silent_Variable returnType;
+        public AccessModifiers access;
+        public string name;
+        public List<silent_Expression> expressions;
+        public silent_Variable returnType;
 
-        List<silent_Variable> localVariables;
-        List<silent_Struct> localStructs;
-        List<silent_Array> localArrays;
+        public List<silent_Variable> localVariables;
+        public List<silent_Struct> localStructs;
+        public List<silent_Array> localArrays;
     }
 
     enum Types
     {
         Char,
+        String,
         Integer,
         Float,
         Null
