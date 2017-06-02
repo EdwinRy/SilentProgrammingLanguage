@@ -17,35 +17,85 @@ namespace SilentCompiler
             this.values = values;
 
         }
+
+        private List<silent_Function> SortFunctions()
+        {
+            List<silent_Function> functions = new List<silent_Function>();
+
+
+            return functions;
+        }
+
+        private void SortVariables()
+        {
+            List<silent_Variable> variables = new List<silent_Variable>();
+
+        }
+
+    }
+
+    struct silent_Namespace
+    {
+        string name;
+        List<silent_Function> functions;
+        List<silent_Variable> variables;
+        List<silent_Class> classes;
+    }
+
+    struct silent_Class
+    {
+        string name;
     }
 
     struct silent_Variable
     {
+        string name;
         Types variableType;
         string data;
     }
 
     struct silent_Expression
     {
+        string name;
         List<Tokens> tokens;
         List<string> values;
     }
 
     struct silent_Array
     {
+        string name;
         List<silent_Variable> variables;
         int Length;
     }
 
     struct silent_Struct
     {
+        string name;
         List<silent_Variable> variables;
+        List<silent_Array> arrays;
     }
 
     struct silent_Function
     {
+        string name;
         List<silent_Expression> expressions;
         silent_Variable returnType;
+
+        List<silent_Variable> localVariables;
+        List<silent_Struct> localStructs;
+        List<silent_Array> localArrays;
+    }
+
+    struct silent_Method
+    {
+        AccessModifiers access;
+        string name;
+        List<silent_Expression> expressions;
+        silent_Variable returnType;
+
+        List<silent_Variable> localVariables;
+        List<silent_Struct> localStructs;
+        List<silent_Array> localArrays;
     }
 
     enum Types
@@ -54,6 +104,12 @@ namespace SilentCompiler
         Integer,
         Float,
         Null
+    }
+
+    enum AccessModifiers
+    {
+        Private,
+        Public
     }
 
     enum ByteCode

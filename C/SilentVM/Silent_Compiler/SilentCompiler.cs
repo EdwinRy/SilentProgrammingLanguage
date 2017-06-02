@@ -36,21 +36,21 @@ namespace SilentCompiler
 
     public enum Tokens
     {
-        Public,                //
-        Private,                 //
-        Static,                    //
+        Public,              
+        Private,             
+        Static,              
 
-        Namespace,                   //
+        Namespace,           
         Using,
-        Class,                         //
+        Class,               
         Fullstop,
 
         Method,
-        Function,              //
+        Function,            
 
         Return,
-        Struct,                  //
-        Array,                     //
+        Struct,              
+        Array,               
 
         While,
         For,
@@ -59,11 +59,12 @@ namespace SilentCompiler
         Elif,
         Else,
 
-        New,                         //
+        New,                 
         Assign,
-        Void,                          //
+        Void,               
         Integer,     
-        Float,       
+        Float,
+        String,
         Char,
         Comma,
 
@@ -84,7 +85,6 @@ namespace SilentCompiler
         CloseParentheses,
         OpenCurlyBracket,
         CloseCurlyBracket,
-
 
         Value              
     }

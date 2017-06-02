@@ -78,6 +78,7 @@ namespace SilentCompiler
                 else if (temp1[i] == "void") { tokens.Add(Tokens.Void); }
                 else if (temp1[i] == "int") { tokens.Add(Tokens.Integer); }
                 else if (temp1[i] == "float") { tokens.Add(Tokens.Float); }
+                else if (temp1[i] == "string") { tokens.Add(Tokens.String); }
                 else if (temp1[i] == "char") { tokens.Add(Tokens.Char); }
                 else if (temp1[i] == ",") { tokens.Add(Tokens.Comma); }
 
@@ -97,8 +98,8 @@ namespace SilentCompiler
                 else if (temp1[i] == "(") { tokens.Add(Tokens.OpenParentheses); }
                 else if (temp1[i] == ")") { tokens.Add(Tokens.CloseParentheses); }
                 else if (temp1[i] == "{") { tokens.Add(Tokens.OpenCurlyBracket); }
-
                 else if (temp1[i] == "}") { tokens.Add(Tokens.CloseCurlyBracket); }
+
                 else { tokens.Add(Tokens.Value); values.Add(temp1[i]); }
             }
 
