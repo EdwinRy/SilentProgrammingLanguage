@@ -1,1 +1,8 @@
-﻿void main() { return 0; }
+﻿void main()
+{
+
+	int kek = 21;
+	int y = kek + 5;
+
+	return 0; 	
+}

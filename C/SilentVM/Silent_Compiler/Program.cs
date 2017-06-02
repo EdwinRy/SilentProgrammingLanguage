@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 using System.IO;
 using SilentCompiler;
 
-namespace Silent_Compiler
+namespace SilentCompiler
 {
     class Program
     {
         static void Main(string[] args)
         {
             string source = File.ReadAllText("test1.txt");
-            SilentCompiler.SilentCompiler compiler = new SilentCompiler.SilentCompiler();
+            SilentCompiler compiler = new SilentCompiler();
             compiler.Compile(source);
             Console.ReadLine();
         }

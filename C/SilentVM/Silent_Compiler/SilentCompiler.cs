@@ -9,48 +9,74 @@ namespace SilentCompiler
 {
     public class SilentCompiler
     {
+        List<string> values;
         List<Tokens> tokens;
 
 
         public void Compile(string source)
         {
             Lexer lexer = new Lexer();
-            tokens = lexer.Tokenize(source);
+            Parser parser = new Parser();
+            tokens = lexer.Tokenize(source, out values);
+            parser.Parse(tokens, values);
 
             for(int i = 0; i < tokens.Count; i++)
             {
                 Console.WriteLine(tokens[i]);
+            }
+
+            Console.WriteLine("values:");
+
+            for (int i = 0; i < values.Count; i++)
+            {
+                Console.WriteLine(values[i]);
             }
         }
     }
 
     public enum Tokens
     {
-        Value,
-        Public,
-        Private,
-        Static,
-        Class,
-        New,      
-        Void,
+        Public,                //
+        Private,                 //
+        Static,                    //
+
+        Namespace,                   //
+        Using,
+        Class,                         //
+        Fullstop,
+
+        Method,
+        Function,              //
+
+        Return,
+        Struct,                  //
+        Array,                     //
+
         While,
-        Struct,
         For,
+
         If,
         Elif,
         Else,
+
+        New,                         //
+        Assign,
+        Void,                          //
         Integer,     
         Float,       
         Char,
+        Comma,
+
         Add,              
         Subtract,         
         Multiple,         
-        Divide,           
+        Divide,
+        
         Equal,            
-        Assign,
+        IsNot,
         MoreThan,
         LessThan,
-        IsNot,
+
         Semicolon,
         OpenBracket,
         CloseBracket,
@@ -58,8 +84,9 @@ namespace SilentCompiler
         CloseParentheses,
         OpenCurlyBracket,
         CloseCurlyBracket,
-        Return,
-        Using
+
+
+        Value              
     }
 
 }
