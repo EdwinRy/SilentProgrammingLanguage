@@ -43,26 +43,33 @@ namespace SilentCompiler
                 {
                     functions.Add(sortFunction(i));
                 }
-
             }
+        }
 
+        List<silent_Expression> sortExpression(int pos)
+        {
+            List<silent_Expression> expression = new List<silent_Expression>();
+
+            return expression;
         }
 
         silent_Function sortFunction(int pos)
         {
             silent_Function function = new silent_Function();
+            function.returnType = (Types)tokens[++pos];
 
             return function;
         }
 
         silent_Namespace sortNamespace(int pos)
         {
+            //not completed
             int startPos = pos;
             int endPos;
 
             int noScopes = 0;
 
-            for(int i = 0; i < tokens.Count; i++)
+            for(int i = startPos + 3; i < tokens.Count; i++)
             {
                 if(i >= startPos)
                 {
@@ -175,7 +182,8 @@ namespace SilentCompiler
     {
         public string name;
         public List<silent_Expression> expressions;
-        public silent_Variable returnType;
+        public Types returnType;
+        public silent_Variable returnValue;
 
         public List<silent_Variable> localVariables;
         public List<silent_Struct> localStructs;
@@ -196,11 +204,11 @@ namespace SilentCompiler
 
     enum Types
     {
-        Char,
-        String,
-        Integer,
-        Float,
-        Null
+        Char = Tokens.Char,
+        String = Tokens.String,
+        Integer = Tokens.Integer,
+        Float = Tokens.Float,
+        Null = Tokens.Void
     }
 
     enum AccessModifiers
