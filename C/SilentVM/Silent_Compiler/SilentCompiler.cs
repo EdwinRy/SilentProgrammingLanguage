@@ -16,9 +16,8 @@ namespace SilentCompiler
         public void Compile(string source)
         {
             Lexer lexer = new Lexer();
-            Parser parser = new Parser();
             tokens = lexer.Tokenize(source, out values);
-            parser.Parse(tokens, values);
+            Parser parser = new Parser(tokens, values);
 
             for(int i = 0; i < tokens.Count; i++)
             {
@@ -34,6 +33,7 @@ namespace SilentCompiler
         }
     }
 
+    //All possible tokens in the language
     public enum Tokens
     {
         Public,              

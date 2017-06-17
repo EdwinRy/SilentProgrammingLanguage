@@ -1,8 +1,34 @@
-﻿func void main()
+﻿namespace kek
+{
+	class meme
+	{
+		
+		method meme()
+		{
+		
+		}
+
+		method void print()
+		{
+		
+		}
+
+	}
+
+
+	func void swag()
+	{
+	
+	}
+
+
+}
+
+func void main()
 {
 
-	int kek = 21;
-	int y = kek + 5;
+	kek.meme memeclass = new kek.meme();
 
-	return 0; 	
 }
+
+main();

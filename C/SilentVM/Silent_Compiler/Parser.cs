@@ -8,52 +8,52 @@ namespace SilentCompiler
 {
     class Parser
     {
-        List<Tokens> tokens;
         List<string> values;
+        List<Tokens> program;
 
-        List<silent_Namespace> namespaces;
-        List<silent_Class> classes;
-        List<silent_Struct> structs;
-        List<silent_Variable> variables;
-        List<silent_Array> arrays;
-        List<silent_Function> functions;
-        List<silent_Expression> expressions;
+        silent_Scope globalScope;
 
-        public void Parse(List<Tokens> tokens, List<string> values)
+
+        public Parser(List<Tokens> tokens, List<string> values)
         {
-            this.tokens = tokens;
             this.values = values;
+            this.program = tokens;
 
-            namespaces = new List<silent_Namespace>();
-            classes = new List<silent_Class>();
-            structs = new List<silent_Struct>();
-            variables = new List<silent_Variable>();
-            arrays = new List<silent_Array>();
-            functions = new List<silent_Function>();
-            expressions = new List<silent_Expression>();
+            globalScope = new silent_Scope();
+            globalScope.tokens = tokens;
+            globalScope.pos = 0;
 
-            for (int i = 0; i <= tokens.Count; i++)
+            Parse(globalScope);
+
+        }
+
+        public void Parse(silent_Scope scope)
+        {
+
+            for (int i = 0; i <= scope.tokens.Count; i++)
             {
-                if(tokens[i] == Tokens.Namespace)
+                if(scope.tokens[i] == Tokens.Namespace)
                 {
-                    namespaces.Add(sortNamespace(i));
+                    scope.pos = i;
+                    scope.namespaces.Add(PrepareNamespace(scope));
                 }
 
-                if(tokens[i] == Tokens.Function)
+                if(scope.tokens[i] == Tokens.Function)
                 {
-                    functions.Add(sortFunction(i));
+                    scope.pos = i;
+                    scope.functions.Add(PrepareFunction(scope));
                 }
             }
         }
 
-        List<silent_Expression> sortExpression(int pos)
+        List<silent_Expression> PrepareExpression(silent_Scope scope)
         {
             List<silent_Expression> expression = new List<silent_Expression>();
 
             return expression;
         }
 
-        silent_Function sortFunction(int pos)
+        silent_Function PrepareFunction(silent_Scope scope)
         {
             silent_Function function = new silent_Function();
             function.returnType = (Types)tokens[++pos];
@@ -61,40 +61,56 @@ namespace SilentCompiler
             return function;
         }
 
-        silent_Namespace sortNamespace(int pos)
+        //Sort namespace in the global scope
+        silent_Namespace PrepareNamespace(silent_Scope scope)
         {
-            //not completed
-            int startPos = pos;
+            //Create new namespace
+            silent_Namespace Namespace = new silent_Namespace();
+
+            //Used to get the length of the scope
+            int startPos = scope.pos;
             int endPos;
 
+            //Number of scopes within the namespace
             int noScopes = 0;
 
-            for(int i = startPos + 3; i < tokens.Count; i++)
+
+            //Isolate the scope from the rest of the program
+            for(int i = startPos; i < scope.tokens.Count; i++)
             {
-                if(i >= startPos)
+                
+                //If opening bracket appears, a new scope is created
+                if(scope.tokens[i] == Tokens.OpenBracket)
                 {
-                    if(tokens[i] == Tokens.OpenBracket)
-                    {
-                        noScopes++;
-                    }
-
-                    if(tokens[i] == Tokens.CloseBracket)
-                    {
-                        noScopes--;
-                    }
-
-                    if(noScopes < 0)
-                    {
-                        endPos = i;
-                        tokens.RemoveRange(startPos, (endPos - startPos));
-                        break;
-                    }
-
+                    noScopes++;
                 }
 
+                //If closing bracket appears, a scope is closed
+                if(scope.tokens[i] == Tokens.CloseBracket)
+                {
+                    noScopes--;
+                }
+
+                //If the closing bracket closes current namespace scope
+                if(noScopes < 0)
+                {
+                    endPos = i;
+
+                    //Copy the namespace code into the namespace object
+                    for(int x = startPos; x <= endPos; x++)
+                    {
+                        Namespace.tokens.Add(scope.tokens[x]);
+                    }
+
+                    //Remove used code from the global scope as it won't be needed
+                    scope.tokens.RemoveRange(startPos, (endPos - startPos));
+                    break;
+                }
+                
             }
 
-            silent_Namespace Namespace = new silent_Namespace();
+            if()
+
             Namespace.name = this.values[CountVal(pos)];
             
             
@@ -107,7 +123,7 @@ namespace SilentCompiler
 
             for(int i = 0; i < pos; i++)
             {
-                if (tokens[i] == Tokens.Value) counter++;
+                if (globalScope.tokens[i] == Tokens.Value) counter++;
             }
 
             return counter;
@@ -115,17 +131,35 @@ namespace SilentCompiler
 
     }
 
+    struct silent_Scope
+    {
+        public List<silent_Namespace> namespaces;
+        public List<silent_Class> classes;
+        public List<silent_Struct> structs;
+        public List<silent_Variable> variables;
+        public List<silent_Array> arrays;
+        public List<silent_Function> functions;
+        public List<silent_Expression> expressions;
+        public int pos;
+        public List<Tokens> tokens;
+        public List<silent_Scope> scopes;
+
+    }
+
     struct silent_Namespace
     {
         public string name;
+        public int pos;
         public List<silent_Function> functions;
         public List<silent_Variable> variables;
         public List<silent_Class> classes;
+        public List<Tokens> tokens;
     }
 
     struct silent_Class
     {
         public string name;
+        public int pos;
         public List<silent_Method> methods;
         public List<silent_ClassVariable> members;
         public silent_Constructor constructor;
@@ -136,10 +170,12 @@ namespace SilentCompiler
         public string name;
         public Types variableType;
         public string data;
+        public int pos;
     }
 
     struct silent_ClassVariable
     {
+        public int pos;
         public string name;
         public Types variableType;
         public string data;
@@ -149,9 +185,9 @@ namespace SilentCompiler
 
     struct silent_Expression
     {
-        public string name;
-        public List<Tokens> tokens;
-        public List<string> values;
+        string value1;
+        string value2;
+        expressionOperation operation;
     }
 
     struct silent_Array
@@ -163,6 +199,7 @@ namespace SilentCompiler
 
     struct silent_Struct
     {
+        public int pos;
         public string name;
         public List<silent_Variable> variables;
         public List<silent_Array> arrays;
@@ -170,6 +207,7 @@ namespace SilentCompiler
 
     struct silent_Constructor
     {
+        public int pos;
         public string name;
         public List<silent_Expression> expressions;
 
@@ -188,6 +226,7 @@ namespace SilentCompiler
         public List<silent_Variable> localVariables;
         public List<silent_Struct> localStructs;
         public List<silent_Array> localArrays;
+        public int pos;
     }
 
     struct silent_Method
@@ -195,11 +234,23 @@ namespace SilentCompiler
         public AccessModifiers access;
         public string name;
         public List<silent_Expression> expressions;
-        public silent_Variable returnType;
+        public Types returnType;
+        public silent_Variable returnValue;
 
         public List<silent_Variable> localVariables;
         public List<silent_Struct> localStructs;
         public List<silent_Array> localArrays;
+        public int pos;
+    }
+
+    enum expressionOperation
+    {
+        Add,
+        Subtract,
+        Multiply,
+        Divide,
+        Equal,
+        Assign
     }
 
     enum Types
