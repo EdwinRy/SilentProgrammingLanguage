@@ -18,6 +18,8 @@ namespace SilentCompiler
             tokens = new List<Tokens>();
             values = new List<string>();
             temp1 = new List<string>();
+
+            //Prepare the source to be split into tokens
             temp = source.Replace('\n', ' ').
                 Replace('\t', ' ').
                 Replace('\r', ' ').
@@ -48,6 +50,7 @@ namespace SilentCompiler
                 temp1.Add(temp[i]);
             }
 
+            //Separate the source into tokens
             for(int i = 0; i < temp1.Count; i++)
             {
                 if (temp1[i] == "public") { tokens.Add(Tokens.Public); }

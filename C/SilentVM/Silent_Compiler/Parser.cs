@@ -8,39 +8,60 @@ namespace SilentCompiler
 {
     class Parser
     {
+        //List of values corresponding to the "value" tokens
         List<string> values;
+        //Program in the form of tokens
         List<Tokens> program;
 
+        //Global scope of the program
         silent_Scope globalScope;
 
-
+        //Parser object constructor - add the program and its values
         public Parser(List<Tokens> tokens, List<string> values)
         {
+            //Assign local variables to the passed parameters
             this.values = values;
             this.program = tokens;
 
+            //Create new global scope for the program
             globalScope = new silent_Scope();
+            //Copy the tokens from the program to the global scope
             globalScope.tokens = tokens;
+            globalScope.namespaces = new List<silent_Namespace>();
+            globalScope.functions = new List<silent_Function>();
+            globalScope.classes = new List<silent_Class>();
+            //Set the current position to 0
             globalScope.pos = 0;
 
+            //Start parsing the code
             Parse(globalScope);
 
         }
 
+        //Turn the list of tokens into silent objects
         public void Parse(silent_Scope scope)
         {
 
-            for (int i = 0; i <= scope.tokens.Count; i++)
+
+            //Iterate through the list of tokens
+            for (int i = 0; i < scope.tokens.Count; i++)
             {
-                if(scope.tokens[i] == Tokens.Namespace)
+                //If the current token is a decleration of a namespace
+                if (scope.tokens[i] == Tokens.Namespace)
                 {
+                    //Save current position in the list
                     scope.pos = i;
+                    //Add a namespace object to the list of namespaces
                     scope.namespaces.Add(PrepareNamespace(scope));
+                    i = 0;
                 }
 
-                if(scope.tokens[i] == Tokens.Function)
+                //If the current token is a decleration of a namespace
+                if (scope.tokens[i] == Tokens.Function)
                 {
+                    //Save current position in the list
                     scope.pos = i;
+                    //Add a function object to the list of functions
                     scope.functions.Add(PrepareFunction(scope));
                 }
             }
@@ -56,7 +77,7 @@ namespace SilentCompiler
         silent_Function PrepareFunction(silent_Scope scope)
         {
             silent_Function function = new silent_Function();
-            function.returnType = (Types)tokens[++pos];
+            //function.returnType = (Types)tokens[++pos];
 
             return function;
         }
@@ -66,6 +87,9 @@ namespace SilentCompiler
         {
             //Create new namespace
             silent_Namespace Namespace = new silent_Namespace();
+            Namespace.tokens = new List<Tokens>();
+            //Assign the namespace position in the code
+            Namespace.pos = scope.pos;
 
             //Used to get the length of the scope
             int startPos = scope.pos;
@@ -74,30 +98,36 @@ namespace SilentCompiler
             //Number of scopes within the namespace
             int noScopes = 0;
 
+            Console.WriteLine(Namespace.tokens.Count);
+
+            bool namespaceOpened = false;
 
             //Isolate the scope from the rest of the program
             for(int i = startPos; i < scope.tokens.Count; i++)
             {
-                
+
                 //If opening bracket appears, a new scope is created
-                if(scope.tokens[i] == Tokens.OpenBracket)
+                if (scope.tokens[i] == Tokens.OpenCurlyBracket)
                 {
                     noScopes++;
+                    namespaceOpened = true;
                 }
 
                 //If closing bracket appears, a scope is closed
-                if(scope.tokens[i] == Tokens.CloseBracket)
+                if(scope.tokens[i] == Tokens.CloseCurlyBracket)
                 {
                     noScopes--;
                 }
 
                 //If the closing bracket closes current namespace scope
-                if(noScopes < 0)
+                if(noScopes == 0 && namespaceOpened == true)
                 {
-                    endPos = i;
+                    endPos = i + 1;
+
+
 
                     //Copy the namespace code into the namespace object
-                    for(int x = startPos; x <= endPos; x++)
+                    for (int x = startPos; x < endPos; x++)
                     {
                         Namespace.tokens.Add(scope.tokens[x]);
                     }
@@ -109,9 +139,20 @@ namespace SilentCompiler
                 
             }
 
-            if()
+            //If the token after the namespace token is a value, it becomes the namespace's name
+            if (Namespace.tokens[1] == Tokens.Value)
+            {
+                //Declare the namespace's name
+                Namespace.name = this.values[CountVal(Namespace.pos)];
+            }
 
-            Namespace.name = this.values[CountVal(pos)];
+            if (Namespace.tokens[1] != Tokens.Value || Namespace.tokens[2] != Tokens.OpenCurlyBracket)
+            {
+                Console.WriteLine("namespace declaration invalid");
+                Console.ReadKey();
+                Environment.Exit(0);
+            }
+
             
             
             return Namespace;
@@ -135,14 +176,9 @@ namespace SilentCompiler
     {
         public List<silent_Namespace> namespaces;
         public List<silent_Class> classes;
-        public List<silent_Struct> structs;
-        public List<silent_Variable> variables;
-        public List<silent_Array> arrays;
         public List<silent_Function> functions;
-        public List<silent_Expression> expressions;
         public int pos;
         public List<Tokens> tokens;
-        public List<silent_Scope> scopes;
 
     }
 
@@ -150,8 +186,6 @@ namespace SilentCompiler
     {
         public string name;
         public int pos;
-        public List<silent_Function> functions;
-        public List<silent_Variable> variables;
         public List<silent_Class> classes;
         public List<Tokens> tokens;
     }
