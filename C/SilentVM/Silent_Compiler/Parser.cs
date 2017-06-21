@@ -57,12 +57,18 @@ namespace SilentCompiler
                 }
 
                 //If the current token is a decleration of a namespace
-                if (scope.tokens[i] == Tokens.Function)
+                else if (scope.tokens[i] == Tokens.Function)
                 {
                     //Save current position in the list
                     scope.pos = i;
                     //Add a function object to the list of functions
                     scope.functions.Add(PrepareFunction(scope));
+                    i = 0;
+                }
+
+                else
+                {
+                    PrintError("Code in the global scope will not be executed");
                 }
             }
         }
@@ -148,9 +154,7 @@ namespace SilentCompiler
 
             if (Namespace.tokens[1] != Tokens.Value || Namespace.tokens[2] != Tokens.OpenCurlyBracket)
             {
-                Console.WriteLine("namespace declaration invalid");
-                Console.ReadKey();
-                Environment.Exit(0);
+                PrintError("namespace declaration invalid");
             }
 
             
@@ -170,7 +174,17 @@ namespace SilentCompiler
             return counter;
         }
 
+        void PrintError(string message)
+        {
+            Console.WriteLine(message);
+            Console.ReadKey();
+            Environment.Exit(0);
+        }
+
+
     }
+
+   
 
     struct silent_Scope
     {
