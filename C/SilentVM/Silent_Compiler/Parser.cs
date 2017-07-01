@@ -14,7 +14,7 @@ namespace SilentCompiler
         List<Tokens> program;
 
         //Global scope of the program
-        silent_Scope globalScope;
+        silent_Namespace globalScope;
 
         //Parser object constructor - add the program and its values
         public Parser(List<Tokens> tokens, List<string> values)
@@ -24,14 +24,16 @@ namespace SilentCompiler
             this.program = tokens;
 
             //Create new global scope for the program
-            globalScope = new silent_Scope();
-            //Copy the tokens from the program to the global scope
-            globalScope.tokens = tokens;
-            globalScope.namespaces = new List<silent_Namespace>();
-            globalScope.functions = new List<silent_Function>();
-            globalScope.classes = new List<silent_Class>();
-            //Set the current position to 0
-            globalScope.pos = 0;
+            globalScope = new silent_Namespace()
+            {
+
+                //Copy the tokens from the program to the global scope
+                tokens = tokens,
+                name = "meme",
+                classes = new List<silent_Class>(),
+                //Set the current position to 0
+                pos = 0
+            };
 
             //Start parsing the code
             Parse(globalScope);
@@ -39,7 +41,7 @@ namespace SilentCompiler
         }
 
         //Turn the list of tokens into silent objects
-        public void Parse(silent_Scope scope)
+        public void Parse(silent_Namespace scope)
         {
 
 
@@ -52,7 +54,17 @@ namespace SilentCompiler
                     //Save current position in the list
                     scope.pos = i;
                     //Add a namespace object to the list of namespaces
-                    scope.namespaces.Add(PrepareNamespace(scope));
+                    scope.namespaces.Add(PrepareNamespace(scope, out i));
+
+                }
+
+                //If the current token is a decleration of a namespace
+                if (scope.tokens[i] == Tokens.Class)
+                {
+                    //Save current position in the list
+                    scope.pos = i;
+                    //Add a namespace object to the list of namespaces
+                    scope.classes.Add(PrepareClass(scope));
                     i = 0;
                 }
 
@@ -73,91 +85,19 @@ namespace SilentCompiler
             }
         }
 
-        List<silent_Expression> PrepareExpression(silent_Scope scope)
+        List<silent_Expression> PrepareExpression(silent_Namespace scope)
         {
             List<silent_Expression> expression = new List<silent_Expression>();
 
             return expression;
         }
 
-        silent_Function PrepareFunction(silent_Scope scope)
+        silent_Function PrepareFunction(silent_Namespace scope)
         {
             silent_Function function = new silent_Function();
             //function.returnType = (Types)tokens[++pos];
 
             return function;
-        }
-
-        silent_Class PrepareClass(silent_Scope scope)
-        {
-            silent_Class silent_class = new silent_Class()
-            {
-                members = new List<silent_ClassVariable>(),
-                methods = new List<silent_Method>(),
-                pos = scope.pos
-            };
-
-            //Used to get the length of the scope
-            int startPos = scope.pos;
-            int endPos;
-
-            //Number of scopes within the namespace
-            int noScopes = 0;
-
-            bool namespaceOpened = false;
-
-            //Isolate the scope from the rest of the program
-            for (int i = startPos; i < scope.tokens.Count; i++)
-            {
-
-                //If opening bracket appears, a new scope is created
-                if (scope.tokens[i] == Tokens.OpenCurlyBracket)
-                {
-                    noScopes++;
-                    namespaceOpened = true;
-                }
-
-                //If closing bracket appears, a scope is closed
-                if (scope.tokens[i] == Tokens.CloseCurlyBracket)
-                {
-                    noScopes--;
-                }
-
-                //If the closing bracket closes current namespace scope
-                if (noScopes == 0 && namespaceOpened == true)
-                {
-                    endPos = i + 1;
-
-
-
-                    //Copy the namespace code into the namespace object
-                    for (int x = startPos; x < endPos; x++)
-                    {
-                        silent_class.tokens.Add(scope.tokens[x]);
-                    }
-
-                    //Remove used code from the global scope as it won't be needed
-                    scope.tokens.RemoveRange(startPos, (endPos - startPos));
-                    break;
-                }
-
-            }
-
-            //If the token after the namespace token is a value, it becomes the namespace's name
-            if (silent_class.tokens[1] == Tokens.Value)
-            {
-                //Declare the namespace's name
-                silent_class.name = this.values[CountVal(silent_class.pos)];
-            }
-
-            if (silent_class.tokens[1] != Tokens.Value || silent_class.tokens[2] != Tokens.OpenCurlyBracket)
-            {
-                PrintError("namespace declaration invalid");
-            }
-
-
-            return silent_class;
-
         }
 
         silent_Class PrepareClass(silent_Namespace Namespace)
@@ -233,7 +173,7 @@ namespace SilentCompiler
         }
 
         //Sort namespace in the global scope
-        silent_Namespace PrepareNamespace(silent_Scope scope)
+        silent_Namespace PrepareNamespace(silent_Namespace scope, out int position)
         {
             //Create new namespace
             silent_Namespace Namespace = new silent_Namespace()
@@ -245,7 +185,7 @@ namespace SilentCompiler
 
             //Used to get the length of the scope
             int startPos = scope.pos;
-            int endPos;
+            int endPos = 0;
 
             //Number of scopes within the namespace
             int noScopes = 0;
@@ -307,13 +247,25 @@ namespace SilentCompiler
             //Iterate through the list of tokens
             for (int i = 0; i < Namespace.tokens.Count; i++)
             {
+
+
+                //If the current token is a decleration of a namespace
+                if (scope.tokens[i] == Tokens.Namespace)
+                {
+                    //Save current position in the list
+                    scope.pos = i;
+                    //Add a namespace object to the list of namespaces
+                    scope.namespaces.Add(PrepareNamespace(scope, out i));
+
+                }
+
                 //If the current token is a decleration of a namespace
                 if (Namespace.tokens[i] == Tokens.Class)
                 {
                     //Save current position in the list
                     Namespace.pos = i;
                     //Add a namespace object to the list of namespaces
-                    scope.namespaces.Add(PrepareClass(scope));
+                    scope.classes.Add(PrepareClass(scope));
                     i = 0;
                 }
 
@@ -329,11 +281,12 @@ namespace SilentCompiler
 
                 else
                 {
-                    PrintError("Code in the global scope will not be executed");
+                    PrintError("Instructions can't be executed within an uncallable scope");
                 }
             }
 
             Namespace.pos = startPos;
+            position = endPos;
             return Namespace;
         }
 
@@ -361,22 +314,14 @@ namespace SilentCompiler
 
    
 
-    struct silent_Scope
-    {
-        public List<silent_Namespace> namespaces;
-        public List<silent_Class> classes;
-        public List<silent_Function> functions;
-        public int pos;
-        public List<Tokens> tokens;
-
-    }
-
     struct silent_Namespace
     {
         public string name;
         public int pos;
         public List<silent_Class> classes;
         public List<Tokens> tokens;
+        public List<silent_Namespace> namespaces;
+        public List<silent_Function> functions;
     }
 
     struct silent_Class
