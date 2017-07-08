@@ -43,8 +43,6 @@ namespace SilentCompiler
         //Turn the list of tokens into silent objects
         public void Parse(silent_Namespace scope)
         {
-
-
             //Iterate through the list of tokens
             for (int i = 0; i < scope.tokens.Count; i++)
             {
@@ -55,7 +53,6 @@ namespace SilentCompiler
                     scope.pos = i;
                     //Add a namespace object to the list of namespaces
                     scope.namespaces.Add(PrepareNamespace(scope, out i));
-
                 }
 
                 //If the current token is a decleration of a namespace
@@ -309,10 +306,7 @@ namespace SilentCompiler
             Environment.Exit(0);
         }
 
-
     }
-
-   
 
     struct silent_Namespace
     {
