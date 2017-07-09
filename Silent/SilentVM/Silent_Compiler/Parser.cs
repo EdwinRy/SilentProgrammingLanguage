@@ -334,6 +334,7 @@ namespace SilentCompiler
         public Types variableType;
         public string data;
         public int pos;
+        public int varNO;
     }
 
     struct silent_ClassVariable
@@ -348,10 +349,16 @@ namespace SilentCompiler
 
     struct silent_Expression
     {
-        string value1;
-        string value2;
+        public List<Tokens> tokens;
+        List<silent_Variable> variables;
+        List<silent_SubExpression> brokenExpressions;
+    }
+
+    struct silent_SubExpression
+    {
+        silent_Variable value1;
+        silent_Variable value2;
         expressionOperation operation;
-        List<silent_Expression> expressions;
     }
 
     struct silent_Array
