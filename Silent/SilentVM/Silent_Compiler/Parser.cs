@@ -49,10 +49,8 @@ namespace SilentCompiler
                 //If the current token is a decleration of a namespace
                 if (scope.tokens[i] == Tokens.Namespace)
                 {
-                    //Save current position in the list
-                    scope.pos = i;
                     //Add a namespace object to the list of namespaces
-                    scope.namespaces.Add(PrepareNamespace(scope, out i));
+                    scope.namespaces.Add(PrepareNamespace(scope, i, out i));
                 }
 
                 //If the current token is a decleration of a namespace
@@ -82,14 +80,14 @@ namespace SilentCompiler
             }
         }
 
-        List<silent_Expression> PrepareExpression(silent_Namespace scope)
+        silent_Expression PrepareExpression(List<Tokens> tokens)
         {
             List<silent_Expression> expression = new List<silent_Expression>();
 
             return expression;
         }
 
-        silent_Function PrepareFunction(silent_Namespace scope)
+        silent_Function PrepareFunction(silent_Namespace upperScope, int pos, out int position)
         {
             silent_Function function = new silent_Function();
             //function.returnType = (Types)tokens[++pos];
@@ -97,13 +95,13 @@ namespace SilentCompiler
             return function;
         }
 
-        silent_Class PrepareClass(silent_Namespace Namespace)
+        silent_Class PrepareClass(silent_Namespace scope, int pos, out int position)
         {
             silent_Class silent_class = new silent_Class()
             {
                 members = new List<silent_ClassVariable>(),
                 methods = new List<silent_Method>(),
-                pos = Namespace.pos
+                pos = scope.pos
             };
 
             //Used to get the length of the scope
@@ -170,18 +168,18 @@ namespace SilentCompiler
         }
 
         //Sort namespace in the global scope
-        silent_Namespace PrepareNamespace(silent_Namespace scope, out int position)
+        silent_Namespace PrepareNamespace(silent_Namespace upperScope,int pos, out int position)
         {
             //Create new namespace
             silent_Namespace Namespace = new silent_Namespace()
             {
                 tokens = new List<Tokens>(),
                 //Assign the namespace position in the code
-                pos = scope.pos
+                pos = pos
             };
 
             //Used to get the length of the scope
-            int startPos = scope.pos;
+            int startPos = pos;
             int endPos = 0;
 
             //Number of scopes within the namespace
@@ -190,18 +188,18 @@ namespace SilentCompiler
             bool namespaceOpened = false;
 
             //Isolate the scope from the rest of the program
-            for(int i = startPos; i < scope.tokens.Count; i++)
+            for(int i = startPos; i < upperScope.tokens.Count; i++)
             {
 
                 //If opening bracket appears, a new scope is created
-                if (scope.tokens[i] == Tokens.OpenCurlyBracket)
+                if (upperScope.tokens[i] == Tokens.OpenCurlyBracket)
                 {
                     noScopes++;
                     namespaceOpened = true;
                 }
 
                 //If closing bracket appears, a scope is closed
-                if(scope.tokens[i] == Tokens.CloseCurlyBracket)
+                if(upperScope.tokens[i] == Tokens.CloseCurlyBracket)
                 {
                     noScopes--;
                 }
@@ -211,16 +209,11 @@ namespace SilentCompiler
                 {
                     endPos = i + 1;
 
-
-
                     //Copy the namespace code into the namespace object
                     for (int x = startPos; x < endPos; x++)
                     {
-                        Namespace.tokens.Add(scope.tokens[x]);
+                        Namespace.tokens.Add(upperScope.tokens[x]);
                     }
-
-                    //Remove used code from the global scope as it won't be needed
-                    //scope.tokens.RemoveRange(startPos, (endPos - startPos));
                     break;
                 }
                 
@@ -231,6 +224,7 @@ namespace SilentCompiler
             {
                 //Declare the namespace's name
                 Namespace.name = this.values[CountVal(Namespace.pos)];
+               
             }
 
             //Check for incorrect namespace declaration
@@ -244,36 +238,25 @@ namespace SilentCompiler
             //Iterate through the list of tokens
             for (int i = 0; i < Namespace.tokens.Count; i++)
             {
-
-
                 //If the current token is a decleration of a namespace
-                if (scope.tokens[i] == Tokens.Namespace)
+                if (Namespace.tokens[i] == Tokens.Namespace)
                 {
-                    //Save current position in the list
-                    scope.pos = i;
                     //Add a namespace object to the list of namespaces
-                    scope.namespaces.Add(PrepareNamespace(scope, out i));
-
+                    Namespace.namespaces.Add(PrepareNamespace(Namespace, i , out i));
                 }
 
-                //If the current token is a decleration of a namespace
+                //If the current token is a decleration of a class
                 if (Namespace.tokens[i] == Tokens.Class)
                 {
-                    //Save current position in the list
-                    Namespace.pos = i;
-                    //Add a namespace object to the list of namespaces
-                    scope.classes.Add(PrepareClass(scope));
-                    i = 0;
+                    //Add a class object to the list of namespaces
+                    Namespace.classes.Add(PrepareClass(Namespace, i, out i));
                 }
 
-                //If the current token is a decleration of a namespace
-                else if (scope.tokens[i] == Tokens.Function)
+                //If the current token is a decleration of a function
+                else if (Namespace.tokens[i] == Tokens.Function)
                 {
-                    //Save current position in the list
-                    scope.pos = i;
                     //Add a function object to the list of functions
-                    scope.functions.Add(PrepareFunction(scope));
-                    i = 0;
+                    Namespace.functions.Add(PrepareFunction(Namespace, i, out i));
                 }
 
                 else
@@ -281,10 +264,44 @@ namespace SilentCompiler
                     PrintError("Instructions can't be executed within an uncallable scope");
                 }
             }
-
             Namespace.pos = startPos;
             position = endPos;
             return Namespace;
+        }
+
+        silent_Namespace scanForName(string name, silent_Namespace namespaceToScan)
+        {
+            silent_Namespace objectPath = new silent_Namespace()
+            {
+                name = namespaceToScan.name
+            };
+
+            if(objectPath.name == name)
+            {
+                return objectPath;
+            }
+
+            for(int i = 0; i <= namespaceToScan.namespaces.Count; i++)
+            {
+
+                for(int x = 0; x < namespaceToScan.classes.Count; x++)
+                {
+
+                    if (namespaceToScan.classes[x].name == name)
+                    {
+                        objectPath.classes.Add(namespaceToScan.classes[x]); return objectPath;
+                    }
+
+                    for(int y = 0; y < namespaceToScan.classes[x].members.Count; x++)
+                    {
+
+                    }
+
+                }
+
+            }
+
+            return objectPath;
         }
 
         int CountVal(int pos)
