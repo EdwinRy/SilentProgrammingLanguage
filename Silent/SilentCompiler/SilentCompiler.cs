@@ -37,7 +37,8 @@ namespace SilentCompiler
     public enum Tokens
     {
         Public,              
-        Private,             
+        Private,
+        Protected,
         Static,              
 
         Namespace,           

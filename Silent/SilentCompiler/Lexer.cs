@@ -55,6 +55,7 @@ namespace SilentCompiler
             {
                 if (temp1[i] == "public") { tokens.Add(Tokens.Public); }
                 else if (temp1[i] == "private") { tokens.Add(Tokens.Private); }
+                else if (temp1[i] == "protected") { tokens.Add(Tokens.Protected); }
                 else if (temp1[i] == "static") { tokens.Add(Tokens.Static); }
 
                 else if (temp1[i] == "namespace") { tokens.Add(Tokens.Namespace); }
