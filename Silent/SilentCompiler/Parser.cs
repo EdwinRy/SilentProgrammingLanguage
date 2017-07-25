@@ -16,7 +16,7 @@ namespace SilentCompiler
         //Global scope of the program
         silent_Namespace globalScope;
 
-        //Parser object constructor - add the program and its values
+        //Parser object constructor - declare the program and its values
         public Parser(List<Tokens> tokens, List<string> values)
         {
             //Assign local variables to the passed parameters
@@ -26,7 +26,6 @@ namespace SilentCompiler
             //Create new global scope for the program
             globalScope = new silent_Namespace()
             {
-
                 //Copy the tokens from the program to the global scope
                 tokens = tokens,
                 name = "meme",
@@ -36,12 +35,11 @@ namespace SilentCompiler
             };
 
             //Start parsing the code
-            Parse(globalScope);
-
+            Parse();
         }
 
         //Turn the list of tokens into silent objects
-        public void Parse(silent_Namespace scope)
+        public void Parse()
         {
             //Iterate through the list of tokens
             for (int i = 0; i < globalScope.tokens.Count; i++)
@@ -50,27 +48,21 @@ namespace SilentCompiler
                 if (globalScope.tokens[i] == Tokens.Namespace)
                 {
                     //Add a namespace object to the list of namespaces
-                    scope.namespaces.Add(PrepareNamespace(i, out i));
+                    globalScope.namespaces.Add(PrepareNamespace(i, out i));
                 }
 
                 //If the current token is a decleration of a namespace
-                if (globalScope.tokens[i] == Tokens.Class)
+                else if (globalScope.tokens[i] == Tokens.Class)
                 {
-                    //Save current position in the list
-                    scope.pos = i;
                     //Add a namespace object to the list of namespaces
-                    scope.classes.Add(PrepareClass(i, out i));
-                    i = 0;
+                    globalScope.classes.Add(PrepareClass(i, out i));
                 }
 
                 //If the current token is a decleration of a namespace
                 else if (globalScope.tokens[i] == Tokens.Function)
                 {
-                    //Save current position in the list
-                    scope.pos = i;
                     //Add a function object to the list of functions
-                    scope.functions.Add(PrepareFunction(i, out i));
-                    i = 0;
+                    globalScope.functions.Add(PrepareFunction(i, out i));
                 }
 
                 else
@@ -82,31 +74,59 @@ namespace SilentCompiler
 
         silent_Expression PrepareExpression(int pos, out int position)
         {
-            List<silent_Expression> expression = new List<silent_Expression>();
+            silent_Expression Expression = new silent_Expression();
+            //Used to get the length of the scope
+            int startPos = pos;
+            int endPos = 0;
 
-            return expression;
+            position = endPos;
+            return Expression;
         }
 
         silent_ClassVariable PrepareClassVariable(int pos, out int position)
         {
+            silent_ClassVariable Variable = new silent_ClassVariable();
+            //Used to get the length of the scope
+            int startPos = pos;
+            int endPos = 0;
 
+            position = endPos;
+            return Variable;
         }
 
         silent_Variable PrepareVariable(int pos, out int position)
         {
+            silent_Variable Variable = new silent_Variable();
+            //Used to get the length of the scope
+            int startPos = pos;
+            int endPos = 0;
 
+            position = endPos;
+            return Variable;
         }
 
         silent_Function PrepareFunction(int pos, out int position)
         {
             silent_Function Function = new silent_Function();
             //Used to get the length of the scope
-            int startPos = globalScope.pos;
+            int startPos = pos;
             int endPos = 0;
 
 
             position = endPos;
             return Function;
+        }
+
+        silent_Method PrepareMethod(int pos, out int position)
+        {
+            silent_Method Method = new silent_Method();
+            //Used to get the length of the scope
+            int startPos = pos;
+            int endPos = 0;
+
+
+            position = endPos;
+            return Method;
         }
 
         silent_Class PrepareClass(int pos, out int position)
@@ -115,7 +135,7 @@ namespace SilentCompiler
             {
                 members = new List<silent_ClassVariable>(),
                 methods = new List<silent_Method>(),
-                pos = globalScope.pos
+                pos = pos
             };
 
             //Used to get the length of the scope
@@ -157,7 +177,6 @@ namespace SilentCompiler
 
                     break;
                 }
-
             }
 
             //If the token after the namespace token is a value, it becomes the namespace's name
@@ -177,23 +196,21 @@ namespace SilentCompiler
             //Iterate through the list of tokens
             for (int i = startPos; i < Class.tokens.Count; i++)
             {
-                //If the current token is a decleration of a namespace
-                if (Class.tokens[i] == Tokens.Public || Class.tokens[i] == Tokens.Private)
+                //If the current token is a decleration of a method
+                if (Class.tokens[i] == Tokens.Method)
                 {
-                    if (Class.tokens[i + 3] == Tokens.Semicolon) Class.members.Add(PrepareClassVariable(i, out i));
+                    Class.methods.Add(PrepareMethod(i, out i));
+                }
 
-                   //If the current token is a decleration of a function
-                    else if (Class.tokens[i] == Tokens.Method)
-                    {
-
-                    }
+                if (Class.tokens[i] == Tokens.Method)
+                {
+                    Class.methods.Add(PrepareMethod(i, out i));
                 }
 
                 else
                 {
                     PrintError("Instructions directly in the class scope will not be executed");
                 }
-
             }
 
             position = endPos;
@@ -456,67 +473,5 @@ namespace SilentCompiler
         Private,
         Public,
         Protected
-    }
-
-    enum ByteCode
-    {
-       Halt,
-       GoTo,
-       Call,
-
-       ClearMemory,
-       ClearStorage,
-
-       PushByte,
-       PushInt,
-       PushFloat,
-
-       PopByte,
-       PopInt,
-       PopFloat,
-
-       StoreByte,
-       StoreInt,
-       StoreFloat,
-
-       LoadByte,
-       LoadInt,
-       LoadFloat,
-
-       SetByte,
-       SetInt,
-       SetFloat,
-
-       AddByte,
-       AddInt,
-       AddFloat,
-
-       SubtractByte,
-       SubtractInt,
-       SubtractFloat,
-
-       MultiplyByte,
-       MultiplyInt,
-       MultiplyFloat,
-
-       DivideByte,
-       DivideInt,
-       DivideFloat,
-
-       Byte2Int,
-       Byte2Float,
-       Int2Float,
-       Float2Int,
-
-       SmallerThan,
-       BiggerThan,
-       Equal,
-
-       If,
-       IfNot,
-
-       And,
-       Or,
-       Not,
     }
 }

@@ -63,12 +63,13 @@ namespace SilentCompiler
                 else if (temp1[i] == "class") { tokens.Add(Tokens.Class); }
                 else if (temp1[i] == ".") { tokens.Add(Tokens.Fullstop); }
 
-                else if (temp1[i] == "method") { tokens.Add(Tokens.Function); }
+                else if (temp1[i] == "method") { tokens.Add(Tokens.Method); }
                 else if (temp1[i] == "func") { tokens.Add(Tokens.Function); }
 
                 else if (temp1[i] == "return") { tokens.Add(Tokens.Return); }
                 else if (temp1[i] == "struct") { tokens.Add(Tokens.Struct); }
                 else if (temp1[i] == "arr") { tokens.Add(Tokens.Array); }
+                else if (temp1[i] == "var") { tokens.Add(Tokens.Variable); }
 
                 else if (temp1[i] == "while") { tokens.Add(Tokens.Class); }
                 else if (temp1[i] == "for") { tokens.Add(Tokens.Class); }

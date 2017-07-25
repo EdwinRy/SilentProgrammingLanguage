@@ -67,6 +67,7 @@ namespace SilentCompiler
         Float,
         String,
         Char,
+        Variable,
         Comma,
 
         Add,              
