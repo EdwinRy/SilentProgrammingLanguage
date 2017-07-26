@@ -89,7 +89,7 @@ namespace SilentCompiler
 
                 else if (temp1[i] == "+") { tokens.Add(Tokens.Add); }
                 else if (temp1[i] == "-") { tokens.Add(Tokens.Subtract); }
-                else if (temp1[i] == "*") { tokens.Add(Tokens.Multiple); }
+                else if (temp1[i] == "*") { tokens.Add(Tokens.Asterisk); }
                 else if (temp1[i] == "/") { tokens.Add(Tokens.Divide); }
 
                 else if (temp1[i] == "==") { tokens.Add(Tokens.Equal); }

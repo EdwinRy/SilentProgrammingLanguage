@@ -117,6 +117,7 @@ namespace SilentCompiler
             return Function;
         }
 
+        //Sort method within a class
         silent_Method PrepareMethod(int pos, out int position)
         {
             silent_Method Method = new silent_Method();
@@ -124,11 +125,48 @@ namespace SilentCompiler
             int startPos = pos;
             int endPos = 0;
 
+            //Number of scopes within the method
+            int noScopes = 0;
+
+            bool namespaceOpened = false;
+
+            //Isolate the scope from the rest of the program
+            for (int i = startPos; i < globalScope.tokens.Count; i++)
+            {
+
+                //If opening bracket appears, a new scope is created
+                if (globalScope.tokens[i] == Tokens.OpenCurlyBracket)
+                {
+                    noScopes++;
+                    namespaceOpened = true;
+                }
+
+                //If closing bracket appears, a scope is closed
+                if (globalScope.tokens[i] == Tokens.CloseCurlyBracket)
+                {
+                    noScopes--;
+                }
+
+                //If the closing bracket closes current method scope
+                if (noScopes == 0 && namespaceOpened == true)
+                {
+                    endPos = i + 1;
+
+                    //Copy the code into the method object
+                    for (int x = startPos; x < endPos; x++)
+                    {
+                        Method.tokens.Add(globalScope.tokens[x]);
+                    }
+
+                    break;
+                }
+            }
 
             position = endPos;
             return Method;
         }
 
+        //Sort out class structure
         silent_Class PrepareClass(int pos, out int position)
         {
             silent_Class Class = new silent_Class()
@@ -142,7 +180,7 @@ namespace SilentCompiler
             int startPos = globalScope.pos;
             int endPos = 0;
 
-            //Number of scopes within the namespace
+            //Number of scopes within the class
             int noScopes = 0;
 
             bool namespaceOpened = false;
@@ -202,9 +240,10 @@ namespace SilentCompiler
                     Class.methods.Add(PrepareMethod(i, out i));
                 }
 
-                if (Class.tokens[i] == Tokens.Method)
+                //If the current token is a decleration of a variable
+                if (Class.tokens[i] == Tokens.Variable)
                 {
-                    Class.methods.Add(PrepareMethod(i, out i));
+                    Class.members.Add(PrepareClassVariable(i, out i));
                 }
 
                 else
@@ -443,6 +482,7 @@ namespace SilentCompiler
         public Types returnType;
         public silent_Variable returnValue;
 
+        public List<Tokens> tokens;
         public List<silent_Variable> localVariables;
         public List<silent_Struct> localStructs;
         public List<silent_Array> localArrays;

@@ -72,7 +72,7 @@ namespace SilentCompiler
 
         Add,              
         Subtract,         
-        Multiple,         
+        Asterisk,         
         Divide,
         
         Equal,            
