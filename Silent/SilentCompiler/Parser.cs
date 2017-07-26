@@ -162,6 +162,30 @@ namespace SilentCompiler
                 }
             }
 
+            //If the token after the method token is a value, it becomes the method's name
+            if (Method.tokens[1] == Tokens.Value)
+            {
+                //Declare the method's name
+                Method.name = this.values[CountVal(Method.pos)];
+            }
+
+            if (Method.tokens[1] != Tokens.Value || Method.tokens[2] != Tokens.OpenCurlyBracket)
+            {
+                PrintError("method declaration invalid");
+            }
+
+            if(globalScope.tokens[startPos-1] == Tokens.Void)
+            {
+                Method.returnType = Types.Null;
+            }
+
+            else if(globalScope.tokens[startPos - 1] == Tokens.Integer)
+            {
+                
+            }
+
+
+
             position = endPos;
             return Method;
         }
@@ -478,6 +502,7 @@ namespace SilentCompiler
     {
         public AccessModifiers access;
         public string name;
+        public bool isStatic;
         public List<silent_Expression> expressions;
         public Types returnType;
         public silent_Variable returnValue;
@@ -505,6 +530,7 @@ namespace SilentCompiler
         String = Tokens.String,
         Integer = Tokens.Integer,
         Float = Tokens.Float,
+        Other = Tokens.Value,
         Null = Tokens.Void
     }
 
