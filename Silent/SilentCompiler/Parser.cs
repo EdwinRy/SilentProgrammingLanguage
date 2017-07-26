@@ -50,15 +50,15 @@ namespace SilentCompiler
                     //Add a namespace object to the list of namespaces
                     globalScope.namespaces.Add(PrepareNamespace(i, out i));
                 }
-
-                //If the current token is a decleration of a namespace
+                
+                //If the current token is a decleration of a class
                 else if (globalScope.tokens[i] == Tokens.Class)
                 {
-                    //Add a namespace object to the list of namespaces
+                    //Add a class object to the list of classes
                     globalScope.classes.Add(PrepareClass(i, out i));
                 }
 
-                //If the current token is a decleration of a namespace
+                //If the current token is a decleration of a function
                 else if (globalScope.tokens[i] == Tokens.Function)
                 {
                     //Add a function object to the list of functions
@@ -164,12 +164,12 @@ namespace SilentCompiler
                     noScopes--;
                 }
 
-                //If the closing bracket closes current namespace scope
+                //If the closing bracket closes current class scope
                 if (noScopes == 0 && namespaceOpened == true)
                 {
                     endPos = i + 1;
 
-                    //Copy the namespace code into the namespace object
+                    //Copy the code into the class object
                     for (int x = startPos; x < endPos; x++)
                     {
                         Class.tokens.Add(globalScope.tokens[x]);
@@ -179,10 +179,10 @@ namespace SilentCompiler
                 }
             }
 
-            //If the token after the namespace token is a value, it becomes the namespace's name
+            //If the token after the class token is a value, it becomes the class's name
             if (Class.tokens[1] == Tokens.Value)
             {
-                //Declare the namespace's name
+                //Declare the class's name
                 Class.name = this.values[CountVal(Class.pos)];
             }
 
@@ -301,7 +301,7 @@ namespace SilentCompiler
                 //If the current token is a decleration of a class
                 if (Namespace.tokens[i] == Tokens.Class)
                 {
-                    //Add a class object to the list of namespaces
+                    //Add a class object to the list of classes
                     Namespace.classes.Add(PrepareClass(i, out i));
                 }
 
