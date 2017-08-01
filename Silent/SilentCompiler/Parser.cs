@@ -31,7 +31,8 @@ namespace SilentCompiler
                 name = "meme",
                 classes = new List<silent_Class>(),
                 //Set the current position to 0
-                pos = 0
+                startPos = 0,
+                endPos = tokens.Count
             };
 
             //Start parsing the code
@@ -42,7 +43,7 @@ namespace SilentCompiler
         public void Parse()
         {
             //Iterate through the list of tokens
-            for (int i = 0; i < globalScope.tokens.Count; i++)
+            for (int i = 0; i < globalScope.endPos; i++)
             {
                 //If the current token is a decleration of a namespace
                 if (globalScope.tokens[i] == Tokens.Namespace)
@@ -112,6 +113,42 @@ namespace SilentCompiler
             int startPos = pos;
             int endPos = 0;
 
+            //Number of scopes within the function
+            int noScopes = 0;
+
+            bool namespaceOpened = false;
+
+            //Isolate the scope from the rest of the program
+            for (int i = startPos; i < globalScope.tokens.Count; i++)
+            {
+
+                //If opening bracket appears, a new scope is created
+                if (globalScope.tokens[i] == Tokens.OpenCurlyBracket)
+                {
+                    noScopes++;
+                    namespaceOpened = true;
+                }
+
+                //If closing bracket appears, a scope is closed
+                if (globalScope.tokens[i] == Tokens.CloseCurlyBracket)
+                {
+                    noScopes--;
+                }
+
+                //If the closing bracket closes current method scope
+                if (noScopes == 0 && namespaceOpened == true)
+                {
+                    endPos = i + 1;
+
+                    //Copy the code into the function object
+                    for (int x = startPos; x < endPos; x++)
+                    {
+                        Function.tokens.Add(globalScope.tokens[x]);
+                    }
+
+                    break;
+                }
+            }
 
             position = endPos;
             return Function;
@@ -181,10 +218,8 @@ namespace SilentCompiler
 
             else if(globalScope.tokens[startPos - 1] == Tokens.Integer)
             {
-                
+                //To do
             }
-
-
 
             position = endPos;
             return Method;
@@ -409,7 +444,8 @@ namespace SilentCompiler
     struct silent_Namespace
     {
         public string name;
-        public int pos;
+        public int startPos;
+        public int endPos;
         public List<silent_Class> classes;
         public List<Tokens> tokens;
         public List<silent_Namespace> namespaces;
@@ -419,7 +455,8 @@ namespace SilentCompiler
     struct silent_Class
     {
         public string name;
-        public int pos;
+        public int startPos;
+        public int endPos;
         public List<silent_Method> methods;
         public List<silent_ClassVariable> members;
         public silent_Constructor constructor;
@@ -468,7 +505,8 @@ namespace SilentCompiler
 
     struct silent_Struct
     {
-        public int pos;
+        public int startPos;
+        public int endPos;
         public string name;
         public List<silent_Variable> variables;
         public List<silent_Array> arrays;
@@ -476,7 +514,8 @@ namespace SilentCompiler
 
     struct silent_Constructor
     {
-        public int pos;
+        public int startPos;
+        public int endPos;
         public string name;
         public List<silent_Expression> expressions;
 
@@ -492,10 +531,12 @@ namespace SilentCompiler
         public Types returnType;
         public silent_Variable returnValue;
 
+        public List<Tokens> tokens;
         public List<silent_Variable> localVariables;
         public List<silent_Struct> localStructs;
         public List<silent_Array> localArrays;
-        public int pos;
+        public int startPos;
+        public int endPos;
     }
 
     struct silent_Method
