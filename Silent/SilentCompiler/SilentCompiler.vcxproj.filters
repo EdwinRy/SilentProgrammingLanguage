@@ -32,5 +32,14 @@
     <ClCompile Include="CompilerManager.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Compiler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Lexer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="test.txt" />
   </ItemGroup>
 </Project>

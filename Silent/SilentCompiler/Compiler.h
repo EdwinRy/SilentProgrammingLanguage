@@ -1,77 +1,78 @@
+#include "Lexer.h"
+#include <stdio.h>
 #pragma once
 
-void Compile(char* source) 
+typedef struct Program 
 {
+	char* source;
+	char* tokens;
+	char* bytecode;
+		
+}Program;
 
-}
-
-void CompileFile() 
-{
-
-}
-
-
+void Compile(char* source);
+void CompileFile(char * sourcePath);
 
 enum ByteCode
 {
-	Halt,
-	GoTo,
-	Call,
+	Bytecode_Halt,
+	Bytecode_GoTo,
+	Bytecode_Call,
 
-	ClearMemory,
-	ClearStorage,
+	Bytecode_ClearMemory,
+	Bytecode_ClearStorage,
 
-	PushByte,
-	PushInt,
-	PushFloat,
+	Bytecode_PushByte,
+	Bytecode_PushInt,
+	Bytecode_PushFloat,
 
-	PopByte,
-	PopInt,
-	PopFloat,
+	Bytecode_PopByte,
+	Bytecode_PopInt,
+	Bytecode_PopFloat,
 
-	StoreByte,
-	StoreInt,
-	StoreFloat,
+	Bytecode_StoreByte,
+	Bytecode_StoreInt,
+	Bytecode_StoreFloat,
 
-	LoadByte,
-	LoadInt,
-	LoadFloat,
+	Bytecode_LoadByte,
+	Bytecode_LoadInt,
+	Bytecode_LoadFloat,
 
-	SetByte,
-	SetInt,
-	SetFloat,
+	Bytecode_SetByte,
+	Bytecode_SetInt,
+	Bytecode_SetFloat,
 
-	AddByte,
-	AddInt,
-	AddFloat,
+	Bytecode_AddByte,
+	Bytecode_AddInt,
+	Bytecode_AddFloat,
 
-	SubtractByte,
-	SubtractInt,
-	SubtractFloat,
+	Bytecode_SubtractByte,
+	Bytecode_SubtractInt,
+	Bytecode_SubtractFloat,
 
-	MultiplyByte,
-	MultiplyInt,
-	MultiplyFloat,
+	Bytecode_MultiplyByte,
+	Bytecode_MultiplyInt,
+	Bytecode_MultiplyFloat,
 
-	DivideByte,
-	DivideInt,
-	DivideFloat,
+	Bytecode_DivideByte,
+	Bytecode_DivideInt,
+	Bytecode_DivideFloat,
 
-	Byte2Int,
-	Byte2Float,
-	Int2Float,
-	Float2Int,
+	Bytecode_Byte2Int,
+	Bytecode_Byte2Float,
+	Bytecode_Int2Float,
+	Bytecode_Float2Int,
 
-	SmallerThan,
-	BiggerThan,
-	Equal,
+	Bytecode_SmallerThan,
+	Bytecode_BiggerThan,
+	Bytecode_IsEqual,
 
-	If,
-	IfNot,
+	Bytecode_If,
+	Bytecode_IfNot,
 
-	And,
-	Or,
-	Not,
+	Bytecode_And,
+	Bytecode_Or,
+	Bytecode_Not,
 };
 
 enum Tokens
@@ -96,7 +97,7 @@ enum Tokens
 	While,
 	For,
 
-	If,
+	IfTrue,
 	Elif,
 	Else,
 

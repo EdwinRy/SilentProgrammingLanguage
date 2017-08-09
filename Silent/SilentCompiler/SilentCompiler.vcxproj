@@ -139,13 +139,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Compiler.c" />
     <ClCompile Include="CompilerManager.c" />
+    <ClCompile Include="Lexer.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BytecodeGenerator.h" />
     <ClInclude Include="Compiler.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="Parser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="test.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

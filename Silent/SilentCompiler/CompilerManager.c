@@ -2,5 +2,7 @@
 
 int main() {
 
+	CompileFile("test.txt");
+
 	return 0;
 }
