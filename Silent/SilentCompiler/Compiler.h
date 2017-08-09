@@ -5,8 +5,13 @@
 typedef struct Program 
 {
 	char* source;
+	unsigned long sourceLength;
 	char* tokens;
+	int tokensPointer;
 	char* bytecode;
+	int bytecodePointer;
+	char** values;
+	int valuePointer;
 		
 }Program;
 
@@ -97,7 +102,7 @@ enum Tokens
 	While,
 	For,
 
-	IfTrue,
+	If,
 	Elif,
 	Else,
 
