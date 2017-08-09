@@ -7,7 +7,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SilentVM", "SilentVM\Silent
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Silent", "SilentApp\Silent.vcxproj", "{2B74F943-62BC-41F1-AC22-E40F115FE7AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilentCompiler", "SilentCompiler\SilentCompiler.csproj", "{81B19AA5-90EE-4505-80D5-7BDE00623009}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Silent_Compiler", "Silent_Compiler\Silent_Compiler.csproj", "{81B19AA5-90EE-4505-80D5-7BDE00623009}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SilentCompiler", "SilentCompiler\SilentCompiler.vcxproj", "{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,16 @@ Global
 		{81B19AA5-90EE-4505-80D5-7BDE00623009}.Release|x64.Build.0 = Release|Any CPU
 		{81B19AA5-90EE-4505-80D5-7BDE00623009}.Release|x86.ActiveCfg = Release|Any CPU
 		{81B19AA5-90EE-4505-80D5-7BDE00623009}.Release|x86.Build.0 = Release|Any CPU
+		{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}.Debug|x64.ActiveCfg = Debug|x64
+		{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}.Debug|x64.Build.0 = Debug|x64
+		{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}.Debug|x86.ActiveCfg = Debug|Win32
+		{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}.Debug|x86.Build.0 = Debug|Win32
+		{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}.Release|Any CPU.ActiveCfg = Release|Win32
+		{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}.Release|x64.ActiveCfg = Release|x64
+		{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}.Release|x64.Build.0 = Release|x64
+		{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}.Release|x86.ActiveCfg = Release|Win32
+		{1DE411A0-26ED-48BB-9A69-19DF46FB4EBE}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

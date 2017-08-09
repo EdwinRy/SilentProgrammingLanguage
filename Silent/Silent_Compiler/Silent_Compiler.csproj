@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{81B19AA5-90EE-4505-80D5-7BDE00623009}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>SilentCompiler</RootNamespace>
-    <AssemblyName>SilentCompiler</AssemblyName>
+    <RootNamespace>Silent_Compiler</RootNamespace>
+    <AssemblyName>Silent_Compiler</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
