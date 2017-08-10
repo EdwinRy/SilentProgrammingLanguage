@@ -3,25 +3,27 @@
 void Compile(char * source)
 {
 	Program* program = malloc(sizeof(Program));
-	program->source = source;
 	program->tokensPointer = 0;
 	program->bytecodePointer = 0;
 	program->valuePointer = 0;
 	program->sourceLength = strlen(source);
-
+	program->source = source;
+	program->tokens = malloc(program->sourceLength);
+	//printf("%c",*(program->source+1));
 	Tokenize(program);
 }
 
 void CompileFile(char * sourcePath)
 {
 	//Load source from file
-	FILE * source;
-	source = fopen(sourcePath, "rb");
+	FILE *source = fopen(sourcePath, "r");
 	fseek(source, 0, SEEK_END);
 	long size = ftell(source);
 	fseek(source, 0, SEEK_SET);
-	char* buffer = malloc(size + 1);
+	char* buffer = calloc(sizeof(char),size + 1);
 	fread(buffer, 1, size, source);
+	fclose(source);
+	buffer[size] = 0;
 
 	Compile(buffer);
 }
