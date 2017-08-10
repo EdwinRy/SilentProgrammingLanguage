@@ -1,7 +1,10 @@
 #include "Lexer.h"
 
-char determineToken(char* token) 
+char addToken(char *codeBuffer, int *codeBufferPointer) 
 {
+	if (codeBuffer == 0) { return -1; }
+	codeBuffer[*codeBufferPointer] = '\0';
+
 	if (!strcmp(token, "public")) { return Public; }
 	else if (!strcmp(token, "private")) { return Private; }
 	else if (!strcmp(token, "protected")) { return Protected; }
@@ -31,6 +34,7 @@ char determineToken(char* token)
 	else if (!strcmp(token, ">=")) { return MoreThan; }
 	else if (!strcmp(token, "<=")) { return LessThan; }
 	else { return Value;}
+
 }
 
 void clearCodeBuffer(char* buffer, unsigned int *bufferPointer) 
@@ -45,6 +49,11 @@ void clearCodeBuffer(char* buffer, unsigned int *bufferPointer)
 
 }
 
+void AppendToBuffer(char* buffer, unsigned int *bufferPointer, char appendData) 
+{
+	buffer[*bufferPointer] = appendData;
+	*bufferPointer++;
+}
 
 void Tokenize(Program *program)
 {
@@ -56,18 +65,10 @@ void Tokenize(Program *program)
 	//main scanning loop
 	for (unsigned long i = 0; i <= program->sourceLength; i++)
 	{
-		//printf("%i", *(program->source + i));
 
 		if (!scanning)
 		{
-			if (CodeBufferPointer == 0) { continue; }
-			char token = determineToken(CodeBuffer);
-			if (token == Value)
-			{
-				char* value = malloc(CodeBufferPointer + 1);
-			}
-			program->tokens[program->tokensPointer] = token;
-			clearCodeBuffer(CodeBuffer, &CodeBufferPointer);
+			addToken(CodeBuffer, &CodeBufferPointer);
 			scanning = 1;
 		}
 
@@ -81,7 +82,8 @@ void Tokenize(Program *program)
 
 		else if (*(program->source + i) == '.')
 		{
-			program->tokens[program->tokensPointer] = Fullstop;
+			addToken(CodeBuffer, &CodeBufferPointer);
+			*(program->tokens + program->tokensPointer) = Fullstop;
 		}
 
 		else if (*(program->source + i) == '=')
