@@ -6,11 +6,12 @@ typedef struct Program
 	char* source;
 	unsigned long sourceLength;
 	char* tokens;
-	int tokensPointer;
+	unsigned long tokensPointer;
 	char* bytecode;
-	int bytecodePointer;
+	unsigned long bytecodePointer;
 	char** values;
-	int valuePointer;
+	unsigned long valuePointer;
+	unsigned long valuesAllocationPointer;
 
 }Program;
 
