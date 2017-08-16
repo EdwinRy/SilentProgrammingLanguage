@@ -15,15 +15,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="_SilentVM.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="SilentVM.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test.c">
+    <ClCompile Include="_test.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SilentStack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_SilentVM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SilentVM.h">

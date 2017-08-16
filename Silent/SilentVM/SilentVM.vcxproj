@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{33972F00-ECFF-45C8-A133-EFC2A338068E}</ProjectGuid>
     <RootNamespace>SilentVM</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -115,10 +115,13 @@
   <ItemGroup>
     <ClInclude Include="SilentStack.h" />
     <ClInclude Include="SilentVM.h" />
+    <ClInclude Include="_SilentVM.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SilentVM.c" />
-    <ClCompile Include="test.c" />
+    <ClCompile Include="test.cpp" />
+    <ClCompile Include="_SilentVM.c" />
+    <ClCompile Include="_test.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

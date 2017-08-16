@@ -1,41 +1,43 @@
+
 #pragma once
 
-#include <stdlib.h>
+typedef struct SilentObject
+{
+	char* data;
+	char marked;
 
-typedef struct SilentStack {
+}SilentObject;
 
-    char* memory;
-    char* storage;
-    char* storagePointers;
-    unsigned int stackPointer;
-    unsigned int storagePointer;
+typedef struct SilentMemory
+{
 
-}SilentStack;
+	SilentObject* storage;
+	SilentObject* stack;
+	unsigned int storagePoiner;
+	unsigned int stackPointer;
 
+}SilentMemory;
 
-typedef struct SilentVM {
+typedef struct SilentThread
+{
+	char* bytecode;
+	SilentMemory* memory;
 
-    SilentStack* stack;
-    char* script;
-    unsigned int programCounter;
-    char running;
+}SilentThread;
 
-    void (**FunctionPointers)(SilentStack* stack);
-    unsigned int FunctionCounter;
+typedef struct SilentVM
+{
+	char *bytecode;
+	SilentThread** threads;
 
 }SilentVM;
 
+SilentObject* createSilentObject(char* data);
+SilentMemory* createSilentMemory(int storageSize, int stackSize);
+SilentThread* createSilentThread(char* bytecode, SilentMemory *memory);
+SilentVM* createSilentVM(SilentThread *threads, int numberOfThreads);
 
-//SilentVM functions
-SilentVM* CreateSilentVM(SilentStack *stack);
-void DeleteSilentVM(SilentVM *vm);
-
-SilentStack* CreateSilentStack(int stackSize, int StorageSize);
-void DeleteSilentStack(SilentStack *stack);
-
-void UpdateStackSize(SilentStack *stack, unsigned int newStackSize);
-void UpdateStorageSize(SilentStack *stack, unsigned int newStackSize);
-
-void PrepareFunctions(SilentVM* vm, unsigned int NumberOfFunctions);
-void AddFunctions(SilentVM* vm, void (**FunctionPointer)(SilentStack* stack));
-void ExecuteScript(SilentVM *vm, char* script);
+void deleteSilentObject(SilentObject* object);
+void deleteSilentMemory(SilentMemory* memory);
+void deleteSilentThread(SilentThread* thread);
+void deleteSilentVM(SilentVM* vm);
