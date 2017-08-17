@@ -25,12 +25,16 @@ SilentThread * createSilentThread(char * bytecode, SilentMemory * memory)
 	return thread;
 }
 
-SilentVM * createSilentVM(SilentThread * threads, int numberOfThreads)
+SilentVM * createSilentVM(SilentThread ** threads, int numberOfThreads)
 {
-	SilentVM* vm;
+	SilentVM* vm = malloc(sizeof(SilentVM));
 	vm->threads = malloc(sizeof(SilentThread*) * numberOfThreads);
+	vm->threadPointer = 0;
+	vm->defaultThread = 0;
 	return vm;
 }
+
+
 
 void deleteSilentObject(SilentObject * object)
 {
@@ -53,5 +57,61 @@ void deleteSilentThread(SilentThread * thread)
 void deleteSilentVM(SilentVM * vm)
 {
 	deleteSilentThread(vm->threads);
-	free(SilentVM);
+	free(vm);
+}
+
+
+
+void loadProgramToSilentVM(SilentVM * vm, char * program)
+{
+	vm->bytecode = program;
+}
+
+void attachThreadToSilentVM(SilentVM * vm, SilentThread * thread)
+{
+	if (vm->threadPointer != 0) 
+	{
+		for (unsigned int i = 0; i < vm->threadPointer; i++) 
+		{
+			if (vm->threads[i] == NULL) 
+			{
+				thread->threadID = i;
+				vm->threads[i] = thread;
+				break;
+			}
+		}
+		vm->threads[vm->threadPointer] = thread;
+		thread->threadID = vm->threadPointer;
+		vm->threadPointer++;
+	}
+
+	else 
+	{
+		vm->threads[vm->threadPointer] = thread;
+		thread->threadID = vm->threadPointer;
+		vm->threadPointer++;
+	}
+}
+
+void loadProgramToSilentThread(SilentThread * thread, char * program)
+{
+	thread->bytecode = program;
+}
+
+void detachSilentThread(SilentVM * vm, unsigned int threadID)
+{
+	vm->threads[threadID] = NULL;
+}
+
+void SetDefaultSilentThread(SilentVM * vm, unsigned int threadID)
+{
+}
+
+void executeSilentThread(SilentVM * vm, unsigned int threadID)
+{
+
+}
+
+void startSilentVM(SilentVM * vm)
+{
 }
