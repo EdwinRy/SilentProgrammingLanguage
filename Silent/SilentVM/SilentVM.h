@@ -1,6 +1,8 @@
 #include <stdio.h>
 #pragma once
 
+
+
 typedef struct SilentObject
 {
 	char* data;
@@ -21,6 +23,9 @@ typedef struct SilentMemory
 typedef struct SilentThread
 {
 	char* bytecode;
+	char running;
+	unsigned int bytecodeLength;
+	unsigned int programCounter;
 	unsigned int threadID;
 	SilentMemory* memory;
 
@@ -30,6 +35,7 @@ typedef struct SilentVM
 {
 	char *bytecode;
 	SilentThread** threads;
+	unsigned int bytecodeLength;
 	unsigned int defaultThread;
 	unsigned int threadPointer;
 
