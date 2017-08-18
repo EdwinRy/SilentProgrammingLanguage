@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #pragma once
 
 
@@ -13,8 +14,8 @@ typedef struct SilentObject
 typedef struct SilentMemory
 {
 
-	SilentObject* storage;
-	SilentObject* stack;
+	SilentObject** storage;
+	char* stack;
 	unsigned int storagePoiner;
 	unsigned int stackPointer;
 
@@ -44,7 +45,7 @@ typedef struct SilentVM
 SilentObject* createSilentObject(char* data);
 SilentMemory* createSilentMemory(int storageSize, int stackSize);
 SilentThread* createSilentThread(char* bytecode, SilentMemory *memory);
-SilentVM* createSilentVM(SilentThread **threads, int numberOfThreads);
+SilentVM* createSilentVM(SilentThread *thread, int numberOfThreads);
 
 void deleteSilentObject(SilentObject* object);
 void deleteSilentMemory(SilentMemory* memory);

@@ -54,7 +54,6 @@ SilentObject * createSilentObject(char * data)
 {
 	SilentObject* object = malloc(sizeof(SilentObject));
 	object->data = data;
-	object->marked = 0;
 	return object;
 }
 
@@ -77,15 +76,16 @@ SilentThread * createSilentThread(char * bytecode, SilentMemory * memory)
 	return thread;
 }
 
-SilentVM * createSilentVM(SilentThread ** threads, int numberOfThreads)
+SilentVM * createSilentVM(SilentThread * thread, int numberOfThreads)
 {
 	SilentVM* vm = malloc(sizeof(SilentVM));
-	vm->threads = malloc(sizeof(SilentThread*) * numberOfThreads);
-	vm->threadPointer = 0;
+	vm->threads = malloc(sizeof(SilentThread*)*numberOfThreads);
+	thread->threadID = 0;
+	vm->threads[0] = thread;
+	vm->threadPointer = 1;
 	vm->defaultThread = 0;
 	return vm;
 }
-
 
 
 void deleteSilentObject(SilentObject * object)
@@ -172,11 +172,16 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 		{
 		case BYTECODE_HALT:
 			thread->running = 0;
+			/*
+			memset(thread->memory->storage, 0, thread->memory->storagePoiner);
+			thread->memory->storagePoiner = 0;
+			memset(thread->memory->stack, 0, thread->memory->stackPointer);
+			thread->memory->stackPointer = 0;
+			*/
 			break;
 
-		case BYTECODE_GOTO:
-			vm->threadPointer++;
-			thread->programCounter = *((unsigned int*)(vm->bytecode[vm->threadPointer]));
+		case BYTECODE_GOTO: //
+			thread->programCounter = *((unsigned int*)(vm->bytecode[++vm->threadPointer]));
 			vm->threadPointer--;
 			break;
 
@@ -186,120 +191,163 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 
 
 
-		case BYTECODE_CLEAR_MEMORY:
+		case BYTECODE_CLEAR_MEMORY: //
 			memset(thread->memory->storage, 0, thread->memory->storagePoiner);
 			thread->memory->storagePoiner = 0;
 			break;
 
-		case BYTECODE_CLEAR_STACK:
+		case BYTECODE_CLEAR_STACK: 
 			memset(thread->memory->stack, 0, thread->memory->stackPointer);
+			thread->memory->stackPointer = 0;
 			break;
 
 
 
-		case BYTECODE_PUSH_BYTE:
+		case BYTECODE_PUSH_BYTE: 
+			thread->memory->stack[thread->memory->stackPointer++] =
+				thread->bytecode[++thread->programCounter];
 			break;
 
-		case BYTECODE_PUSH_INT:
+		case BYTECODE_PUSH_INT://
+			thread->memory->stack[thread->memory->stackPointer++] =
+				*((int*)(thread->bytecode + (++thread->programCounter)));
+			thread->programCounter += 3;
+			thread->memory->stackPointer += 3;
 			break;
 
-		case BYTECODE_PUSH_FLOAT:
+		case BYTECODE_PUSH_FLOAT://
+			thread->memory->stack[thread->memory->stackPointer++] =
+				*((float*)(thread->bytecode + (++thread->programCounter)));
+			thread->programCounter += 3;
+			thread->memory->stackPointer += 3;
 			break;
 
 
 
 		case BYTECODE_POP_BYTE:
+			thread->memory->stackPointer--;
 			break;
 
 		case BYTECODE_POP4:
+			thread->memory->stackPointer -= 4;
 			break;
 
 
 
-		case BYTECODE_STORE_BYTE:
+		case BYTECODE_STORE_BYTE://
+			thread->memory->storage[thread->memory->storagePoiner]
+				= createSilentObject(thread->bytecode[++thread->programCounter]);
+			thread->memory->storagePoiner++;
 			break;
 
-		case BYTECODE_STORE_INT:
+		case BYTECODE_STORE_INT://
+			thread->memory->storage[thread->memory->storagePoiner]
+				= createSilentObject((int*)(thread->bytecode + (++thread->programCounter)));
+			thread->memory->storagePoiner++;
 			break;
 
-		case BYTECODE_STORE_FLOAT:
+		case BYTECODE_STORE_FLOAT://
+			thread->memory->storage[thread->memory->storagePoiner]
+				= createSilentObject((float*)(thread->bytecode + (++thread->programCounter)));
 			break;
 
 
 
-		case BYTECODE_LOAD_BYTE:
+		case BYTECODE_LOAD_BYTE://
+			thread->memory->stack[thread->memory->stackPointer++] =
+				thread->memory->storage[thread->bytecode[++thread->programCounter]];
 			break;
 
-		case BYTECODE_LOAD_INT:
+		case BYTECODE_LOAD_INT://
 			break;
 
-		case BYTECODE_LOAD_FLOAT:
+		case BYTECODE_LOAD_FLOAT://
 			break;
 
 
 
 		case BYTECODE_ADD_BYTE:
+			thread->memory->stackPointer -= 2;
+			thread->memory->stack[thread->memory->stackPointer++] =
+				thread->memory->stack[thread->memory->stackPointer] + 
+				thread->memory->stack[thread->memory->stackPointer + 1];
+			thread->memory->stackPointer++;
 			break;
 
-		case BYTECODE_ADD_INT:
+		case BYTECODE_ADD_INT://
 			break;
 
-		case BYTECODE_ADD_FLOAT:
+		case BYTECODE_ADD_FLOAT://
 			break;
 
 
 
 		case BYTECODE_SUB_BYTE:
+			thread->memory->stackPointer -= 2;
+			thread->memory->stack[thread->memory->stackPointer++] =
+				thread->memory->stack[thread->memory->stackPointer] -
+				thread->memory->stack[thread->memory->stackPointer + 1];
+			thread->memory->stackPointer++;
 			break;
 
-		case BYTECODE_SUB_INT:
+		case BYTECODE_SUB_INT://
 			break;
 
-		case BYTECODE_SUB_FLOAT:
+		case BYTECODE_SUB_FLOAT://
 			break;
 
 
 
 		case BYTECODE_MUL_BYTE:
+			thread->memory->stackPointer -= 2;
+			thread->memory->stack[thread->memory->stackPointer++] =
+				thread->memory->stack[thread->memory->stackPointer] *
+				thread->memory->stack[thread->memory->stackPointer + 1];
+			thread->memory->stackPointer++;
 			break;
 
-		case BYTECODE_MUL_INT:
+		case BYTECODE_MUL_INT://
 			break;
 
-		case BYTECODE_MUL_FLOAT:
+		case BYTECODE_MUL_FLOAT://
 			break;
 
 
 
 		case BYTECODE_DIV_BYTE:
+			thread->memory->stackPointer -= 2;
+			thread->memory->stack[thread->memory->stackPointer++] =
+				thread->memory->stack[thread->memory->stackPointer] /
+				thread->memory->stack[thread->memory->stackPointer + 1];
+			thread->memory->stackPointer++;
 			break;
 
-		case BYTECODE_DIV_INT:
+		case BYTECODE_DIV_INT://
 			break;
 
-		case BYTECODE_DIV_FLOAT:
-			break;
-
-
-
-		case BYTECODE_BYTE_TO_INT:
-			break;
-
-		case BYTECODE_INT_TO_BYTE:
-			break;
-
-		case BYTECODE_INT_TO_FLOAT:
-			break;
-
-		case BYTECODE_FLOAT_TO_INT:
+		case BYTECODE_DIV_FLOAT://
 			break;
 
 
 
-		case BYTECODE_SMALLER_THAN:
+		case BYTECODE_BYTE_TO_INT://
 			break;
 
-		case BYTECODE_BIGGER_THAN:
+		case BYTECODE_INT_TO_BYTE://
+			break;
+
+		case BYTECODE_INT_TO_FLOAT://
+			break;
+
+		case BYTECODE_FLOAT_TO_INT://
+			break;
+
+
+
+		case BYTECODE_SMALLER_THAN://
+			break;
+
+		case BYTECODE_BIGGER_THAN://
 			break;
 
 		case BYTECODE_EQUAL:
@@ -307,10 +355,10 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 
 
 
-		case BYTECODE_IF:
+		case BYTECODE_IF://
 			break;
 
-		case BYTECODE_IF_NOT:
+		case BYTECODE_IF_NOT://
 			break;
 		}
 		thread->programCounter++;
