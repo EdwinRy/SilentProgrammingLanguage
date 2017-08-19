@@ -8,46 +8,69 @@
 
 #define BYTECODE_PUSH_BYTE 5
 #define BYTECODE_PUSH_INT 6
-#define BYTECODE_PUSH_FLOAT 7
+#define BYTECODE_PUSH_LONG 7
+#define BYTECODE_PUSH_FLOAT 8
+#define BYTECODE_PUSH_DOUBLE 9
 
-#define BYTECODE_POP_BYTE 8
-#define BYTECODE_POP4 9
+#define BYTECODE_POP_BYTE 10
+#define BYTECODE_POP4 11
+#define BYTECODE_POP8 12
 
-#define BYTECODE_STORE_BYTE 10
-#define BYTECODE_STORE_INT 11
-#define BYTECODE_STORE_FLOAT 12
+#define BYTECODE_STORE_BYTE 13
+#define BYTECODE_STORE_INT 14
+#define BYTECODE_STORE_LONG 15
+#define BYTECODE_STORE_FLOAT 16
+#define BYTECODE_STORE_DOUBLE 17
 
-#define BYTECODE_LOAD_BYTE 13
-#define BYTECODE_LOAD_INT 14
-#define BYTECODE_LOAD_FLOAT 15
+#define BYTECODE_LOAD_BYTE 18
+#define BYTECODE_LOAD_INT 19
+#define BYTECODE_LOAD_LONG 20
+#define BYTECODE_LOAD_FLOAT 21
+#define BYTECODE_LOAD_DOUBLE 22
 
-#define BYTECODE_ADD_BYTE 16
-#define BYTECODE_ADD_INT 17
-#define BYTECODE_ADD_FLOAT 18
+#define BYTECODE_ADD_BYTE 23
+#define BYTECODE_ADD_INT 24
+#define BYTECODE_ADD_LONG 25
+#define BYTECODE_ADD_FLOAT 26
+#define BYTECODE_ADD_DOUBLE 27
 
-#define BYTECODE_SUB_BYTE 19
-#define BYTECODE_SUB_INT 20
-#define BYTECODE_SUB_FLOAT 21
+#define BYTECODE_SUB_BYTE 28
+#define BYTECODE_SUB_INT 29
+#define BYTECODE_SUB_LONG 30
+#define BYTECODE_SUB_FLOAT 31
+#define BYTECODE_SUB_DOUBLE 32
 
-#define BYTECODE_MUL_BYTE 22
-#define BYTECODE_MUL_INT 23
-#define BYTECODE_MUL_FLOAT 24
+#define BYTECODE_MUL_BYTE 33
+#define BYTECODE_MUL_INT 34
+#define BYTECODE_MUL_LONG 35
+#define BYTECODE_MUL_FLOAT 36
+#define BYTECODE_MUL_DOUBLE 37
 
-#define BYTECODE_DIV_BYTE 25
-#define BYTECODE_DIV_INT 26
-#define BYTECODE_DIV_FLOAT 27
+#define BYTECODE_DIV_BYTE 38
+#define BYTECODE_DIV_INT 39
+#define BYTECODE_DIV_LONG 40
+#define BYTECODE_DIV_FLOAT 41
+#define BYTECODE_DIV_DOUBLE 42
 
-#define BYTECODE_BYTE_TO_INT 28
-#define BYTECODE_INT_TO_BYTE 29
-#define BYTECODE_INT_TO_FLOAT 30
-#define BYTECODE_FLOAT_TO_INT 31
+#define BYTECODE_BYTE_TO_INT 43
+#define BYTECODE_BYTE_TO_LONG 44
+#define BYTECODE_BYTE_TO_FLOAT 45
+#define BYTECODE_BYTE_TO_DOUBLE 46
 
-#define BYTECODE_SMALLER_THAN 32
-#define BYTECODE_BIGGER_THAN 33
-#define BYTECODE_EQUAL 34
+#define BYTECODE_INT_TO_BYTE 47
+#define BYTECODE_INT_TO_FLOAT 48
+#define BYTECODE_INT_TO_LONG 49
+#define BYTECODE_INT_TO_DOUBLE 50
 
-#define BYTECODE_IF 35
-#define BYTECODE_IF_NOT 36
+#define BYTECODE_FLOAT_TO_INT 51
+#define BYTECODE_FLOAT_TO_DOUBLE 52
+
+#define BYTECODE_SMALLER_THAN 53
+#define BYTECODE_BIGGER_THAN 54
+#define BYTECODE_EQUAL 55
+
+#define BYTECODE_IF 56
+#define BYTECODE_IF_NOT 57
 
 
 SilentObject * createSilentObject(char * data)
@@ -165,6 +188,11 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 	SilentThread* thread = vm->threads[threadID];
 	thread->running = 1;
 
+	int val;
+	float val2;
+	long val3;
+	double val4;
+
 	while (thread->running)
 	{
 
@@ -180,12 +208,12 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			*/
 			break;
 
-		case BYTECODE_GOTO: //
-			thread->programCounter = *((unsigned int*)(vm->bytecode[++vm->threadPointer]));
+		case BYTECODE_GOTO: 
+			thread->programCounter = *((unsigned int*)(&vm->bytecode[++vm->threadPointer]));
 			vm->threadPointer--;
 			break;
 
-		case BYTECODE_CALL:
+		case BYTECODE_CALL://
 			//implement native function calls
 			break;
 
@@ -208,18 +236,26 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 				thread->bytecode[++thread->programCounter];
 			break;
 
-		case BYTECODE_PUSH_INT://
-			thread->memory->stack[thread->memory->stackPointer++] =
-				*((int*)(thread->bytecode + (++thread->programCounter)));
+		case BYTECODE_PUSH_INT:
+			memcpy(thread->memory->stack + thread->memory->stackPointer,
+				thread->bytecode + (++thread->programCounter),
+				4);
 			thread->programCounter += 3;
-			thread->memory->stackPointer += 3;
+			thread->memory->stackPointer += 4;
+			break;
+
+		case BYTECODE_PUSH_LONG://
 			break;
 
 		case BYTECODE_PUSH_FLOAT://
-			thread->memory->stack[thread->memory->stackPointer++] =
-				*((float*)(thread->bytecode + (++thread->programCounter)));
+			memcpy(thread->memory->stack + thread->memory->stackPointer,
+				thread->bytecode + (++thread->programCounter),
+				4);
 			thread->programCounter += 3;
-			thread->memory->stackPointer += 3;
+			thread->memory->stackPointer += 4;
+			break;
+		
+		case BYTECODE_PUSH_DOUBLE://
 			break;
 
 
@@ -232,6 +268,8 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			thread->memory->stackPointer -= 4;
 			break;
 
+		case BYTECODE_POP8://
+			break;
 
 
 		case BYTECODE_STORE_BYTE://
@@ -246,9 +284,15 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			thread->memory->storagePoiner++;
 			break;
 
+		case BYTECODE_STORE_LONG://
+			break;
+
 		case BYTECODE_STORE_FLOAT://
 			thread->memory->storage[thread->memory->storagePoiner]
 				= createSilentObject((float*)(thread->bytecode + (++thread->programCounter)));
+			break;
+
+		case BYTECODE_STORE_DOUBLE://
 			break;
 
 
@@ -261,7 +305,13 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 		case BYTECODE_LOAD_INT://
 			break;
 
+		case BYTECODE_LOAD_LONG://
+			break;
+
 		case BYTECODE_LOAD_FLOAT://
+			break;
+
+		case BYTECODE_LOAD_DOUBLE://
 			break;
 
 
@@ -274,10 +324,27 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			thread->memory->stackPointer++;
 			break;
 
-		case BYTECODE_ADD_INT://
+		case BYTECODE_ADD_INT:
+			thread->memory->stackPointer -= 8;
+			thread->memory->stack[thread->memory->stackPointer] =
+				(*((int*)(&thread->memory->stack[thread->memory->stackPointer])) +
+					*((int*)(&thread->memory->stack[thread->memory->stackPointer + 4])));
+			thread->memory->stackPointer += 4;
+
+			break;
+
+		case BYTECODE_ADD_LONG://
 			break;
 
 		case BYTECODE_ADD_FLOAT://
+			thread->memory->stackPointer -= 8;
+			thread->memory->stack[thread->memory->stackPointer] =
+				(*((float*)(&thread->memory->stack[thread->memory->stackPointer])) +
+					*((float*)(&thread->memory->stack[thread->memory->stackPointer + 4])));
+			thread->memory->stackPointer += 4;
+			break;
+
+		case BYTECODE_ADD_DOUBLE://
 			break;
 
 
@@ -290,10 +357,21 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			thread->memory->stackPointer++;
 			break;
 
-		case BYTECODE_SUB_INT://
+		case BYTECODE_SUB_INT:
+			thread->memory->stackPointer -= 8;
+			thread->memory->stack[thread->memory->stackPointer] =
+				(*((int*)(&thread->memory->stack[thread->memory->stackPointer])) -
+					*((int*)(&thread->memory->stack[thread->memory->stackPointer + 4])));
+			thread->memory->stackPointer += 4;
+			break;
+
+		case BYTECODE_SUB_LONG://
 			break;
 
 		case BYTECODE_SUB_FLOAT://
+			break;
+
+		case BYTECODE_SUB_DOUBLE://
 			break;
 
 
@@ -306,10 +384,30 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			thread->memory->stackPointer++;
 			break;
 
-		case BYTECODE_MUL_INT://
+		case BYTECODE_MUL_INT:
+			thread->memory->stackPointer -= 8;
+			val = (*((int*)(thread->memory->stack + thread->memory->stackPointer))) *
+				(*((int*)(thread->memory->stack + thread->memory->stackPointer + 4)));
+			memcpy(thread->memory->stack + thread->memory->stackPointer,
+				&val,
+				4);
+			thread->memory->stackPointer += 4;
+			break;
+
+		case BYTECODE_MUL_LONG://
 			break;
 
 		case BYTECODE_MUL_FLOAT://
+			thread->memory->stackPointer -= 8;
+			val2 = (*((int*)(thread->memory->stack + thread->memory->stackPointer))) *
+				(*((int*)(thread->memory->stack + thread->memory->stackPointer + 4)));
+			memcpy(thread->memory->stack + thread->memory->stackPointer,
+				&val2,
+				4);
+			thread->memory->stackPointer += 4;
+			break;
+
+		case BYTECODE_MUL_DOUBLE://
 			break;
 
 
@@ -322,10 +420,30 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			thread->memory->stackPointer++;
 			break;
 
-		case BYTECODE_DIV_INT://
+		case BYTECODE_DIV_INT:
+			thread->memory->stackPointer -= 8;
+			val = (*((int*)(thread->memory->stack + thread->memory->stackPointer))) /
+				(*((int*)(thread->memory->stack + thread->memory->stackPointer + 4)));
+			memcpy(thread->memory->stack + thread->memory->stackPointer,
+				&val,
+				4);
+			thread->memory->stackPointer += 4;
+			break;
+
+		case BYTECODE_DIV_LONG://
 			break;
 
 		case BYTECODE_DIV_FLOAT://
+			thread->memory->stackPointer -= 8;
+			val2 = (*((float*)(thread->memory->stack + thread->memory->stackPointer))) /
+				(*((float*)(thread->memory->stack + thread->memory->stackPointer + 4)));
+			memcpy(thread->memory->stack + thread->memory->stackPointer,
+				&val2,
+				4);
+			thread->memory->stackPointer += 4;
+			break;
+
+		case BYTECODE_DIV_DOUBLE://
 			break;
 
 
@@ -333,13 +451,35 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 		case BYTECODE_BYTE_TO_INT://
 			break;
 
+		case BYTECODE_BYTE_TO_LONG://
+			break;
+
+		case BYTECODE_BYTE_TO_FLOAT://
+			break;
+
+		case BYTECODE_BYTE_TO_DOUBLE://
+			break;
+
+
+
 		case BYTECODE_INT_TO_BYTE://
 			break;
 
 		case BYTECODE_INT_TO_FLOAT://
 			break;
 
+		case BYTECODE_INT_TO_LONG://
+			break;
+
+		case BYTECODE_INT_TO_DOUBLE://
+			break;
+
+
+
 		case BYTECODE_FLOAT_TO_INT://
+			break;
+
+		case BYTECODE_FLOAT_TO_DOUBLE://
 			break;
 
 
