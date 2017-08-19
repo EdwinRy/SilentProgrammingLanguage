@@ -244,7 +244,12 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			thread->memory->stackPointer += 4;
 			break;
 
-		case BYTECODE_PUSH_LONG://
+		case BYTECODE_PUSH_LONG:
+			memcpy(thread->memory->stack + thread->memory->stackPointer,
+				(long long*)(thread->bytecode + (++thread->programCounter)),
+				8);
+			thread->programCounter += 7;
+			thread->memory->stackPointer += 8;
 			break;
 
 		case BYTECODE_PUSH_FLOAT://
@@ -268,7 +273,8 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			thread->memory->stackPointer -= 4;
 			break;
 
-		case BYTECODE_POP8://
+		case BYTECODE_POP8:
+			thread->memory->stackPointer -= 8;
 			break;
 
 
