@@ -72,14 +72,6 @@
 #define BYTECODE_IF 56
 #define BYTECODE_IF_NOT 57
 
-
-SilentObject * createSilentObject(char * data)
-{
-	SilentObject* object = malloc(sizeof(SilentObject));
-	object->data = data;
-	return object;
-}
-
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
 {
 	SilentMemory* memory = malloc(sizeof(SilentMemory));
@@ -87,6 +79,7 @@ SilentMemory* createSilentMemory(int storageSize, int stackSize)
 	memory->storage = malloc(storageSize);
 	memory->stackPointer = 0;
 	memory->storagePoiner = 0;
+	memory->functionPointer = 0;
 }
 
 SilentThread * createSilentThread(char * bytecode, SilentMemory * memory)
@@ -108,12 +101,6 @@ SilentVM * createSilentVM(SilentThread * thread, int numberOfThreads)
 	vm->threadPointer = 1;
 	vm->defaultThread = 0;
 	return vm;
-}
-
-
-void deleteSilentObject(SilentObject * object)
-{
-	free(object);
 }
 
 void deleteSilentMemory(SilentMemory * memory)
@@ -278,24 +265,34 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			break;
 
 
-		case BYTECODE_STORE_BYTE://
-			thread->memory->storage[thread->memory->storagePoiner]
-				= createSilentObject(thread->bytecode[++thread->programCounter]);
-			thread->memory->storagePoiner++;
+		case BYTECODE_STORE_BYTE:
+			thread->memory->storage[thread->memory->storagePoiner++] =
+				&thread->memory->stack[--thread->memory->stackPointer];
 			break;
 
-		case BYTECODE_STORE_INT://
-			thread->memory->storage[thread->memory->storagePoiner]
-				= createSilentObject((int*)(thread->bytecode + (++thread->programCounter)));
-			thread->memory->storagePoiner++;
+		case BYTECODE_STORE_INT:
+			thread->memory->stackPointer -= 4;
+			memcpy(
+				&thread->memory->storage[thread->memory->storagePoiner],
+				&thread->memory->stack[thread->memory->stackPointer],
+				4
+			);
+			thread->memory->storagePoiner += 1;
 			break;
 
 		case BYTECODE_STORE_LONG://
+			thread->memory->stackPointer -= 8;
+			memcpy(
+				&thread->memory->storage[thread->memory->storagePoiner],
+				&thread->memory->stack[thread->memory->stackPointer],
+				8
+			);
+			thread->memory->storagePoiner += 1;
 			break;
 
 		case BYTECODE_STORE_FLOAT://
-			thread->memory->storage[thread->memory->storagePoiner]
-				= createSilentObject((float*)(thread->bytecode + (++thread->programCounter)));
+			//thread->memory->storage[thread->memory->storagePoiner]
+			//	= createSilentObject((float*)(thread->bytecode + (++thread->programCounter)));
 			break;
 
 		case BYTECODE_STORE_DOUBLE://

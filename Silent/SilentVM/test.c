@@ -82,16 +82,12 @@ int main()
 
 	char* bytecode = malloc(100);
 	int x = 0;
-	bytecode[x++] = BYTECODE_PUSH_LONG;
-	bytecode[x++] = 0;
-	bytecode[x++] = 0;
+	bytecode[x++] = BYTECODE_PUSH_INT;
 	bytecode[x++] = 0;
 	bytecode[x++] = 0;
 	bytecode[x++] = 0;
 	bytecode[x++] = 1;
-	bytecode[x++] = 0;
-	bytecode[x++] = 0;
-	bytecode[x++] = BYTECODE_POP8;
+	bytecode[x++] = BYTECODE_STORE_INT;
 	bytecode[x++] = BYTECODE_HALT;
 
 
@@ -100,10 +96,8 @@ int main()
 	vm = createSilentVM(thread, 1);
 	loadProgramToSilentVM(vm, bytecode);
 	startSilentVM(vm);
-	long long int y;
-	memcpy(&y, memory->stack, 8);
-	printf("%i\n", memory->stackPointer);
-	printf("%llu", y);
+
+	printf("%i", *((int*)(&memory->storage[0])));
 	getchar();
 	return 0;
 }
