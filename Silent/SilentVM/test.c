@@ -86,7 +86,7 @@ int main()
 	bytecode[x++] = 0;
 	bytecode[x++] = 0;
 	bytecode[x++] = 0;
-	bytecode[x++] = 1;
+	bytecode[x++] = 0;
 	bytecode[x++] = BYTECODE_STORE_INT;
 	bytecode[x++] = BYTECODE_HALT;
 
@@ -97,7 +97,7 @@ int main()
 	loadProgramToSilentVM(vm, bytecode);
 	startSilentVM(vm);
 
-	printf("%i", *((int*)(&memory->storage[0])));
+	//printf("%u", *((int*)(&memory->storage[0])));
 	getchar();
 	return 0;
 }
