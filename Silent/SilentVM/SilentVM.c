@@ -273,7 +273,7 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 		case BYTECODE_STORE_INT:
 			thread->memory->stackPointer -= 4;
 			thread->memory->storage[thread->memory->storagePoiner]
-				= malloc(8);
+				= malloc(4);
 			memcpy(
 				thread->memory->storage[thread->memory->storagePoiner],
 				&thread->memory->stack[thread->memory->stackPointer],
@@ -285,11 +285,14 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 
 		case BYTECODE_STORE_LONG://
 			thread->memory->stackPointer -= 8;
+			thread->memory->storage[thread->memory->storagePoiner]
+				= malloc(8);
 			memcpy(
-				&thread->memory->storage[thread->memory->storagePoiner],
+				thread->memory->storage[thread->memory->storagePoiner],
 				&thread->memory->stack[thread->memory->stackPointer],
 				8
 			);
+			printf("%i", *(int*)(thread->memory->storage[thread->memory->storagePoiner]));
 			thread->memory->storagePoiner += 1;
 			break;
 
