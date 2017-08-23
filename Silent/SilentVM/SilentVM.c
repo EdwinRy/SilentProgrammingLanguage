@@ -187,12 +187,6 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 		{
 		case BYTECODE_HALT:
 			thread->running = 0;
-			/*
-			memset(thread->memory->storage, 0, thread->memory->storagePoiner);
-			thread->memory->storagePoiner = 0;
-			memset(thread->memory->stack, 0, thread->memory->stackPointer);
-			thread->memory->stackPointer = 0;
-			*/
 			break;
 
 		case BYTECODE_GOTO: 
@@ -206,8 +200,11 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 
 
 
-		case BYTECODE_CLEAR_MEMORY: //
-			memset(thread->memory->storage, 0, thread->memory->storagePoiner);
+		case BYTECODE_CLEAR_MEMORY:
+			for (int i = 0; i < thread->memory->storagePoiner; i++) 
+			{
+				free(thread->memory->storage[i]);
+			}
 			thread->memory->storagePoiner = 0;
 			break;
 
@@ -279,11 +276,11 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 				&thread->memory->stack[thread->memory->stackPointer],
 				4
 			);
-			printf("%i", *(int*)(thread->memory->storage[thread->memory->storagePoiner]));
-			thread->memory->storagePoiner += 1;
+			//printf("%i", *(int*)(thread->memory->storage[thread->memory->storagePoiner]));
+			thread->memory->storagePoiner++;
 			break;
 
-		case BYTECODE_STORE_LONG://
+		case BYTECODE_STORE_LONG:
 			thread->memory->stackPointer -= 8;
 			thread->memory->storage[thread->memory->storagePoiner]
 				= malloc(8);
@@ -292,8 +289,8 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 				&thread->memory->stack[thread->memory->stackPointer],
 				8
 			);
-			printf("%i", *(int*)(thread->memory->storage[thread->memory->storagePoiner]));
-			thread->memory->storagePoiner += 1;
+			//printf("%i", *(int*)(thread->memory->storage[thread->memory->storagePoiner]));
+			thread->memory->storagePoiner++;
 			break;
 
 		case BYTECODE_STORE_FLOAT://

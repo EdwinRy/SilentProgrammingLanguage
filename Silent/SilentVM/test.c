@@ -82,12 +82,48 @@ int main()
 
 	char* bytecode = malloc(100);
 	int x = 0;
+	/*
 	bytecode[x++] = BYTECODE_PUSH_INT;
 	bytecode[x++] = 0;
 	bytecode[x++] = 0;
 	bytecode[x++] = 0;
+	bytecode[x++] = 1;
+	bytecode[x++] = BYTECODE_STORE_INT;
+	bytecode[x++] = BYTECODE_PUSH_INT;
+	bytecode[x++] = 0;
+	bytecode[x++] = 1;
+	bytecode[x++] = 0;
 	bytecode[x++] = 0;
 	bytecode[x++] = BYTECODE_STORE_INT;
+	bytecode[x++] = BYTECODE_CLEAR_MEMORY;
+	bytecode[x++] = BYTECODE_PUSH_INT;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 1;
+	bytecode[x++] = 0;
+	bytecode[x++] = BYTECODE_STORE_INT;
+	bytecode[x++] = BYTECODE_HALT;
+	*/
+	bytecode[x++] = BYTECODE_PUSH_LONG;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 1;
+	bytecode[x++] = BYTECODE_STORE_LONG;
+	bytecode[x++] = BYTECODE_PUSH_LONG;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 1;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = 0;
+	bytecode[x++] = BYTECODE_STORE_LONG;
 	bytecode[x++] = BYTECODE_HALT;
 
 
@@ -97,7 +133,7 @@ int main()
 	loadProgramToSilentVM(vm, bytecode);
 	startSilentVM(vm);
 
-	//printf("%u", *((int*)(&memory->storage[0])));
+	printf("%i", *((int*)(memory->storage[0])));
 	getchar();
 	return 0;
 }
