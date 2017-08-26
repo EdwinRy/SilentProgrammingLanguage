@@ -309,9 +309,25 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			break;
 
 		case BYTECODE_LOAD_INT://
+			thread->programCounter++;
+			memcpy(
+				&thread->memory->stack[thread->memory->stackPointer],
+				thread->memory->storage[thread->bytecode[*((int*)(&thread->programCounter))]],
+				4
+				);
+			thread->memory->stackPointer += 4;
+			thread->programCounter += 3;
 			break;
 
 		case BYTECODE_LOAD_LONG://
+			memcpy(
+				thread->memory->stack[thread->memory->stackPointer],
+				thread->memory->storage[thread->bytecode[++thread->programCounter]],
+				8
+			);
+
+			thread->memory->stackPointer += 8;
+			thread->programCounter += 7;
 			break;
 
 		case BYTECODE_LOAD_FLOAT://
