@@ -7,27 +7,21 @@
 #define BYTECODE_CLEAR_MEMORY 3
 #define BYTECODE_CLEAR_STACK 4
 
-#define BYTECODE_PUSH_BYTE 5
-#define BYTECODE_PUSH_INT 6
-#define BYTECODE_PUSH_LONG 7
-#define BYTECODE_PUSH_FLOAT 8
-#define BYTECODE_PUSH_DOUBLE 9
+#define BYTECODE_PUSH_1 5
+#define BYTECODE_PUSH_4 6
+#define BYTECODE_PUSH_8 7
 
-#define BYTECODE_POP_BYTE 10
-#define BYTECODE_POP4 11
-#define BYTECODE_POP8 12
+#define BYTECODE_POP_1 10
+#define BYTECODE_POP_4 11
+#define BYTECODE_POP_8 12
 
-#define BYTECODE_STORE_BYTE 13
-#define BYTECODE_STORE_INT 14
-#define BYTECODE_STORE_LONG 15
-#define BYTECODE_STORE_FLOAT 16
-#define BYTECODE_STORE_DOUBLE 17
+#define BYTECODE_STORE_1 13
+#define BYTECODE_STORE_4 14
+#define BYTECODE_STORE_8 15
 
-#define BYTECODE_LOAD_BYTE 18
-#define BYTECODE_LOAD_INT 19
-#define BYTECODE_LOAD_LONG 20
-#define BYTECODE_LOAD_FLOAT 21
-#define BYTECODE_LOAD_DOUBLE 22
+#define BYTECODE_LOAD_1 18
+#define BYTECODE_LOAD_4 19
+#define BYTECODE_LOAD_8 20
 
 #define BYTECODE_ADD_BYTE 23
 #define BYTECODE_ADD_INT 24
@@ -83,24 +77,12 @@ int main()
 	char* bytecode = malloc(100);
 	int x = 0;
 
-	bytecode[x++] = BYTECODE_PUSH_INT;
+
+	bytecode[x++] = BYTECODE_PUSH_4;
 	bytecode[x++] = 0;
 	bytecode[x++] = 0;
-	bytecode[x++] = 0;
-	bytecode[x++] = 1;
-	bytecode[x++] = BYTECODE_STORE_INT;
-	bytecode[x++] = BYTECODE_PUSH_INT;
-	bytecode[x++] = 0;
-	bytecode[x++] = 1;
-	bytecode[x++] = 0;
-	bytecode[x++] = 0;
-	bytecode[x++] = BYTECODE_STORE_INT;
-	bytecode[x++] = BYTECODE_CLEAR_STACK;
-	bytecode[x++] = BYTECODE_LOAD_INT;
-	bytecode[x++] = 1;
-	bytecode[x++] = 0;
-	bytecode[x++] = 0;
-	bytecode[x++] = 0;
+	bytecode[x++] = -112;
+	bytecode[x++] = 64;
 	bytecode[x++] = BYTECODE_HALT;
 
 
@@ -110,9 +92,9 @@ int main()
 	loadProgramToSilentVM(vm, bytecode);
 	startSilentVM(vm);
 
-	//printf("%i \n", memory->stackPointer);
-	printf("%i", *((int*)(memory->stack + 0)));
-	//printf("%i", *((int*)(memory->storage[0])));
+	//printf("%#08x", *((int*)(memory->stack + 0)));
+	printf("%f", *((float*)(memory->stack + 0)));
+	//printf("%lu", *((long long*)(memory->stack + 0)));
 	getchar();
 	return 0;
 }

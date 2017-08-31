@@ -6,27 +6,21 @@
 #define BYTECODE_CLEAR_MEMORY 3
 #define BYTECODE_CLEAR_STACK 4
 
-#define BYTECODE_PUSH_BYTE 5
-#define BYTECODE_PUSH_INT 6
-#define BYTECODE_PUSH_LONG 7
-#define BYTECODE_PUSH_FLOAT 8
-#define BYTECODE_PUSH_DOUBLE 9
+#define BYTECODE_PUSH_1 5
+#define BYTECODE_PUSH_4 6
+#define BYTECODE_PUSH_8 7
 
-#define BYTECODE_POP_BYTE 10
-#define BYTECODE_POP4 11
-#define BYTECODE_POP8 12
+#define BYTECODE_POP_1 8
+#define BYTECODE_POP_4 9
+#define BYTECODE_POP_8 10
 
-#define BYTECODE_STORE_BYTE 13
-#define BYTECODE_STORE_INT 14
-#define BYTECODE_STORE_LONG 15
-#define BYTECODE_STORE_FLOAT 16
-#define BYTECODE_STORE_DOUBLE 17
+#define BYTECODE_STORE_1 11
+#define BYTECODE_STORE_4 12
+#define BYTECODE_STORE_8 13
 
-#define BYTECODE_LOAD_BYTE 18
-#define BYTECODE_LOAD_INT 19
-#define BYTECODE_LOAD_LONG 20
-#define BYTECODE_LOAD_FLOAT 21
-#define BYTECODE_LOAD_DOUBLE 22
+#define BYTECODE_LOAD_1 14
+#define BYTECODE_LOAD_4 15
+#define BYTECODE_LOAD_8 16
 
 #define BYTECODE_ADD_BYTE 23
 #define BYTECODE_ADD_INT 24
@@ -71,6 +65,8 @@
 
 #define BYTECODE_IF 56
 #define BYTECODE_IF_NOT 57
+
+
 
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
 {
@@ -215,12 +211,12 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 
 
 
-		case BYTECODE_PUSH_BYTE: 
+		case BYTECODE_PUSH_1: 
 			thread->memory->stack[thread->memory->stackPointer++] =
 				thread->bytecode[++thread->programCounter];
 			break;
 
-		case BYTECODE_PUSH_INT:
+		case BYTECODE_PUSH_4:
 			memcpy(thread->memory->stack + thread->memory->stackPointer,
 				thread->bytecode + (++thread->programCounter),
 				4);
@@ -228,46 +224,36 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 			thread->memory->stackPointer += 4;
 			break;
 
-		case BYTECODE_PUSH_LONG:
+		case BYTECODE_PUSH_8:
 			memcpy(thread->memory->stack + thread->memory->stackPointer,
-				(long long*)(thread->bytecode + (++thread->programCounter)),
+				thread->bytecode + (++thread->programCounter),
 				8);
 			thread->programCounter += 7;
 			thread->memory->stackPointer += 8;
 			break;
 
-		case BYTECODE_PUSH_FLOAT://
-			memcpy(thread->memory->stack + thread->memory->stackPointer,
-				thread->bytecode + (++thread->programCounter),
-				4);
-			thread->programCounter += 3;
-			thread->memory->stackPointer += 4;
-			break;
-		
-		case BYTECODE_PUSH_DOUBLE://
-			break;
 
 
-
-		case BYTECODE_POP_BYTE:
+		case BYTECODE_POP_1:
 			thread->memory->stackPointer--;
 			break;
 
-		case BYTECODE_POP4:
+		case BYTECODE_POP_4:
 			thread->memory->stackPointer -= 4;
 			break;
 
-		case BYTECODE_POP8:
+		case BYTECODE_POP_8:
 			thread->memory->stackPointer -= 8;
 			break;
 
 
-		case BYTECODE_STORE_BYTE:
+
+		case BYTECODE_STORE_1:
 			thread->memory->storage[thread->memory->storagePoiner++] =
 				&thread->memory->stack[--thread->memory->stackPointer];
 			break;
 
-		case BYTECODE_STORE_INT:
+		case BYTECODE_STORE_4:
 			thread->memory->stackPointer -= 4;
 			thread->memory->storage[thread->memory->storagePoiner]
 				= malloc(4);
@@ -276,11 +262,10 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 				&thread->memory->stack[thread->memory->stackPointer],
 				4
 			);
-			//printf("%i", *(int*)(thread->memory->storage[thread->memory->storagePoiner]));
 			thread->memory->storagePoiner++;
 			break;
 
-		case BYTECODE_STORE_LONG:
+		case BYTECODE_STORE_8:
 			thread->memory->stackPointer -= 8;
 			thread->memory->storage[thread->memory->storagePoiner]
 				= malloc(8);
@@ -289,37 +274,28 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 				&thread->memory->stack[thread->memory->stackPointer],
 				8
 			);
-			//printf("%i", *(int*)(thread->memory->storage[thread->memory->storagePoiner]));
 			thread->memory->storagePoiner++;
 			break;
 
-		case BYTECODE_STORE_FLOAT://
-			//thread->memory->storage[thread->memory->storagePoiner]
-			//	= createSilentObject((float*)(thread->bytecode + (++thread->programCounter)));
-			break;
-
-		case BYTECODE_STORE_DOUBLE://
-			break;
 
 
-
-		case BYTECODE_LOAD_BYTE://
+		case BYTECODE_LOAD_1://
 			thread->memory->stack[thread->memory->stackPointer++] =
 				thread->memory->storage[thread->bytecode[++thread->programCounter]];
 			break;
 
-		case BYTECODE_LOAD_INT://
+		case BYTECODE_LOAD_4://
 			thread->programCounter++;
 			memcpy(
 				&thread->memory->stack[thread->memory->stackPointer],
-				thread->memory->storage[thread->bytecode[*((int*)(&thread->programCounter))]],
+				thread->memory->storage[thread->bytecode[++thread->programCounter]],
 				4
 				);
 			thread->memory->stackPointer += 4;
 			thread->programCounter += 3;
 			break;
 
-		case BYTECODE_LOAD_LONG://
+		case BYTECODE_LOAD_8://
 			memcpy(
 				thread->memory->stack[thread->memory->stackPointer],
 				thread->memory->storage[thread->bytecode[++thread->programCounter]],
@@ -328,12 +304,6 @@ void executeSilentThread(SilentVM * vm, unsigned int threadID)
 
 			thread->memory->stackPointer += 8;
 			thread->programCounter += 7;
-			break;
-
-		case BYTECODE_LOAD_FLOAT://
-			break;
-
-		case BYTECODE_LOAD_DOUBLE://
 			break;
 
 
