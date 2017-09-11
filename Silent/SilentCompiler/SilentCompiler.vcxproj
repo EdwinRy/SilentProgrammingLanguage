@@ -150,6 +150,7 @@
     <ClInclude Include="Parser.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="assemblyDoc.txt" />
     <Text Include="test.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -3,8 +3,16 @@
 #include <stdlib.h>
 #pragma once
 
+typedef struct assembly {
+	char* code;
+	long long codeSize;
+	char* bytecode;
+	char* bytecodeLength;
+	char* outputFile;
+}assembly;
+
 void Compile(char* source);
-void CompileFile(char * sourcePath);
+void CompileAssembly(assembly* asm);
 
 enum ByteCode
 {

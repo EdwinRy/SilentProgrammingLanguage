@@ -1,5 +1,4 @@
 #include "Compiler.h"
-
 void Compile(char * source)
 {
 	Program* program = malloc(sizeof(Program));
@@ -19,38 +18,10 @@ void Compile(char * source)
 	}
 }
 
-void CompileFile(char * sourcePath)
-{
-	//Load source from file
-	FILE *source = fopen(sourcePath, "r");
-	fseek(source, 0, SEEK_END);
-	long size = ftell(source);
-	fseek(source, 0, SEEK_SET);
-	char* buffer = calloc(sizeof(char),size + 1);
-	fread(buffer, 1, size, source);
-	fclose(source);
-	buffer[size] = 0;
 
-	Compile(buffer);
-}
-
-void CompileAssembly(char* source)
+void CompileAssembly(assembly* asm)
 {
 
+	printf(asm->outputFile);
 
-
-}
-
-void CompileAssemblyFromFile(char* sourcePath)
-{
-	//Load source from file
-	FILE * source;
-	source = fopen(sourcePath, "rb");
-	fseek(source, 0, SEEK_END);
-	long size = ftell(source);
-	fseek(source, 0, SEEK_SET);
-	char* buffer = malloc(size + 1);
-	fread(buffer, 1, size, source);
-
-	CompileAssembly(buffer);
 }
