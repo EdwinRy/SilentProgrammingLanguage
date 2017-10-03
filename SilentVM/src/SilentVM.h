@@ -1,0 +1,108 @@
+#include <stdlib.h>
+
+#ifndef SILENTVM
+#define SILENTVM
+typedef enum SilentBytecode
+{
+	Halt,
+	Goto,
+	Call,
+	
+	ClearMemory,
+	ClearStack,
+	
+	Push1,
+	Push4,
+	Push8,
+	PushX,
+	
+	Pop1,
+	Pop4,
+	Pop8,
+	PopX,
+
+	Store1,
+	Store4,
+	Store8,
+	StoreX,
+	
+	Load1,
+	Load4,
+	Load8,
+	LoadX,
+
+	Save1,
+	Save4,
+	Save8,
+	SaveX,
+	
+	AddByte,
+	AddInt,
+	AddLong,
+	AddFloat,
+	AddDouble,
+
+	SubByte,
+	SubInt,
+	SubLong,
+	SubFloat,
+	SubDouble,
+	
+	MulByte,
+	MulInt,
+	MulLong,
+	MulFloat,
+	MulDouble,
+	
+	DivByte,
+	DivInt,
+	DivLong,
+	DivFloat,
+	DivDouble,
+
+	ByteToInt,
+	ByteToLong,
+	ByteToFloat,
+	ByteToDouble,
+	
+	IntToByte,
+	IntToFloat,
+	IntToLong,
+	IntToDouble,
+
+	FloatToInt,
+	FloatToDouble,
+	
+	SmallerThan,
+	BiggerThan,
+	Equal,
+	
+	If,
+	IfNot
+}SilentBytecode;
+
+typedef struct SilentMemory
+{
+	char** storage;
+	char* stack;
+	unsigned int storagePointer;
+	unsigned int stackPointer;
+	unsigned int functionPointer;
+}SilentMemory;
+
+typedef struct SilentThread
+{
+	char* bytecode;
+	char running;
+	unsigned int programCounter;
+	SilentMemory* memory;
+}SilentThread;
+
+//Create structures
+SilentMemory* createSilentMemory(int storageSize, int stackSize);
+SilentThread* createSilentThread(SilentMemory* memory, char* bytecode);
+
+//Virtual machine functions
+void executeSilentThread(SilentThread* thread);
+
+#endif //SILENTVM
