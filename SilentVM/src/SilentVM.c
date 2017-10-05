@@ -1,4 +1,5 @@
 #include "SilentVM.h"
+#include <string.h>
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
 {
 	SilentMemory* memory = malloc(sizeof(SilentMemory));
@@ -37,36 +38,36 @@ void executeSilentThread(SilentThread * thread)
 	{
 		switch(thread->bytecode[thread->programCounter])
 		{
-			case SilentBytecode.Halt:
+			case Halt:
 				thread->running = 0;
 				break;
 			
-			case SilentBytecode.Goto:
+			case Goto:
 				thread->programCounter = 
-					*((unsigned int*)(&vm->bytecode[1 + thread->programCounter]));
+					*((unsigned int*)(&thread->bytecode[1 + thread->programCounter]));
 				break;
 			
-			case SilentBytecode.Call: //Not yet implemented
+			case Call: //Not yet implemented
 				break;
 
-			case SilentBytecode.ClearMemory:
+			case ClearMemory:
 				for(int i = 0; i < thread->memory->storagePointer; i++)
 				{free(thread->memory->storage);}
 				thread->memory->storagePointer = 0;
 				break;
 
-			case SilentBytecode.ClearStack:
+			case ClearStack:
 				memset(thread->memory->stack, 0, thread->memory->stackPointer);
 				thread->memory->stackPointer = 0;
 				break;
 
 
-			case SilentBytecode.Push1:
+			case Push1:
 				thread->memory->stack[thread->memory->stackPointer++] = 
 					thread->bytecode[++thread->programCounter];
 				break;
 				
-			case SilentBytecode.Push4:
+			case Push4:
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						4);
@@ -74,7 +75,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer += 4;
 				break;
 
-			case SilentBytecode.Push8:
+			case Push8:
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						8);
@@ -82,7 +83,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer += 8;
 				break;
 
-			case SilentBytecode.PushX:
+			case PushX:
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (4 + thread->programCounter),
 						*((int*)(thread->bytecode + (1 + thread->programCounter))));
@@ -91,6 +92,83 @@ void executeSilentThread(SilentThread * thread)
 				break;
 			
 			
+			case Pop1:
+				break;
+
+			case Pop4:
+				break;
+					
+			case Pop8:
+				break;
+
+			case PopX:
+				break;
+
+			case Store1:
+				break;
+
+			case Store4:
+				break;
+
+			case Store8:
+				break;
+
+			case StoreX:
+				break;
+
+			case Load1:
+				break;
+
+			case Load4:
+				break;
+
+			case Load8:
+				break;
+
+			case LoadX:
+				break;
+
+			case Save1:
+				break;
+
+			case Save4:
+				break;
+
+			case Save8:
+				break;
+
+			case SaveX:
+				break;
+
+			case AddByte:
+				break;
+
+			case AddInt:
+				break;
+
+			case AddLong:
+				break;
+
+			case AddFloat:
+				break;
+
+			case AddDouble:
+				break;
+
+			case SubByte:
+				break;
+
+			case SubInt:
+				break;
+
+			case SubLong:
+				break;
+
+			case SubFloat:
+				break;
+
+			case SubDouble:
+				break;
 			
 		}
 	}
