@@ -5,11 +5,12 @@
 int main()
 {
 	int p = 0;
-	char* b = malloc(50);
+	char* b = malloc(500);
+	b[p++] = Push1;
+	b[p++] = 10;
 	b[p++] = 0;
-	b[p++] = 0;
-	b[p++] = 0;
-	b[p++] = 0;
+	b[p++] = Push1;
+	b[p++] = 254;
 	b[p++] = 0;
 	b[p++] = 0;
 	b[p++] = 0;
@@ -18,7 +19,9 @@ int main()
 	b[p++] = 0;
 	SilentMemory* m = createSilentMemory(500,500);
 	SilentThread* t = createSilentThread(m, b);
-	printf("Hey Vsauce, Michael here!\n");
+
+	executeSilentThread(t);
+	printf("%i\n", m->stack[1]);
 
 return 0;
 }

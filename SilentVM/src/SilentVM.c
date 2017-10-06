@@ -8,6 +8,7 @@ SilentMemory* createSilentMemory(int storageSize, int stackSize)
 	memory->storagePointer = 0;
 	memory->stackPointer = 0;
 	memory->functionPointer = 0;
+	return memory;
 }
 
 SilentThread* createSilentThread(SilentMemory* memory, char* bytecode)
@@ -17,6 +18,7 @@ SilentThread* createSilentThread(SilentMemory* memory, char* bytecode)
 	thread->running = 0;
 	thread->programCounter = 0;
 	thread->memory = memory;
+	return thread;
 }
 
 void deleteSilentMemory(SilentMemory * memory)
@@ -42,21 +44,21 @@ void executeSilentThread(SilentThread * thread)
 				thread->running = 0;
 				break;
 			
-			case Goto:
+			case Goto://
 				thread->programCounter = 
-					*((unsigned int*)(&thread->bytecode[1 + thread->programCounter]));
+					*((unsigned long*)(&thread->bytecode[1 + thread->programCounter]));
 				break;
 			
 			case Call: //Not yet implemented
 				break;
 
-			case ClearMemory:
+			case ClearMemory://
 				for(int i = 0; i < thread->memory->storagePointer; i++)
 				{free(thread->memory->storage);}
 				thread->memory->storagePointer = 0;
 				break;
 
-			case ClearStack:
+			case ClearStack://
 				memset(thread->memory->stack, 0, thread->memory->stackPointer);
 				thread->memory->stackPointer = 0;
 				break;
@@ -67,7 +69,7 @@ void executeSilentThread(SilentThread * thread)
 					thread->bytecode[++thread->programCounter];
 				break;
 				
-			case Push4:
+			case Push4://
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						4);
@@ -75,7 +77,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer += 4;
 				break;
 
-			case Push8:
+			case Push8://
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						8);
@@ -83,25 +85,31 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer += 8;
 				break;
 
-			case PushX:
+			case PushX://
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (4 + thread->programCounter),
 						*((int*)(thread->bytecode + (1 + thread->programCounter))));
-				thread->programCounter += 8;
+				thread->programCounter += 7;
 				thread->memory->stackPointer += 8;
 				break;
 			
 			
-			case Pop1:
+			case Pop1://
+				thread->memory->stackPointer--;
 				break;
 
-			case Pop4:
+			case Pop4://
+				thread->memory->stackPointer-=4;
 				break;
 					
-			case Pop8:
+			case Pop8://
+				thread->memory->stackPointer-=8;
 				break;
 
-			case PopX:
+			case PopX://
+				thread->memory->stackPointer-=
+					*(int*)thread->bytecode+(1+thread->programCounter);
+				thread->programCounter += 7;
 				break;
 
 			case Store1:
@@ -110,37 +118,50 @@ void executeSilentThread(SilentThread * thread)
 			case Store4:
 				break;
 
-			case Store8:
+			case Store8:		
 				break;
 
 			case StoreX:
+				
 				break;
 
 			case Load1:
+				
 				break;
 
 			case Load4:
+				
 				break;
 
 			case Load8:
+				
 				break;
 
 			case LoadX:
+				
 				break;
 
-			case Save1:
+			case Alloc1:
+				
 				break;
 
-			case Save4:
+			case Alloc4:
+				
 				break;
 
-			case Save8:
+			case Alloc8:
+				
 				break;
 
-			case SaveX:
+			case AllocX:
+				
+				break;
+
+			case FREE:
 				break;
 
 			case AddByte:
+				
 				break;
 
 			case AddInt:
@@ -170,6 +191,81 @@ void executeSilentThread(SilentThread * thread)
 			case SubDouble:
 				break;
 			
+			case MulByte:
+				break;
+
+			case MulInt:
+				break;
+
+			case MulLong:
+				break;
+
+			case MulFloat:
+				break;
+
+			case MulDouble:
+				break;
+
+			case DivByte:
+				break;
+
+			case DivInt:
+				break;
+
+			case DivLong:
+				break;
+
+			case DivFloat:
+				break;
+
+			case DivDouble:
+				break;
+
+			case ByteToInt:
+				break;
+
+			case ByteToLong:
+				break;
+
+			case ByteToFloat:
+				break;
+
+			case ByteToDouble:
+				break;
+
+			case IntToByte:
+				break;
+
+			case IntToFloat:
+				break;
+
+			case IntToLong:
+				break;
+
+			case IntToDouble:
+				break;
+
+			case FloatToInt:
+				break;
+
+			case FloatToDouble:
+				break;
+
+			case SmallerThan:
+				break;
+
+			case BiggerThan:
+				break;
+
+			case Equal:
+				break;
+
+			case If:
+				break;
+
+			case IfNot:
+				break;	
 		}
+		thread->programCounter++;
 	}
 }

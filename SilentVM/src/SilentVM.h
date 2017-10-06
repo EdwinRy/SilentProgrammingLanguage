@@ -31,10 +31,12 @@ typedef enum SilentBytecode
 	Load8,
 	LoadX,
 
-	Save1,
-	Save4,
-	Save8,
-	SaveX,
+	Alloc1,
+	Alloc4,
+	Alloc8,
+	AllocX,
+
+	FREE,
 	
 	AddByte,
 	AddInt,
