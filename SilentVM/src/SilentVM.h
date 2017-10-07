@@ -37,6 +37,12 @@ typedef enum SilentBytecode
 	AllocX,
 
 	FREE,
+
+	LoadPtr,
+	EditPtr1,
+	EditPtr4,
+	EditPtr8,
+	EditPtrX,
 	
 	AddByte,
 	AddInt,

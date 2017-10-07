@@ -45,7 +45,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->running = 0;
 				break;
 			
-			case Goto://
+			case Goto:
 				thread->programCounter = 
 					*((unsigned long*)(&thread->bytecode[1 + thread->programCounter]));
 				break;
@@ -53,16 +53,16 @@ void executeSilentThread(SilentThread * thread)
 			case Call: //Not yet implemented
 				break;
 
-			case ClearMemory://
-				for(int i = 0; i < thread->memory->storagePointer; i++)
-				{free(thread->memory->storage);}
-				thread->memory->storagePointer = 0;
-				break;
+			//case ClearMemory://
+			//	for(int i = 0; i < thread->memory->storagePointer; i++)
+			//	{free(thread->memory->storage);}
+			//	thread->memory->storagePointer = 0;
+			//	break;
 
-			case ClearStack://
-				memset(thread->memory->stack, 0, thread->memory->stackPointer);
-				thread->memory->stackPointer = 0;
-				break;
+			//case ClearStack://
+			//	memset(thread->memory->stack, 0, thread->memory->stackPointer);
+			//	thread->memory->stackPointer = 0;
+			//	break;
 
 
 			case Push1:
@@ -108,10 +108,10 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer-=8;
 				break;
 
-			case PopX://
+			case PopX:
 				thread->memory->stackPointer-=
-					*(long*)(thread->bytecode + (1 + thread->programCounter));
-				thread->programCounter += 8;
+					*(long*)(thread->bytecode + (++thread->programCounter));
+				thread->programCounter += 7;
 				break;
 
 			case Store1:
@@ -143,23 +143,35 @@ void executeSilentThread(SilentThread * thread)
 				
 				break;
 
-			case Alloc1:
-				
+			case Alloc1://
+				thread->memory->storage[thread->memory->storagePointer]
+					= malloc(1);
 				break;
 
-			case Alloc4:
-				
+			case Alloc4://
+				thread->memory->storage[thread->memory->storagePointer]
+					= malloc(4);
 				break;
 
-			case Alloc8:
-				
+			case Alloc8://
+				thread->memory->storage[thread->memory->storagePointer]
+					= malloc(8);
 				break;
 
-			case AllocX:
-				
+			case AllocX://
+				thread->memory->storage[thread->memory->storagePointer]
+					= malloc(*(long*)(thread->bytecode + (++thread->programCounter)));
+				thread->programCounter += 7;
 				break;
 
-			case FREE:
+			case FREE://
+				free(thread->memory->storage[thread->memory->storagePointer--]);
+				break;
+
+			case LoadPtr:
+				break;
+
+			case EditPtr1:
 				break;
 
 			case AddByte:

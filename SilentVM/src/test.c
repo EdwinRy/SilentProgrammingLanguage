@@ -19,20 +19,7 @@ int main()
 	b[p++] = 0;
 	b[p++] = 0;
 	b[p++] = 0;
-	//b[p++] = PopX;
-	//b[p++] = 4;
-	//b[p++] = 0;
-	//b[p++] = 0;
-	//b[p++] = 0;
-	//b[p++] = 0;
-	//b[p++] = 0;
-	//b[p++] = 0;
-	//b[p++] = 0;
-	b[p++] = Push4;
-	b[p++] = 0;
-	b[p++] = 0;
-	b[p++] = 0;
-	b[p++] = 1;
+
 	b[p++] = Halt;
 	SilentMemory* m = createSilentMemory(500,500);
 	SilentThread* t = createSilentThread(m, b);
