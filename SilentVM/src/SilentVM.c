@@ -36,6 +36,7 @@ void deleteSilentThread(SilentThread * thread)
 void executeSilentThread(SilentThread * thread)
 {
 	thread->running = 1;
+	long lreg;
 	while(thread->running)
 	{
 		switch(thread->bytecode[thread->programCounter])
@@ -69,7 +70,7 @@ void executeSilentThread(SilentThread * thread)
 					thread->bytecode[++thread->programCounter];
 				break;
 				
-			case Push4://
+			case Push4:
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						4);
@@ -77,7 +78,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer += 4;
 				break;
 
-			case Push8://
+			case Push8:
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						8);
@@ -85,12 +86,13 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer += 8;
 				break;
 
-			case PushX://
+			case PushX:
+				lreg = *((long*)(thread->bytecode + (1 + thread->programCounter)));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
-						thread->bytecode + (4 + thread->programCounter),
-						*((int*)(thread->bytecode + (1 + thread->programCounter))));
-				thread->programCounter += 7;
-				thread->memory->stackPointer += 8;
+						thread->bytecode + (8 + thread->programCounter),
+						lreg);
+				thread->programCounter += (8+lreg);
+				thread->memory->stackPointer += lreg;
 				break;
 			
 			
