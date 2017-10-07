@@ -19,6 +19,15 @@ int main()
 	b[p++] = 0;
 	b[p++] = 0;
 	b[p++] = 0;
+	//b[p++] = PopX;
+	//b[p++] = 4;
+	//b[p++] = 0;
+	//b[p++] = 0;
+	//b[p++] = 0;
+	//b[p++] = 0;
+	//b[p++] = 0;
+	//b[p++] = 0;
+	//b[p++] = 0;
 	b[p++] = Push4;
 	b[p++] = 0;
 	b[p++] = 0;
@@ -30,7 +39,7 @@ int main()
 
 	executeSilentThread(t);
 	//printf("%i",m->stackPointer);
-	printf("%i\n", *(int*)(m->stack + 4));
+	printf("%i\n", *(int*)(m->stack + 0));
 
 return 0;
 }

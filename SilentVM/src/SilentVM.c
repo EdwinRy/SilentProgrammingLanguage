@@ -87,31 +87,31 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			case PushX:
-				lreg = *((long*)(thread->bytecode + (1 + thread->programCounter)));
+				lreg = *((long*)(thread->bytecode + (++thread->programCounter)));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
-						thread->bytecode + (8 + thread->programCounter),
+						thread->bytecode + 8 + thread->programCounter,
 						lreg);
-				thread->programCounter += (8+lreg);
+				thread->programCounter += (7+lreg);
 				thread->memory->stackPointer += lreg;
 				break;
 			
 			
-			case Pop1://
+			case Pop1:
 				thread->memory->stackPointer--;
 				break;
 
-			case Pop4://
+			case Pop4:
 				thread->memory->stackPointer-=4;
 				break;
 					
-			case Pop8://
+			case Pop8:
 				thread->memory->stackPointer-=8;
 				break;
 
 			case PopX://
 				thread->memory->stackPointer-=
-					*(int*)thread->bytecode+(1+thread->programCounter);
-				thread->programCounter += 7;
+					*(long*)(thread->bytecode + (1 + thread->programCounter));
+				thread->programCounter += 8;
 				break;
 
 			case Store1:
