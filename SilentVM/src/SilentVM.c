@@ -162,12 +162,13 @@ void executeSilentThread(SilentThread * thread)
 					],
 					1
 				);
+				thread->programCounter += 7;
 				break;
 
 			case Load4://
 				memcpy
 				(
-					thread->memory->stack + thread->memory->stackPointer,
+					thread->memory->stack + (thread->memory->stackPointer),
 					thread->memory->storage[
 							*(long*)(thread->bytecode + (++thread->programCounter))
 					],
@@ -180,7 +181,7 @@ void executeSilentThread(SilentThread * thread)
 			case Load8://
 				memcpy
 				(
-					thread->memory->stack + thread->memory->stackPointer,
+					thread->memory->stack + (thread->memory->stackPointer),
 					thread->memory->storage[
 							*(long*)(thread->bytecode + (++thread->programCounter))
 					],

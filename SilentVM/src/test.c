@@ -27,17 +27,34 @@ int main()
 	b[p++] = 0;
 	b[p++] = 0;
 	b[p++] = 0;
-	b[p++] = 0;//end
+	b[p++] = Load4;//end
 	b[p++] = 0;
 	b[p++] = 0;
-
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = Pop4;
+	b[p++] = Pop4;
+	b[p++] = Load4;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
 	b[p++] = Halt;
+
 	SilentMemory* m = createSilentMemory(500,500);
 	SilentThread* t = createSilentThread(m, b);
 
 	executeSilentThread(t);
 	printf("%i\n",m->stackPointer);
-	printf("%i\n", *(int*)(m->storage[0]));
+	printf("%i\n", *(int*)(m->stack + 0));
 
 return 0;
 }
