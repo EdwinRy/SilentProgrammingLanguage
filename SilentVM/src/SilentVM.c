@@ -115,28 +115,79 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			case Store1:
+				memcpy(
+					thread->memory->storage[
+						*(long*)(thread->bytecode + (++thread->programCounter))
+					],
+				thread->memory->stack + (--thread->memory->stackPointer),
+					1
+				);
+				thread->programCounter += 7;
 				break;
 
 			case Store4:
+				thread->memory->stackPointer -= 4;
+				memcpy(
+					thread->memory->storage[
+						*(long*)(thread->bytecode + (++thread->programCounter))
+					],
+					thread->memory->stack + (thread->memory->stackPointer),
+					4
+				);
+				thread->programCounter += 7;
 				break;
 
 			case Store8:		
+				thread->memory->stackPointer -= 8;
+				memcpy(	
+					thread->memory->storage[
+						*(long*)(thread->bytecode + (++thread->programCounter))
+					],
+					thread->memory->stack + (thread->memory->stackPointer),
+					8
+				);
+				thread->programCounter += 7;		
 				break;
 
 			case StoreX:
 				
 				break;
 
-			case Load1:
-				
+			case Load1://
+				memcpy
+				(
+					thread->memory->stack + (thread->memory->stackPointer++),
+					thread->memory->storage[
+							*(long*)(thread->bytecode + (++thread->programCounter))
+					],
+					1
+				);
 				break;
 
-			case Load4:
-				
+			case Load4://
+				memcpy
+				(
+					thread->memory->stack + thread->memory->stackPointer,
+					thread->memory->storage[
+							*(long*)(thread->bytecode + (++thread->programCounter))
+					],
+					4
+				);
+				thread->memory->stackPointer += 4;
+				thread->programCounter += 7;
 				break;
 
-			case Load8:
-				
+			case Load8://
+				memcpy
+				(
+					thread->memory->stack + thread->memory->stackPointer,
+					thread->memory->storage[
+							*(long*)(thread->bytecode + (++thread->programCounter))
+					],
+					8
+				);
+				thread->memory->stackPointer += 8;
+				thread->programCounter += 7;
 				break;
 
 			case LoadX:
@@ -144,22 +195,22 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			case Alloc1://
-				thread->memory->storage[thread->memory->storagePointer]
+				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(1);
 				break;
 
 			case Alloc4://
-				thread->memory->storage[thread->memory->storagePointer]
+				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(4);
 				break;
 
 			case Alloc8://
-				thread->memory->storage[thread->memory->storagePointer]
+				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(8);
 				break;
 
 			case AllocX://
-				thread->memory->storage[thread->memory->storagePointer]
+				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(*(long*)(thread->bytecode + (++thread->programCounter)));
 				thread->programCounter += 7;
 				break;

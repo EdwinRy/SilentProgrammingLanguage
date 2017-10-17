@@ -8,8 +8,8 @@ typedef enum SilentBytecode
 	Goto,
 	Call,
 	
-	ClearMemory,
-	ClearStack,
+	//ClearMemory,
+	//ClearStack,
 	
 	Push1,
 	Push4,

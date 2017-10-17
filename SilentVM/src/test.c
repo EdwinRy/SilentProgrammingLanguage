@@ -6,17 +6,28 @@ int main()
 {
 	int p = 0;
 	char* b = malloc(500);
-	b[p++] = PushX;
-	b[p++] = 4;
+	//b[p++] = Alloc4;
+	b[p++] = Push4;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 1;
+	b[p++] = Push4;
+	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 1;
+	b[p++] = 0;
+	b[p++] = Alloc4;
+	b[p++] = Store4;
 	b[p++] = 0;
 	b[p++] = 0;
 	b[p++] = 0;
 	b[p++] = 0;
 	b[p++] = 0;
 	b[p++] = 0;
-	b[p++] = 0;//
-	b[p++] = 255;
 	b[p++] = 0;
+	b[p++] = 0;
+	b[p++] = 0;//end
 	b[p++] = 0;
 	b[p++] = 0;
 
@@ -25,8 +36,8 @@ int main()
 	SilentThread* t = createSilentThread(m, b);
 
 	executeSilentThread(t);
-	//printf("%i",m->stackPointer);
-	printf("%i\n", *(int*)(m->stack + 0));
+	printf("%i\n",m->stackPointer);
+	printf("%i\n", *(int*)(m->storage[0]));
 
 return 0;
 }
