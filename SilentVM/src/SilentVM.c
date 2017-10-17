@@ -153,7 +153,7 @@ void executeSilentThread(SilentThread * thread)
 				
 				break;
 
-			case Load1://
+			case Load1:
 				memcpy
 				(
 					thread->memory->stack + (thread->memory->stackPointer++),
@@ -165,7 +165,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 7;
 				break;
 
-			case Load4://
+			case Load4:
 				memcpy
 				(
 					thread->memory->stack + (thread->memory->stackPointer),
@@ -178,7 +178,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 7;
 				break;
 
-			case Load8://
+			case Load8:
 				memcpy
 				(
 					thread->memory->stack + (thread->memory->stackPointer),
@@ -195,17 +195,17 @@ void executeSilentThread(SilentThread * thread)
 				
 				break;
 
-			case Alloc1://
+			case Alloc1:
 				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(1);
 				break;
 
-			case Alloc4://
+			case Alloc4:
 				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(4);
 				break;
 
-			case Alloc8://
+			case Alloc8:
 				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(8);
 				break;
@@ -217,7 +217,7 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			case FREE://
-				free(thread->memory->storage[thread->memory->storagePointer--]);
+				free(thread->memory->storage[--thread->memory->storagePointer]);
 				break;
 
 			case LoadPtr:
