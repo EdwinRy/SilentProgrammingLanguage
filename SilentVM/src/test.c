@@ -6,7 +6,6 @@ int main()
 {
 	int p = 0;
 	char* b = malloc(500);
-	//b[p++] = Alloc4;
 	b[p++] = Push4;
 	b[p++] = 0;
 	b[p++] = 0;
@@ -27,7 +26,7 @@ int main()
 	b[p++] = 0;
 	b[p++] = 0;
 	b[p++] = 0;
-	b[p++] = Load4;//end
+	b[p++] = Load4;
 	b[p++] = 0;
 	b[p++] = 0;
 	b[p++] = 0;
