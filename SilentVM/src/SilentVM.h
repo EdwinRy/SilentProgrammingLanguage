@@ -76,16 +76,23 @@ typedef enum SilentBytecode
 	ByteToDouble,
 	
 	IntToByte,
-	IntToFloat,
 	IntToLong,
 	IntToDouble,
 
 	FloatToInt,
 	FloatToDouble,
 	
-	SmallerThan,
-	BiggerThan,
-	Equal,
+	SmallerThan1,
+	SmallerThan4,
+	SmallerThan8,
+
+	BiggerThan1,
+	BiggerThan4,
+	BiggerThan8,
+
+	Equal1,
+	Equal4,
+	Equal8,
 	
 	If,
 	IfNot

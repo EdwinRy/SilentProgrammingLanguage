@@ -16,7 +16,17 @@ int main()
 	b[p++] = 0;
 	b[p++] = -112;
 	b[p++] = 64;
-	b[p++] = AddFloat;
+//	b[p++] = Push4;
+//	b[p++] = 254;
+//	b[p++] = 0;
+//	b[p++] = 0;
+//	b[p++] = 0;
+//	b[p++] = Push4;
+//	b[p++] = 2;
+//	b[p++] = 0;
+//	b[p++] = 0;
+//	b[p++] = 0;
+	b[p++] = DivFloat;
 	b[p++] = Halt;
 
 	SilentMemory* m = createSilentMemory(500,500);

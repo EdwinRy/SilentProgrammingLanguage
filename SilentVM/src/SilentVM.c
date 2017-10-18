@@ -285,18 +285,35 @@ void executeSilentThread(SilentThread * thread)
 
 				break;
 
-			case SubByte:
+			//Subtracts the last number from the second last number on the stack
+			case SubByte://untested
+				thread->memory->stackPointer--;
+				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) -= 
+					*(char*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
-			case SubInt:
+			//Subtracts the last number from the second last number on the stack
+			case SubInt://untested
+				thread->memory->stackPointer-=4;
+				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) -= 
+					*(int*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
-			case SubLong:
+			//Subtracts the last number from the second last number on the stack
+			case SubLong://untested
+				thread->memory->stackPointer-=8;
+				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) -= 
+					*(long*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Subtracts the last number from the second last number on the stack
 			case SubFloat:
+				thread->memory->stackPointer-=4;
+				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) -= 
+					*(float*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Subtracts the last number from the second last number on the stack
 			case SubDouble:
 				thread->memory->stackPointer-=8;
 				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) -= 
@@ -304,40 +321,82 @@ void executeSilentThread(SilentThread * thread)
 
 				break;
 			
+			//Multiplies 2 bytes together
 			case MulByte:
+				thread->memory->stackPointer--;
+				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) *= 
+					*(char*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Multiplies 2 integers together
 			case MulInt:
+				thread->memory->stackPointer-=4;
+				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) *= 
+					*(int*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Multiplies 2 longs together
 			case MulLong:
+				thread->memory->stackPointer-=8;
+				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) *= 
+					*(long*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Multiplies 2 floats together
 			case MulFloat:
+				thread->memory->stackPointer-=4;
+				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) *= 
+					*(float*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Multiplies 2 doubles together
 			case MulDouble:
+				thread->memory->stackPointer-=8;
+				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) *= 
+					*(double*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Divides 2 bytes
 			case DivByte:
+				thread->memory->stackPointer--;
+				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) /= 
+					*(char*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Divides 2 integers
 			case DivInt:
+				thread->memory->stackPointer-=4;
+				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) /= 
+					*(int*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Divides 2 longs
 			case DivLong:
+				thread->memory->stackPointer-=8;
+				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) /= 
+					*(long*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Divides 2 floats
 			case DivFloat:
+				thread->memory->stackPointer-=4;
+				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) /= 
+					*(float*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Divides 2 doubles
 			case DivDouble:
+				thread->memory->stackPointer-=8;
+				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) /= 
+					*(double*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
-			case ByteToInt:
+			case ByteToInt://add memset to 0 in conversions
+				thread->memory->stackPointer+=3;
 				break;
 
 			case ByteToLong:
+				thread->memory->stackPointer+=7;
 				break;
 
 			case ByteToFloat:
@@ -347,15 +406,15 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			case IntToByte:
-				break;
-
-			case IntToFloat:
+				thread->memory->stackPointer-=3;
 				break;
 
 			case IntToLong:
+				thread->memory->stackPointer +=4
 				break;
 
 			case IntToDouble:
+				thread->memory->stackPointer
 				break;
 
 			case FloatToInt:
@@ -364,13 +423,40 @@ void executeSilentThread(SilentThread * thread)
 			case FloatToDouble:
 				break;
 
-			case SmallerThan:
+			case SmallerThan1:
+
 				break;
 
-			case BiggerThan:
+			case SmallerThan4:
+				
 				break;
 
-			case Equal:
+			case SmallerThan8:
+
+				break;
+
+			case BiggerThan1:
+
+				break;
+
+			case BiggerThan4:
+
+				break;
+
+			case BiggerThan8:
+
+				break;
+
+			case Equal1:
+
+				break;
+
+			case Equal4:
+
+				break;
+
+			case Equal8:
+
 				break;
 
 			case If:
