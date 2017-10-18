@@ -41,15 +41,18 @@ void executeSilentThread(SilentThread * thread)
 	{
 		switch(thread->bytecode[thread->programCounter])
 		{
+			//Stops the execution of the program
 			case Halt:
 				thread->running = 0;
 				break;
 			
+			//Changes the program pointer based on bytecode
 			case Goto:
 				thread->programCounter = 
 					*((unsigned long*)(&thread->bytecode[1 + thread->programCounter]));
 				break;
 			
+			//Will be used to call library functions
 			case Call: //Not yet implemented
 				break;
 
@@ -64,12 +67,13 @@ void executeSilentThread(SilentThread * thread)
 			//	thread->memory->stackPointer = 0;
 			//	break;
 
-
+			//Pushes 1 byte of data to the stack
 			case Push1:
 				thread->memory->stack[thread->memory->stackPointer++] = 
 					thread->bytecode[++thread->programCounter];
 				break;
 				
+			//Pushes 4 bytes of data to the stack
 			case Push4:
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
@@ -77,7 +81,8 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 3;
 				thread->memory->stackPointer += 4;
 				break;
-
+			
+			//Pushes 8 bytes of data to the stack
 			case Push8:
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
@@ -86,6 +91,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer += 8;
 				break;
 
+			//Pushes X (in bytecode) bytes of data to the stack
 			case PushX:
 				lreg = *((long*)(thread->bytecode + (++thread->programCounter)));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
@@ -95,25 +101,29 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer += lreg;
 				break;
 			
-			
+			//Decreases the stack pointer by 1
 			case Pop1:
 				thread->memory->stackPointer--;
 				break;
-
+			
+			//Decreases the stack pointer by 4
 			case Pop4:
 				thread->memory->stackPointer-=4;
 				break;
 					
+			//Decreases the stack pointer by 8
 			case Pop8:
 				thread->memory->stackPointer-=8;
 				break;
 
+			//Decreases the stack pointer by X (in bytecode)
 			case PopX:
 				thread->memory->stackPointer-=
 					*(long*)(thread->bytecode + (++thread->programCounter));
 				thread->programCounter += 7;
 				break;
 
+			//Saves 1 byte from the stack to allocated space
 			case Store1:
 				memcpy(
 					thread->memory->storage[
@@ -125,6 +135,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 7;
 				break;
 
+			//Saves 4 bytes from the stack to allocated space
 			case Store4:
 				thread->memory->stackPointer -= 4;
 				memcpy(
@@ -137,6 +148,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 7;
 				break;
 
+			//Saves 8 bytes from the stack to allocated space
 			case Store8:		
 				thread->memory->stackPointer -= 8;
 				memcpy(	
@@ -148,11 +160,12 @@ void executeSilentThread(SilentThread * thread)
 				);
 				thread->programCounter += 7;		
 				break;
-
+			//Saves X bytes from stack to allocated space
 			case StoreX:
 				
 				break;
-
+	
+			//Copies 1 byte of data from storage onto the stack
 			case Load1:
 				memcpy
 				(
@@ -165,6 +178,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 7;
 				break;
 
+			//Copies 4 bytes of data from storage onto the stack
 			case Load4:
 				memcpy
 				(
@@ -178,6 +192,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 7;
 				break;
 
+			//Copies 8 bytes of data from storage onto the stack
 			case Load8:
 				memcpy
 				(
@@ -191,55 +206,83 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 7;
 				break;
 
+			//Copies X bytes of data from storage onto the stack
 			case LoadX:
 				
 				break;
 
+			//Allocates 1 byte of data for the program
 			case Alloc1:
 				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(1);
 				break;
 
+			//Allocates 4 bytes of data for the program
 			case Alloc4:
 				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(4);
 				break;
 
+			//Allocates 8 bytes of data for the program
 			case Alloc8:
 				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(8);
 				break;
 
-			case AllocX://
+			//Allocates X bytes of data for the program
+			case AllocX://untested
 				thread->memory->storage[thread->memory->storagePointer++]
 					= malloc(*(long*)(thread->bytecode + (++thread->programCounter)));
 				thread->programCounter += 7;
 				break;
-
-			case FREE://
+			
+			//Releases the lastly allocated storage
+			case FREE://untested
 				free(thread->memory->storage[--thread->memory->storagePointer]);
 				break;
 
+			/*
 			case LoadPtr:
 				break;
 
 			case EditPtr1:
 				break;
+			*/
 
+			//Adds together 2 bytes on the stack
 			case AddByte:
-				
+				thread->memory->stackPointer--;
+				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) += 
+					*(char*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Adds together 2 integers on the stack
 			case AddInt:
+				thread->memory->stackPointer-=4;
+				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) += 
+					*(int*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Adds together 2 longs on the stack
 			case AddLong:
+				thread->memory->stackPointer-=8;
+				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) += 
+					*(long*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Adds together 2 floats on the stack
 			case AddFloat:
+				thread->memory->stackPointer-=4;
+				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) += 
+					*(float*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
+			//Adds together 2 doubles on the stack
 			case AddDouble:
+				thread->memory->stackPointer-=8;
+				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) += 
+					*(double*)(thread->memory->stack + thread->memory->stackPointer);
+
 				break;
 
 			case SubByte:
@@ -255,6 +298,10 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			case SubDouble:
+				thread->memory->stackPointer-=8;
+				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) -= 
+					*(double*)(thread->memory->stack + thread->memory->stackPointer);
+
 				break;
 			
 			case MulByte:

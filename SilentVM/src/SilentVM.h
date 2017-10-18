@@ -38,12 +38,14 @@ typedef enum SilentBytecode
 
 	FREE,
 
+	/*
 	LoadPtr,
 	EditPtr1,
 	EditPtr4,
 	EditPtr8,
 	EditPtrX,
-	
+	*/
+
 	AddByte,
 	AddInt,
 	AddLong,

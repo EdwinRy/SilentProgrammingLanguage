@@ -1,7 +1,4 @@
-Compiler = gcc
-Src = SilentVM/src/*.{c,h}
-OutputVM = SilentVM/bin/
-VMOutput = SilentVM
+vmdir = SilentVM/
 
-compilevm:
-	$(Compiler) $(Src) -o $(OutputVM)$(VMOutput)
+vm:
+	make -C $(vmdir)
