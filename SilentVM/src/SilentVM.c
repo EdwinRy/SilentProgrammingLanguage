@@ -161,8 +161,17 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 7;		
 				break;
 			//Saves X bytes from stack to allocated space
-			case StoreX:
-				
+			case StoreX://untested
+				lreg = *((long*)(thread->bytecode + (++thread->programCounter)));
+				thread->programCounter+=7;
+				memcpy(
+					thread->memory->storage[
+						*(long*)(thread->bytecode + (++thread->programCounter))
+					],
+					thread->memory->stack + (thread->memory->stackPointer),
+						lreg);
+				thread->programCounter += 7;
+				thread->memory->stackPointer += lreg;
 				break;
 	
 			//Copies 1 byte of data from storage onto the stack
@@ -208,7 +217,17 @@ void executeSilentThread(SilentThread * thread)
 
 			//Copies X bytes of data from storage onto the stack
 			case LoadX:
-				
+				lreg = *((long*)(thread->bytecode + (++thread->programCounter)));
+				thread->programCounter+=7;
+				memcpy(
+					thread->memory->storage[
+						*(long*)(thread->bytecode + (++thread->programCounter))
+					],
+					thread->memory->stack + (thread->memory->stackPointer),
+						lreg);
+				thread->programCounter += 7;
+				thread->memory->stackPointer += lreg;
+
 				break;
 
 			//Allocates 1 byte of data for the program
@@ -237,7 +256,7 @@ void executeSilentThread(SilentThread * thread)
 				break;
 			
 			//Releases the lastly allocated storage
-			case FREE://untested
+			case FREE:
 				free(thread->memory->storage[--thread->memory->storagePointer]);
 				break;
 
@@ -286,21 +305,21 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			//Subtracts the last number from the second last number on the stack
-			case SubByte://untested
+			case SubByte:
 				thread->memory->stackPointer--;
 				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) -= 
 					*(char*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
 			//Subtracts the last number from the second last number on the stack
-			case SubInt://untested
+			case SubInt:
 				thread->memory->stackPointer-=4;
 				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) -= 
 					*(int*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
 			//Subtracts the last number from the second last number on the stack
-			case SubLong://untested
+			case SubLong:
 				thread->memory->stackPointer-=8;
 				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) -= 
 					*(long*)(thread->memory->stack + thread->memory->stackPointer);
@@ -423,7 +442,8 @@ void executeSilentThread(SilentThread * thread)
 			case FloatToDouble://untested
 				thread->memory->stackPointer+=4;
 				break;
-
+			
+			//Compare value of 2 bytes
 			case SmallerThanByte:
 				thread->memory->stackPointer--;
 				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) <
@@ -437,6 +457,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 4 bytes
 			case SmallerThanInt:
 				thread->memory->stackPointer-=7;
 				if(*(int*)(thread->memory->stack + thread->memory->stackPointer-1) < 
@@ -450,6 +471,7 @@ void executeSilentThread(SilentThread * thread)
 				}			
 				break;
 
+			//Compare value of 2 8 bytes
 			case SmallerThanLong:
 				thread->memory->stackPointer-=15;
 				if(*(long*)(thread->memory->stack + (thread->memory->stackPointer-1)) < 
@@ -463,6 +485,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 4 bytes
 			case SmallerThanFloat:
 				thread->memory->stackPointer-=7;
 				if(*(float*)(thread->memory->stack + (thread->memory->stackPointer-1)) < 
@@ -476,6 +499,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 8 bytes
 			case SmallerThanDouble:
 				thread->memory->stackPointer-=15;
 				if(*(double*)(thread->memory->stack + (thread->memory->stackPointer-1)) < 
@@ -489,6 +513,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 bytes
 			case BiggerThanByte:
 				thread->memory->stackPointer--;
 				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) > 
@@ -502,6 +527,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 4 bytes
 			case BiggerThanInt:
 				thread->memory->stackPointer-=7;
 				if(*(int*)(thread->memory->stack + (thread->memory->stackPointer-1)) > 
@@ -515,6 +541,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 8 bytes
 			case BiggerThanLong:
 				thread->memory->stackPointer-=15;
 				if(*(long*)(thread->memory->stack + (thread->memory->stackPointer-1)) > 
@@ -528,6 +555,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 4 bytes
 			case BiggerThanFloat:
 				thread->memory->stackPointer-=7;
 				if(*(float*)(thread->memory->stack + (thread->memory->stackPointer-1)) > 
@@ -541,6 +569,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 8 bytes
 			case BiggerThanDouble:
 				thread->memory->stackPointer-=15;
 				if(*(double*)(thread->memory->stack + (thread->memory->stackPointer-1)) > 
@@ -554,6 +583,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 bytes
 			case EqualByte:
 				thread->memory->stackPointer--;
 				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) == 
@@ -567,6 +597,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 4 bytes
 			case EqualInt:
 				thread->memory->stackPointer-=7;
 				if(*(int*)(thread->memory->stack + (thread->memory->stackPointer-1)) == 
@@ -580,6 +611,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 8 bytes
 			case EqualLong:
 				thread->memory->stackPointer-=15;
 				if(*(long*)(thread->memory->stack + (thread->memory->stackPointer-1)) == 
@@ -593,6 +625,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 4 bytes
 			case EqualFloat:
 				thread->memory->stackPointer-=7;
 
@@ -607,6 +640,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+			//Compare value of 2 8 bytes
 			case EqualDouble:
 				thread->memory->stackPointer-=15;
 				if(*(double*)(thread->memory->stack + (thread->memory->stackPointer-1)) ==
@@ -620,8 +654,10 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
+
 			case If:
 				break;
+
 
 			case IfNot:
 				break;	
