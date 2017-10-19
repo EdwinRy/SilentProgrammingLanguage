@@ -35,8 +35,8 @@ void deleteSilentThread(SilentThread * thread)
 
 void executeSilentThread(SilentThread * thread)
 {
+	long lreg = 0;
 	thread->running = 1;
-	long lreg;
 	while(thread->running)
 	{
 		switch(thread->bytecode[thread->programCounter])
@@ -410,7 +410,7 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			case IntToLong://untested
-				thread->memory->stackPointer +=4
+				thread->memory->stackPointer +=4;
 				break;
 
 			case IntToDouble://untested
@@ -424,10 +424,10 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer+=4;
 				break;
 
-			case SmallerThan1:
+			case SmallerThanByte:
 				thread->memory->stackPointer--;
-				if((thread->memory->stack + (thread->memory->stackPointer)) < 
-					(thread->memory->stack + thread->memory->stackPointer-1))
+				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer)) < 
+					*(char*)(thread->memory->stack + thread->memory->stackPointer-1))
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 1;
 				}
@@ -437,36 +437,134 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;
 
-			case SmallerThan4:
-				
+			case SmallerThanInt://untesetd
+				thread->memory->stackPointer-=7;
+				if(*(int*)(thread->memory->stack + (thread->memory->stackPointer+3)) < 
+					*(int*)(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}			
 				break;
 
-			case SmallerThan8:
-
+			case SmallerThanLong://untested
+				thread->memory->stackPointer-=15;
+				if(*(long*)(thread->memory->stack + (thread->memory->stackPointer+7)) < 
+					*(long*)(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}
 				break;
 
-			case BiggerThan1:
-
+			case SmallerThanFloat://untested
+				thread->memory->stackPointer-=7;
+				if(*(float*)(thread->memory->stack + (thread->memory->stackPointer+3)) < 
+					*(float*)(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}
 				break;
 
-			case BiggerThan4:
-
+			case SmallerThanDouble://untested
+				thread->memory->stackPointer-=15;
+				if(*(double*)(thread->memory->stack + (thread->memory->stackPointer+7)) < 
+					*(double*)(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}
 				break;
 
-			case BiggerThan8:
-
+			case BiggerThanByte://untested
+				thread->memory->stackPointer--;
+				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer)) > 
+					*(char*)(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}
 				break;
 
-			case Equal1:
-
+			case BiggerThanInt://untested
+				thread->memory->stackPointer-=7;
+				if(*(int*)(thread->memory->stack + (thread->memory->stackPointer)) > 
+					*(int*)(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}
 				break;
 
-			case Equal4:
-
+			case BiggerThan8://untested
+				thread->memory->stackPointer--;
+				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer)) > 
+					*(char*)(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}
 				break;
 
-			case Equal8:
+			case Equal1://untested
+				thread->memory->stackPointer--;
+				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer)) < 
+					*(char*)(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}
+				break;
 
+			case Equal4://untested
+				thread->memory->stackPointer--;
+				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer)) < 
+					*(char*)(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}
+				break;
+
+			case Equal8://untested
+				thread->memory->stackPointer--;
+				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer)) < 
+					*(char*)(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}
 				break;
 
 			case If:
