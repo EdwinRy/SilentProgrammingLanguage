@@ -395,36 +395,46 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer+=3;
 				break;
 
-			case ByteToLong:
+			case ByteToLong://untested
 				thread->memory->stackPointer+=7;
 				break;
 
-			case ByteToFloat:
+			case ByteToFloat://untested
 				break;
 
-			case ByteToDouble:
+			case ByteToDouble://untested
 				break;
 
-			case IntToByte:
+			case IntToByte://untested
 				thread->memory->stackPointer-=3;
 				break;
 
-			case IntToLong:
+			case IntToLong://untested
 				thread->memory->stackPointer +=4
 				break;
 
-			case IntToDouble:
-				thread->memory->stackPointer
+			case IntToDouble://untested
+				thread->memory->stackPointer+=4;
 				break;
 
-			case FloatToInt:
+			case FloatToInt://untested
 				break;
 
-			case FloatToDouble:
+			case FloatToDouble://untested
+				thread->memory->stackPointer+=4;
 				break;
 
 			case SmallerThan1:
-
+				thread->memory->stackPointer--;
+				if((thread->memory->stack + (thread->memory->stackPointer)) < 
+					(thread->memory->stack + thread->memory->stackPointer-1))
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+				}
+				else
+				{
+					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+				}
 				break;
 
 			case SmallerThan4:
