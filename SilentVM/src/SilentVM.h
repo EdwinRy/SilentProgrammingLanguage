@@ -92,13 +92,13 @@ typedef enum SilentBytecode
 	BiggerThanInt,
 	BiggerThanLong,
 	BiggerThanFloat,
-	SmallerThanDouble
+	BiggerThanDouble,
 
 	EqualByte,
 	EqualInt,
 	EqualLong,
 	EqualFloat,
-	EqualDouble
+	EqualDouble,
 	
 	If,
 	IfNot
