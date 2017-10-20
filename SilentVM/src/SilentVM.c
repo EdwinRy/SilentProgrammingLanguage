@@ -1,5 +1,7 @@
 #include "SilentVM.h"
 #include <string.h>
+
+//Allocate memory for the progra
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
 {
 	SilentMemory* memory = malloc(sizeof(SilentMemory));
@@ -11,6 +13,7 @@ SilentMemory* createSilentMemory(int storageSize, int stackSize)
 	return memory;
 }
 
+//Create executing thread
 SilentThread* createSilentThread(SilentMemory* memory, char* bytecode)
 {
 	SilentThread* thread = malloc(sizeof(SilentThread));
@@ -21,6 +24,7 @@ SilentThread* createSilentThread(SilentMemory* memory, char* bytecode)
 	return thread;
 }
 
+//Delete program's allocated space
 void deleteSilentMemory(SilentMemory * memory)
 {
 	free(memory->stack);
@@ -28,6 +32,7 @@ void deleteSilentMemory(SilentMemory * memory)
 	free(memory);
 }
 
+//Delete program's thread
 void deleteSilentThread(SilentThread * thread)
 {
 	free(thread);
@@ -36,6 +41,10 @@ void deleteSilentThread(SilentThread * thread)
 void executeSilentThread(SilentThread * thread)
 {
 	long lreg = 0;
+	int ireg = 0;
+	char breg = 0;
+	float freg = 0;
+	double freg = 0;
 	thread->running = 1;
 	while(thread->running)
 	{
@@ -49,7 +58,7 @@ void executeSilentThread(SilentThread * thread)
 			//Changes the program pointer based on bytecode
 			case Goto:
 				thread->programCounter = 
-					*((unsigned long*)(&thread->bytecode[1 + thread->programCounter]));
+					*((unsigned long*)(thread->bytecode + (++thread->programCounter)));
 				break;
 			
 			//Will be used to call library functions
@@ -410,37 +419,77 @@ void executeSilentThread(SilentThread * thread)
 					*(double*)(thread->memory->stack + thread->memory->stackPointer);
 				break;
 
-			case ByteToInt://add memset to 0 in conversions
-				thread->memory->stackPointer+=3;
+			//Byte to integer conversion
+			case ByteToInt://untested
+				breg = *(char*)(thread->memory->stack + (thread->memory->stackPointer--));
+				ireg = (int)breg;
+				memcpy(
+					thread->memory->stack + thread->memory->stackPointer,
+					&ireg, 
+					4);
+				thread->memory->stackPointer+=4;
 				break;
 
+			//Byte to long conversion
 			case ByteToLong://untested
-				thread->memory->stackPointer+=7;
+				breg =  *(char*)(thread->memory->stack + (thread->memory->stackPointer--));
+				lreg = (long)breg;
+				memcpy(
+					thread->memory->stack + thread->memory->stackPointer,
+					&lreg,
+					8);
+				thread->memory->stackPointer+=8;
 				break;
 
+			//Byte to float conversion
 			case ByteToFloat://untested
+				breg =  *(char*)(thread->memory->stack + (thread->memory->stackPointer--));
+				freg = (float)breg;
+				memcpy(thread->memory->stackPointer, &freg, 4);
+				thread->memory->stackPointer+=4;
 				break;
 
+			//Byte to double conversion
 			case ByteToDouble://untested
+				breg =  *(char*)(thread->memory->stack + (thread->memory->stackPointer--));
+				dreg = (double)breg;
+				memcpy(thread->memory->stackPointer, &dreg, 8);
+				thread->memory->stackPointer+=8;
+
 				break;
 
+			//Integer to byte conversion
 			case IntToByte://untested
+				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-4));
+				breg = (char)ireg;
+				memcpy(thread->memory->stackPointer, &breg, 1);
 				thread->memory->stackPointer-=3;
+
 				break;
 
+			//Integer to long conversion
 			case IntToLong://untested
-				thread->memory->stackPointer +=4;
+				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-4));
+				lreg = (long)ireg;
+				memcpy(thread->memory->stackPointer, &lreg, 8);
+				thread->memory->stackPointer+=8;
 				break;
 
+			//Integer to double conversion
 			case IntToDouble://untested
 				thread->memory->stackPointer+=4;
+
 				break;
 
+			//Float to integer conversion
 			case FloatToInt://untested
+
 				break;
 
+			//Float to double conversion
 			case FloatToDouble://untested
 				thread->memory->stackPointer+=4;
+				
 				break;
 			
 			//Compare value of 2 bytes
@@ -656,10 +705,31 @@ void executeSilentThread(SilentThread * thread)
 
 
 			case If:
+
+				if(*(char*)(thread->memory->stack + --thread->memory->stackPoiner))
+				{
+					thread->programCounter = 
+					*((unsigned long*)(thread->bytecode + (++thread->programCounter)));
+				}
+
+				else
+				{
+					thread->programCounter += 7;
+				}
 				break;
 
 
 			case IfNot:
+				if(!(*(char*)(thread->memory->stack + (--thread->memory->stackPoiner))))
+				{
+					thread->programCounter = 
+					*((unsigned long*)(thread->bytecode + (++thread->programCounter)));
+				}
+
+				else
+				{
+					thread->programCounter += 7;
+				}
 				break;	
 		}
 		thread->programCounter++;

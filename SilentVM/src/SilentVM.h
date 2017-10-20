@@ -77,10 +77,18 @@ typedef enum SilentBytecode
 	
 	IntToByte,
 	IntToLong,
+	IntToFloat,
 	IntToDouble,
 
+	FloatToByte,
 	FloatToInt,
+	FlaotToLong,
 	FloatToDouble,
+
+	DoubleToByte,
+	DoubleToInt,
+	DoubleToLong,
+	DoubleToFloat,
 	
 	SmallerThanByte,
 	SmallerThanInt,
