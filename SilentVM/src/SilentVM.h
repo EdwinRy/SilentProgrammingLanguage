@@ -6,7 +6,7 @@ typedef enum SilentBytecode
 {
 	Halt,
 	Goto,
-	//Call,
+	Call,//
 	
 	//ClearMemory,
 	//ClearStack,
@@ -80,15 +80,15 @@ typedef enum SilentBytecode
 	IntToFloat,
 	IntToDouble,
 
-	FloatToByte,
-	FloatToInt,
-	FloatToLong,
-	FloatToDouble,
+	FloatToByte,//
+	FloatToInt,//
+	FloatToLong,//
+	FloatToDouble,//
 
-	DoubleToByte,
-	DoubleToInt,
-	DoubleToLong,
-	DoubleToFloat,
+	DoubleToByte,//
+	DoubleToInt,//
+	DoubleToLong,//
+	DoubleToFloat,//
 	
 	SmallerThanByte,
 	SmallerThanInt,

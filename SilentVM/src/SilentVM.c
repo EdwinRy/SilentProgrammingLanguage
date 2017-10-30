@@ -1,5 +1,5 @@
 #include "SilentVM.h"
-#include <string.h>
+#include <memory.h>
 
 //Allocate memory for the progra
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
@@ -44,7 +44,7 @@ void executeSilentThread(SilentThread * thread)
 	int ireg = 0;
 	char breg = 0;
 	float freg = 0;
-	double freg = 0;
+	double dreg = 0;
 	thread->running = 1;
 	while(thread->running)
 	{
@@ -57,8 +57,9 @@ void executeSilentThread(SilentThread * thread)
 			
 			//Changes the program pointer based on bytecode
 			case Goto:
+				thread->programCounter++;
 				thread->programCounter = 
-					*((unsigned long*)(thread->bytecode + (++thread->programCounter)));
+					*((unsigned long*)(thread->bytecode + (thread->programCounter)));
 				break;
 			
 			//Will be used to call library functions
@@ -445,7 +446,10 @@ void executeSilentThread(SilentThread * thread)
 			case ByteToFloat://untested
 				breg =  *(char*)(thread->memory->stack + (thread->memory->stackPointer--));
 				freg = (float)breg;
-				memcpy(thread->memory->stackPointer, &freg, 4);
+				memcpy(
+					thread->memory->stack + thread->memory->stackPointer,
+					&freg,
+					4);
 				thread->memory->stackPointer+=4;
 				break;
 
@@ -453,30 +457,55 @@ void executeSilentThread(SilentThread * thread)
 			case ByteToDouble://untested
 				breg =  *(char*)(thread->memory->stack + (thread->memory->stackPointer--));
 				dreg = (double)breg;
-				memcpy(thread->memory->stackPointer, &dreg, 8);
+				memcpy(
+					thread->memory->stack + thread->memory->stackPointer,
+					&dreg,
+					8);
 				thread->memory->stackPointer+=8;
 
 				break;
 
 			//Integer to byte conversion
 			case IntToByte://untested
-				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-4));
+				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-=4));
 				breg = (char)ireg;
-				memcpy(thread->memory->stackPointer, &breg, 1);
-				thread->memory->stackPointer-=3;
+				memcpy(
+					thread->memory->stack + thread->memory->stackPointer,
+					&breg,
+					1);
+				thread->memory->stackPointer++;
 
 				break;
 
 			//Integer to long conversion
 			case IntToLong://untested
-				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-4));
+				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-=4));
 				lreg = (long)ireg;
-				memcpy(thread->memory->stackPointer, &lreg, 8);
+				memcpy(
+					thread->memory->stack + thread->memory->stackPointer,
+					&lreg,
+					8);
 				thread->memory->stackPointer+=8;
+				break;
+			
+			//Integer to float conversion
+			case IntToFloat://untested
+				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-4));
+				freg = (float)ireg;
+				memcpy(
+					thread->memory->stack + (thread->memory->stackPointer-4),
+					&freg,
+					4);
 				break;
 
 			//Integer to double conversion
 			case IntToDouble://untested
+				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-4));
+				dreg = (double)ireg;
+				memcpy(
+					thread->memory->stack + thread->memory->stackPointer-4,
+					&freg,
+					8);
 				thread->memory->stackPointer+=4;
 
 				break;
@@ -706,10 +735,11 @@ void executeSilentThread(SilentThread * thread)
 
 			case If:
 
-				if(*(char*)(thread->memory->stack + --thread->memory->stackPoiner))
+				if(*(char*)(thread->memory->stack + --thread->memory->stackPointer))
 				{
+					thread->programCounter++;
 					thread->programCounter = 
-					*((unsigned long*)(thread->bytecode + (++thread->programCounter)));
+					*((unsigned long*)(thread->bytecode + (thread->programCounter)));
 				}
 
 				else
@@ -720,10 +750,11 @@ void executeSilentThread(SilentThread * thread)
 
 
 			case IfNot:
-				if(!(*(char*)(thread->memory->stack + (--thread->memory->stackPoiner))))
+				if(!(*(char*)(thread->memory->stack + (--thread->memory->stackPointer))))
 				{
+					thread->programCounter++;
 					thread->programCounter = 
-					*((unsigned long*)(thread->bytecode + (++thread->programCounter)));
+					*((unsigned long*)(thread->bytecode + (thread->programCounter)));
 				}
 
 				else
