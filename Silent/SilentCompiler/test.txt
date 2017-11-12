@@ -1,8 +1,0 @@
-function void kek()
-{
-	print(add(1,2));
-}
-
-function int add(int x, int y){
-	return (x+y);
-}
