@@ -8,3 +8,4 @@ gitadd:
 	git add $(src)
 	git add $(out)
 	git add bin/*
+	git add Makefile
