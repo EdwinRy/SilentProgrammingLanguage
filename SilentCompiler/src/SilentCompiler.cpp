@@ -32,10 +32,33 @@ class fileReader{
 		return output;
 	}
 };
+//Helper functions
+char silentTestLetter(char character)
+{
+	string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+}
+
+char silentTestNumber(char character)
+{
+	string numbers = "1234567890";
+}
+
+//Compile structures
 //Tokenizer
 
+vector<silentToken> silentTokenize(string* source)
+{
 
+}
+
+//Parser
+
+
+//Transform
+
+
+//Code Generation
 
 
 
@@ -44,6 +67,7 @@ string* silentCompile(string path)
 {
 
 	fileReader fr;
-	string rawSource;
+	string rawSource = fr.readAllText(path);
+	vector<silentToken> tokens = silentTokenize(&rawSource);
 
 }
