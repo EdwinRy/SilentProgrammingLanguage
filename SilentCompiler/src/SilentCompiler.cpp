@@ -8,7 +8,10 @@ using namespace std;
 
 class fileReader{
 	public:
-	fileReader();
+	fileReader()
+	{
+
+	}
 	string readAllText(string path)
 	{
 		string output;
@@ -40,7 +43,7 @@ class fileReader{
 string* silentCompile(string path)
 {
 
-	//fileReader fr;
+	fileReader fr;
 	string rawSource;
 
 }
