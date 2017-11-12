@@ -1,0 +1,5 @@
+#include "SilentCompiler.h"
+int main()
+{
+	return 0;
+}

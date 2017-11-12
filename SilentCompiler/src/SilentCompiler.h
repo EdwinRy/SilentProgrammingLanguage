@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string>
 enum silentTokenType
 {
 	//Symbols
@@ -26,11 +28,13 @@ enum silentTokenType
 	silentLong,
 	silentDouble,
 	silentString,
-}
+};
 
 typedef struct silentToken
 {
 	silentTokenType type;
-	string value;
+	std::string value;
 
 }silentToken;
+
+std::string* silentCompile(std::string path);
