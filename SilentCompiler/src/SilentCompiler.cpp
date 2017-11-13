@@ -15,7 +15,8 @@ class fileReader{
 	string readAllText(string path)
 	{
 		string output;
-
+		ifstream file(path);
+		output.assign((istreambuf_iterator<char>(file)),(istreambuf_iterator<char>()));
 		return output;
 	}
 	vector<string> readAllLines(string path)
@@ -42,16 +43,42 @@ char silentTestLetter(char character)
 {
 	string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+	for(int i = 0; i < letters.length(); i++)
+	{
+		if(character == letters[i])
+		{
+			return 1;
+			break;
+		}
+	}
+	return 0;
 }
 
 char silentTestNumber(char character)
 {
 	string numbers = "1234567890";
+	for(int i = 0; i < numbers.length(); i++)
+	{
+		if(character == numbers[i])
+		{
+			return 1;
+			break;
+		}
+	}
+	return 0;
 }
 
 char silentTestWhitespace(char character)
 {
+	if(isspace(character))
+	{
+		return 1;
+	}
 
+	else
+	{
+		return 0;
+	}
 }
 
 //Tokenizer
