@@ -35,8 +35,90 @@ class fileReader{
 };
 
 //Compiler structures
+enum silentTokenType
+{
+	//Symbols
+	silentPlusToken,
+	silentMinusToken,
+	silentMultiplyToken,
+	silentDivideToken,
+	silentParenthesToken,
+
+	//Structure
+	silentClassToken,
+	silentFunctionToken,
+	silentStructToken,
+	silentArrayToken,
+
+	
+	//Access
+	silentPublicToken,
+	silentPrivateToken,
+	silentProtectedToken,
+
+	//Data
+	silentByteToken,
+	silentIntegerToken,
+	silentFloatToken,
+	silentLongToken,
+	silentDoubleToken,
+	silentStringToken,
+};
+
+typedef struct silentToken
+{
+	silentTokenType type;
+	std::string value;
+
+}silentToken;
 
 
+enum silentNodeType
+{
+	//Value
+	silentCharacterNode,
+	silentStringNode,
+	silentIntegerNode,
+	silentLongNode,
+	silentFloatNode,
+	silentDoubleNode,
+
+	//Functionality
+	silentExpressionNode,
+	silentAdditionNode,
+	silentSubtractionNode,
+	silentMultiplicationNode,
+	silentDivisionNode,
+	silentAssignNode,
+	silentReturnNode,
+
+	//Structure
+	silentIfNode,
+	silentWhileNode,
+	silentForNode,
+	silentFunctionNode,
+	silentMethodNode,
+	silentClassNode,
+};
+
+
+typedef struct silentValueNode
+{
+	silentNodeType type;
+	string value;
+}silentValueNode;
+
+typedef struct silentExpressionNode
+{
+	silentNodeType type;
+	silentValueNode parameters[2];
+
+}silentExpressionNode;
+
+typedef struct silentFunctionNode
+{
+	
+}silentFunctionNode;
 
 //Helper functions
 char silentTestLetter(char character)
