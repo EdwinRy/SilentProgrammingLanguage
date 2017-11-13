@@ -32,6 +32,11 @@ class fileReader{
 		return output;
 	}
 };
+
+//Compiler structures
+
+
+
 //Helper functions
 char silentTestLetter(char character)
 {
@@ -44,7 +49,11 @@ char silentTestNumber(char character)
 	string numbers = "1234567890";
 }
 
-//Compile structures
+char silentTestWhitespace(char character)
+{
+
+}
+
 //Tokenizer
 
 vector<silentToken> silentTokenize(string* source)
@@ -67,7 +76,7 @@ string* silentCompile(string path)
 {
 
 	fileReader fr;
-	string rawSource = fr.readAllText(path);
+	string rawSource = fr.readAllText(path);//no AST
 	vector<silentToken> tokens = silentTokenize(&rawSource);
 
 }
