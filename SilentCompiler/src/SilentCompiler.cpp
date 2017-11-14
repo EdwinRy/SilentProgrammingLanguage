@@ -11,6 +11,8 @@ class fileReader{
 	{
 
 	}
+
+	//Read all characters from a file
 	string readAllText(string path)
 	{
 		string output;
@@ -19,6 +21,8 @@ class fileReader{
 			(istreambuf_iterator<char>()));
 		return output;
 	}
+
+	//Read all lines from a file
 	vector<string> readAllLines(string path)
 	{
 		vector<string> output;
@@ -26,6 +30,8 @@ class fileReader{
 		//if(source.is_open())
 		return output;
 	}
+
+	//Read a single line from a file
 	string readLine(string path)
 	{
 		string output;
@@ -117,10 +123,11 @@ typedef struct silentExpressionNode
 
 typedef struct silentFunctionNode
 {
-	
+	vector<silentExpressionNode> expressions;
 }silentFunctionNode;
 
 //Helper functions
+//Test whether the passed token is a character
 char silentTestLetter(char character)
 {
 	string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -136,6 +143,7 @@ char silentTestLetter(char character)
 	return 0;
 }
 
+//Test whether the passed token is a number
 char silentTestNumber(char character)
 {
 	string numbers = "1234567890";
@@ -150,6 +158,7 @@ char silentTestNumber(char character)
 	return 0;
 }
 
+//Test whether the passed token is whitespace
 char silentTestWhitespace(char character)
 {
 	if(isspace(character))
@@ -173,9 +182,30 @@ vector<silentToken> silentTokenize(string source)
 
 	for(int i = 0; i < source.length(); i++)
 	{
+		silentToken token;
 
-		
+		if((source[i] == *"(") || (source[i] == *")"))
+		{
+			token.type = silentParenthesToken;
+			token.value = source[i];
+		}
 
+		if(source[i] == *"\"")
+		{
+			token.type = silentQuotationToken;
+			token.value = "";
+			for(int j = 1; source[i+j] != *"\"";j++)
+			{
+				token.value += source[i+j];
+			}
+		}
+
+		if(silentTestWhitespace(source[i]))
+		{
+			continue;
+		}
+
+		tokens.push_back(token);
 	}
 
 
