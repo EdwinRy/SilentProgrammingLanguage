@@ -2,10 +2,9 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-//File reader
 
 using namespace std;
-
+//File reader
 class fileReader{
 	public:
 	fileReader()
@@ -16,19 +15,21 @@ class fileReader{
 	{
 		string output;
 		ifstream file(path);
-		output.assign((istreambuf_iterator<char>(file)),(istreambuf_iterator<char>()));
+		output.assign((istreambuf_iterator<char>(file)),
+			(istreambuf_iterator<char>()));
 		return output;
 	}
 	vector<string> readAllLines(string path)
 	{
 		vector<string> output;
-		ifstream source(path);
+		ifstream file(path);
 		//if(source.is_open())
 		return output;
 	}
 	string readLine(string path)
 	{
 		string output;
+		ifstream file(path);
 
 		return output;
 	}
@@ -43,6 +44,8 @@ enum silentTokenType
 	silentMultiplyToken,
 	silentDivideToken,
 	silentParenthesToken,
+	silentQuotationToken,
+	silentSemicolonToken,
 
 	//Structure
 	silentClassToken,
@@ -84,7 +87,6 @@ enum silentNodeType
 	silentDoubleNode,
 
 	//Functionality
-	silentExpressionNode,
 	silentAdditionNode,
 	silentSubtractionNode,
 	silentMultiplicationNode,
@@ -96,9 +98,7 @@ enum silentNodeType
 	silentIfNode,
 	silentWhileNode,
 	silentForNode,
-	silentFunctionNode,
-	silentMethodNode,
-	silentClassNode,
+ 
 };
 
 
@@ -165,9 +165,23 @@ char silentTestWhitespace(char character)
 
 //Tokenizer
 
-vector<silentToken> silentTokenize(string* source)
+vector<silentToken> silentTokenize(string source)
 {
+	long currentChar = 0;
+	long currentLine = 0;
+	vector<silentToken> tokens;
 
+	for(int i = 0; i < source.length(); i++)
+	{
+
+		
+
+	}
+
+
+
+
+	return tokens;
 }
 
 //Parser
@@ -186,6 +200,6 @@ string* silentCompile(string path)
 
 	fileReader fr;
 	string rawSource = fr.readAllText(path);//no AST
-	vector<silentToken> tokens = silentTokenize(&rawSource);
+	vector<silentToken> tokens = silentTokenize(rawSource);
 
 }
