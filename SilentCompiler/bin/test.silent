@@ -1,0 +1,6 @@
+func int main()
+{
+    var int testVariable = 5;
+
+    return 0;
+}

@@ -1,4 +1,1 @@
-#include <stdlib.h>
-#include <string>
-
-std::string* silentCompile(std::string path);
+char* silentCompile(char* path, char* output);

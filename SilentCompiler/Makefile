@@ -1,8 +1,9 @@
-compiler = g++
-src = src/*.{cpp,h}
+compiler = gcc
+#src = src/*.{c,h}
+src = src/SilentCompiler.c src/SilentCompiler.h
 out = bin/SilentC
 all:
-	g++ $(src) -o $(out)
+	$(compiler) $(src) -o $(out)
 
 gitadd:
 	git add $(src)

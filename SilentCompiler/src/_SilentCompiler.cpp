@@ -15,10 +15,10 @@ class fileReader{
 	//Read all characters from a file
 	string readAllText(string path)
 	{
-		string output;
 		ifstream file(path);
-		output.assign((istreambuf_iterator<char>(file)),
+		string output((istreambuf_iterator<char>(file)),
 			(istreambuf_iterator<char>()));
+		cout << output << endl;
 		return output;
 	}
 
@@ -183,6 +183,7 @@ vector<silentToken> silentTokenize(string source)
 	for(int i = 0; i < source.length(); i++)
 	{
 		silentToken token;
+	
 
 		if((source[i] == *"(") || (source[i] == *")"))
 		{
@@ -206,6 +207,7 @@ vector<silentToken> silentTokenize(string source)
 		}
 
 		tokens.push_back(token);
+		printf("%s\n",token.value);
 	}
 
 
@@ -225,11 +227,12 @@ vector<silentToken> silentTokenize(string source)
 
 
 
-string* silentCompile(string path)
+string* silentCompile(string path, string ouput)
 {
 
 	fileReader fr;
 	string rawSource = fr.readAllText(path);//no AST
+	//cout << rawSource << endl;
 	vector<silentToken> tokens = silentTokenize(rawSource);
 
 }
