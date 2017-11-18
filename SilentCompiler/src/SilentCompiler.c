@@ -46,6 +46,7 @@ char* readAllText(char* path)
 //Type of a token
 typedef enum silentTokenType
 {
+	silentUnrecognisedToken,
 	//Symbols
 	silentPlusToken,
 	silentMinusToken,
@@ -68,8 +69,13 @@ typedef enum silentTokenType
 	silentProtectedToken,
 
 	//Data
-	silentIntegerToken,
+	silentNullToken,
 	silentStringToken,
+	silentIntegerToken,
+	silentFloatToken,
+	silentLongToken,
+	silentDoubleToken,
+	silentIdentifierToken
 }silentTokenType;
 
 //Token structure
@@ -79,7 +85,6 @@ typedef struct silentToken
 	silentTokenType type;
     //Value of the token
 	char* value;
-
 }silentToken;
 
 //Type of a node
@@ -102,25 +107,32 @@ typedef enum silentNodeType
 	silentIfNode,
 	silentWhileNode,
 	silentForNode,
- 
 }silentNodeType;
 
-
+//Node for a value
 typedef struct silentValueNode
 {
+	//Type of the node
 	silentNodeType type;
+	//Value of the node
 	char* value;
 }silentValueNode;
 
+//Node for an expression
 typedef struct silentExpressionNode
 {
+	//Type of the node
 	silentNodeType type;
+	//Expression parameters
+	//E.G. 2 + 2; 
+	//type: addition; parameters: 2, 2
 	silentValueNode parameters[2];
-
 }silentExpressionNode;
 
+//Node for a function
 typedef struct silentFunctionNode
 {
+	//Array of expressions
 	silentExpressionNode* expressions;
 }silentFunctionNode;
 
@@ -128,79 +140,139 @@ typedef struct silentFunctionNode
 //Test whether the passed token is a character
 char silentTestLetter(char character)
 {
+	//All characters to be recognised
+	//as letters
 	char* letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+	//Iterate through the array of letters
 	for(int i = 0; i < strlen(letters); i++)
 	{
+		//Check whether the character is in the array
 		if(character == letters[i])
 		{
+			//Return true
 			return 1;
+			//Stop iteration (just to be sure)
 			break;
 		}
 	}
+	//Return false
 	return 0;
 }
 
 //Test whether the passed token is a number
 char silentTestNumber(char character)
 {
+	//Characters recognised as numbers
 	char* numbers = "1234567890";
+	//Iterate through array of numbers
 	for(int i = 0; i < strlen(numbers); i++)
 	{
+		//If character is in the array
 		if(character == numbers[i])
 		{
+			//Return true
 			return 1;
 			break;
 		}
 	}
+	//Return false
 	return 0;
 }
 
 //Test whether the passed token is whitespace
 char silentTestWhitespace(char character)
 {
+	//If the character is a whitespace
 	if(isspace(character))
 	{
+		//Return true
 		return 1;
 	}
 
+	//If the character is not whitespace
 	else
 	{
+		//Return false
 		return 0;
 	}
 }
 
 //Tokenizer
-
+//Extract the array of tokens from source
 silentToken* silentTokenize(char* source)
 {
+	//Current character
 	long currentChar = 0;
+	//Current line
 	long currentLine = 0;
+	//Character buffer for parsing
     char buffer[255];
-	silentToken* tokens = malloc(10000);
+	//Array of tokens
+	silentToken* tokens = malloc(strlen(source));
 
+	//Iterate through the source
 	for(int i = 0; i < strlen(source); i++)
 	{
+		//Create new token
 		silentToken token;
+		//Assign unrecognised token type by default
+		token.type = silentUnrecognisedToken;
+		//Assign the value to "NULL" by default
+		token.value = "NULL";
 	
 		//Test for parentheses
 		if((source[i] == *"(") || (source[i] == *")"))
 		{
+			//Assign the parentheses type
 			token.type = silentParenthesToken;
-			token.value = &source[i];
+			//Allocate 2 bytes for the string
+			token.value = malloc(2);
+			//Assign first character to the parentheses
+			token.value[0] = source[i];
+			//Null terminate the string
+			token.value[1] = '\0';
 		}
 
-		//Test for variable names
+		//Test for multicharacter tokens
 		else if(silentTestLetter(source[i]))
 		{
+			//Number of characters
 			unsigned char count = 0;
+			//prepare space for the value
 			char* value;
+			//As long as the current character isn't whitespace
 			while(!silentTestWhitespace(source[i+count]))
 			{
+				//Assign buffer to the current character
 				buffer[count++] = source[i+count];
 			}
-			value = malloc(count);
+			//Allocate space for the value and terminator
+			value = malloc(count+1);
+			//Copy the value from the buffer
 			memcpy(value,buffer,count);
+			value[count] = '\0';
+			token.value = value;
+			token.type = silentIdentifierToken;
+			//Test for non-identifier tokens
+			//If the token is a function
+			if(strmcp(token.value, "func"))
+			{
+				token.type = silentFunctionToken;
+			}
+			else if(strmcp(token.value, "var"))
+			{
+				token.type = silentVariableToken;
+			}
+			else if(strmcp(token.value, "int"))
+			{
+				token.type = silentIntegerToken;
+			}
+			else if(strmcp(token.value, "float"))
+			{
+				token.type = silentFloatToken;
+			}
+			
 		}
 
 		//Test for numbers
