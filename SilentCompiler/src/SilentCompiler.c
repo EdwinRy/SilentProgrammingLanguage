@@ -304,10 +304,6 @@ silentToken* silentTokenize(char* source)
 		tokens[i] = token;
 		printf("%s\n",token.value);
 	}
-
-
-
-
 	return tokens;
 }
 
@@ -364,9 +360,9 @@ typedef struct silentFunctionNode
 char* silentCompile(char* path, char* output)
 {
 
-	//char* rawSource = readAllText(path);//no AST
-	char* source = "func int main(){var int testVariable = 5;return 0;}";
-	silentToken* tokens = silentTokenize(source);
+	char* rawSource = readAllText(path);//no AST
+	//char* rawSource = "func int main(){var int testVariable = 5;return 0;}";
+	silentToken* tokens = silentTokenize(rawSource);
 
 }
 
