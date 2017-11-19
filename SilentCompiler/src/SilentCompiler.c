@@ -1,9 +1,9 @@
-#include "SilentCompiler.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
+#include <string.h>
 
+//HELPER
 //Read all characters in a file
 char* readAllText(char* path)
 {
@@ -42,7 +42,69 @@ char* readAllText(char* path)
     return text;
 }
 
-//Compiler structures
+//Helper functions
+//Test whether the passed token is a character
+char silentTestLetter(char character)
+{
+	//All characters to be recognised
+	//as letters
+	char* letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+	//Iterate through the array of letters
+	for(int i = 0; i < strlen(letters); i++)
+	{
+		//Check whether the character is in the array
+		if(character == letters[i])
+		{
+			//Return true
+			return 1;
+			//Stop iteration (just to be sure)
+			break;
+		}
+	}
+	//Return false
+	return 0;
+}
+
+//Test whether the passed token is a number
+char silentTestNumber(char character)
+{
+	//Characters recognised as numbers
+	char* numbers = "1234567890";
+	//Iterate through array of numbers
+	for(int i = 0; i < strlen(numbers); i++)
+	{
+		//If character is in the array
+		if(character == numbers[i])
+		{
+			//Return true
+			return 1;
+			//break;
+		}
+	}
+	//Return false
+	return 0;
+}
+
+//Test whether the passed token is whitespace
+char silentTestWhitespace(char character)
+{
+	//If the character is a whitespace
+	if(isspace(character))
+	{
+		//Return true
+		return 1;
+	}
+
+	//If the character is not whitespace
+	else
+	{
+		//Return false
+		return 0;
+	}
+}
+
+//TOKENIZER
 //Type of a token
 typedef enum silentTokenType
 {
@@ -53,8 +115,11 @@ typedef enum silentTokenType
 	silentMultiplyToken,
 	silentDivideToken,
 	silentParenthesToken,
+	silentCurlyBracketToken,
+	silentBracketToken,
 	silentQuotationToken,
 	silentSemicolonToken,
+	silentAssignToken,
 
 	//Structure
 	silentClassToken,
@@ -87,6 +152,166 @@ typedef struct silentToken
 	char* value;
 }silentToken;
 
+//Tokenizer
+//Extract the array of tokens from source
+silentToken* silentTokenize(char* source)
+{
+	//Current character
+	long currentChar = 0;
+	//Current line
+	long currentLine = 0;
+	//Character buffer for parsing
+    char buffer[255];
+	//Array of tokens
+	silentToken* tokens = malloc(strlen(source));
+
+	//Iterate through the source
+	for(int i = 0; i < strlen(source); i++)
+	{
+		//Create new token
+		silentToken token;
+		//Assign unrecognised token type by default
+		token.type = silentUnrecognisedToken;
+		//Assign the value to "NULL" by default
+		token.value = "NULL";
+
+		//Test for semicolon
+		if(source[i] == *";")
+		{
+			token.type = silentSemicolonToken;
+			token.value = ";";
+		}
+
+		//Test for assignment
+		else if(source[i] == *"=")
+		{
+			token.type = silentAssignToken;
+			token.value = "=";
+		}
+		//Test for parentheses
+		else if((source[i] == *"(") || (source[i] == *")"))
+		{
+			//Assign the parentheses type
+			token.type = silentParenthesToken;
+			//Allocate 2 bytes for the string
+			token.value = malloc(2);
+			//Assign first character to the parentheses
+			token.value[0] = source[i];
+			//Null terminate the string
+			token.value[1] = '\0';
+		}
+
+		//Test for curly brackets
+		else if((source[i] == *"{") || (source[i] == *"}"))
+		{
+			//Assign the parentheses type
+			token.type = silentCurlyBracketToken;
+			//Allocate 2 bytes for the string
+			token.value = malloc(2);
+			//Assign first character to the parentheses
+			token.value[0] = source[i];
+			//Null terminate the string
+			token.value[1] = '\0';
+		}
+
+		//Test for multicharacter tokens
+		else if(silentTestLetter(source[i]))
+		{
+			//Number of characters
+			unsigned char count = 0;
+			//prepare space for the value
+			char* value;
+			//As long as the current character isn't whitespace
+			while(silentTestLetter(source[i+count]) ||
+				silentTestNumber(source[i+count]))
+			{
+				//Assign buffer to the current character
+				buffer[count++] = source[i+count];
+			}
+			//Allocate space for the value and terminator
+			value = malloc(count+1);
+			//Copy the value from the buffer
+			memcpy(value,buffer,count);
+			value[count] = '\0';
+			token.value = value;
+			token.type = silentIdentifierToken;
+			//Test for non-identifier tokens
+			//If the token is a function
+			if(strcmp(token.value, "func"))
+			{
+				token.type = silentFunctionToken;
+			}
+			else if(strcmp(token.value, "var"))
+			{
+				token.type = silentVariableToken;
+			}
+			else if(strcmp(token.value, "int"))
+			{
+				token.type = silentIntegerToken;
+			}
+			else if(strcmp(token.value, "float"))
+			{
+				token.type = silentFloatToken;
+			}
+			i += count-1;
+		}
+
+		//Test for numbers
+		else if(silentTestNumber(source[i]))
+		{
+			unsigned char count = 0;
+			char* value;
+			char floatVal;
+			while(silentTestNumber(source[i+count]));
+			{
+				//if(source[i+count] == *"."){floatVal = 1;}
+				printf("true\n");
+				buffer[count++] = source[i+count];
+			}
+
+			//Allocate space for the value and terminator
+			value = malloc(count+1);
+			//Copy the value from the buffer
+			memcpy(value,buffer,count);
+			value[count] = '\0';
+			token.value = value;
+			token.type = silentIntegerToken;
+			if(floatVal){token.type = silentFloatToken;}
+
+            i += count-1;
+		}
+
+		//Test for quotations
+		else if(source[i] == *"\"")
+		{
+			token.type = silentQuotationToken;
+			token.value = "";
+			for(int j = 1; source[i+j] != *"\"";j++)
+			{
+				token.value += source[i+j];
+			}
+		}
+
+		//Test for whitespaces
+		else if(silentTestWhitespace(source[i]))
+		{
+			continue;
+		}
+
+		else{
+			continue;
+		}
+		tokens[i] = token;
+		printf("%s\n",token.value);
+	}
+
+
+
+
+	return tokens;
+}
+
+//PARSER
 //Type of a node
 typedef enum silentNodeType
 {
@@ -135,197 +360,6 @@ typedef struct silentFunctionNode
 	//Array of expressions
 	silentExpressionNode* expressions;
 }silentFunctionNode;
-
-//Helper functions
-//Test whether the passed token is a character
-char silentTestLetter(char character)
-{
-	//All characters to be recognised
-	//as letters
-	char* letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-	//Iterate through the array of letters
-	for(int i = 0; i < strlen(letters); i++)
-	{
-		//Check whether the character is in the array
-		if(character == letters[i])
-		{
-			//Return true
-			return 1;
-			//Stop iteration (just to be sure)
-			break;
-		}
-	}
-	//Return false
-	return 0;
-}
-
-//Test whether the passed token is a number
-char silentTestNumber(char character)
-{
-	//Characters recognised as numbers
-	char* numbers = "1234567890";
-	//Iterate through array of numbers
-	for(int i = 0; i < strlen(numbers); i++)
-	{
-		//If character is in the array
-		if(character == numbers[i])
-		{
-			//Return true
-			return 1;
-			break;
-		}
-	}
-	//Return false
-	return 0;
-}
-
-//Test whether the passed token is whitespace
-char silentTestWhitespace(char character)
-{
-	//If the character is a whitespace
-	if(isspace(character))
-	{
-		//Return true
-		return 1;
-	}
-
-	//If the character is not whitespace
-	else
-	{
-		//Return false
-		return 0;
-	}
-}
-
-//Tokenizer
-//Extract the array of tokens from source
-silentToken* silentTokenize(char* source)
-{
-	//Current character
-	long currentChar = 0;
-	//Current line
-	long currentLine = 0;
-	//Character buffer for parsing
-    char buffer[255];
-	//Array of tokens
-	silentToken* tokens = malloc(strlen(source));
-
-	//Iterate through the source
-	for(int i = 0; i < strlen(source); i++)
-	{
-		//Create new token
-		silentToken token;
-		//Assign unrecognised token type by default
-		token.type = silentUnrecognisedToken;
-		//Assign the value to "NULL" by default
-		token.value = "NULL";
-	
-		//Test for parentheses
-		if((source[i] == *"(") || (source[i] == *")"))
-		{
-			//Assign the parentheses type
-			token.type = silentParenthesToken;
-			//Allocate 2 bytes for the string
-			token.value = malloc(2);
-			//Assign first character to the parentheses
-			token.value[0] = source[i];
-			//Null terminate the string
-			token.value[1] = '\0';
-		}
-
-		//Test for multicharacter tokens
-		else if(silentTestLetter(source[i]))
-		{
-			//Number of characters
-			unsigned char count = 0;
-			//prepare space for the value
-			char* value;
-			//As long as the current character isn't whitespace
-			while(!silentTestWhitespace(source[i+count]))
-			{
-				//Assign buffer to the current character
-				buffer[count++] = source[i+count];
-			}
-			//Allocate space for the value and terminator
-			value = malloc(count+1);
-			//Copy the value from the buffer
-			memcpy(value,buffer,count);
-			value[count] = '\0';
-			token.value = value;
-			token.type = silentIdentifierToken;
-			//Test for non-identifier tokens
-			//If the token is a function
-			if(strmcp(token.value, "func"))
-			{
-				token.type = silentFunctionToken;
-			}
-			else if(strmcp(token.value, "var"))
-			{
-				token.type = silentVariableToken;
-			}
-			else if(strmcp(token.value, "int"))
-			{
-				token.type = silentIntegerToken;
-			}
-			else if(strmcp(token.value, "float"))
-			{
-				token.type = silentFloatToken;
-			}
-			
-		}
-
-		//Test for numbers
-		else if(silentTestNumber(source[i]))
-		{
-			unsigned char count = 0;
-			while(!silentTestWhitespace(source[i+count]))
-			{
-				buffer[count++] = source[i+count];
-			}
-
-		}
-
-		//Test for quotations
-		else if(source[i] == *"\"")
-		{
-			token.type = silentQuotationToken;
-			token.value = "";
-			for(int j = 1; source[i+j] != *"\"";j++)
-			{
-				token.value += source[i+j];
-			}
-		}
-
-		//Test for whitespaces
-		else if(silentTestWhitespace(source[i]))
-		{
-			continue;
-		}
-
-		else{
-			continue;
-		}
-		tokens[i] = token;
-		printf("%s\n",token.value);
-	}
-
-
-
-
-	return tokens;
-}
-
-//Parser
-
-
-//Transform
-
-
-//Code Generation
-
-
-
 
 char* silentCompile(char* path, char* output)
 {

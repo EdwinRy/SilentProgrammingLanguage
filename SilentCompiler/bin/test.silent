@@ -1,6 +1,7 @@
+
 func int main()
 {
     var int testVariable = 5;
-
+    var int test2 = 21;
     return 0;
 }

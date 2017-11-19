@@ -1,6 +1,6 @@
 compiler = gcc
-#src = src/*.{c,h}
-src = src/SilentCompiler.c src/SilentCompiler.h
+src = src/*.{c,h}
+##src = src/SilentCompiler.c src/SilentCompiler.h
 out = bin/SilentC
 all:
 	$(compiler) $(src) -o $(out)
