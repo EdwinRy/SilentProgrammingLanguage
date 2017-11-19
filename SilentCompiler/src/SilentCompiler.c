@@ -42,6 +42,7 @@ char* readAllText(char* path)
     return text;
 }
 
+/*
 //Helper functions
 //Test whether the passed token is a character
 char silentTestLetter(char character)
@@ -110,7 +111,7 @@ char silentTestWhitespace(char character)
 		return 0;
 	}
 }
-
+*/
 //TOKENIZER
 //Type of a token
 typedef enum silentTokenType
@@ -183,20 +184,20 @@ silentToken* silentTokenize(char* source)
 		token.value = "NULL";
 
 		//Test for semicolon
-		if(source[i] == *";")
+		if(source[i] == ';')
 		{
 			token.type = silentSemicolonToken;
 			token.value = ";";
 		}
 
 		//Test for assignment
-		else if(source[i] == *"=")
+		else if(source[i] == '=')
 		{
 			token.type = silentAssignToken;
 			token.value = "=";
 		}
 		//Test for parentheses
-		else if((source[i] == *"(") || (source[i] == *")"))
+		else if((source[i] == '(') || (source[i] == ')'))
 		{
 			//Assign the parentheses type
 			token.type = silentParenthesToken;
@@ -209,7 +210,7 @@ silentToken* silentTokenize(char* source)
 		}
 
 		//Test for curly brackets
-		else if((source[i] == *"{") || (source[i] == *"}"))
+		else if((source[i] == '{') || (source[i] == '}'))
 		{
 			//Assign the parentheses type
 			token.type = silentCurlyBracketToken;
@@ -222,15 +223,15 @@ silentToken* silentTokenize(char* source)
 		}
 
 		//Test for multicharacter tokens
-		else if(silentTestLetter(source[i]))
+		else if(isalpha(source[i]))
 		{
 			//Number of characters
 			unsigned char count = 0;
 			//prepare space for the value
 			char* value;
 			//As long as the current character isn't whitespace
-			while(silentTestLetter(source[i+count]) ||
-				silentTestNumber(source[i+count]))
+			while(isalpha(source[i+count]) ||
+				isdigit(source[i+count]))
 			{
 				//Assign buffer to the current character
 				buffer[count++] = source[i+count];
@@ -264,12 +265,12 @@ silentToken* silentTokenize(char* source)
 		}
 
 		//Test for numbers
-		else if(silentTestNumber(source[i]))
+		else if(isdigit(source[i]))
 		{
 			char* value;
 			char floatVal = 0;
 			char count = 0;
-			while(silentTestNumber(source[i]))
+			while(isdigit(source[i]))
 			{
 				buffer[count] = source[i];
 				i++;
@@ -300,7 +301,7 @@ silentToken* silentTokenize(char* source)
 		}
 
 		//Test for whitespaces
-		else if(silentTestWhitespace(source[i]))
+		else if(isspace(source[i]))
 		{
 			continue;
 		}
