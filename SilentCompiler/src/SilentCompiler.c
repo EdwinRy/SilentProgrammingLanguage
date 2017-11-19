@@ -46,8 +46,7 @@ char* readAllText(char* path)
 //Test whether the passed token is a character
 char silentTestLetter(char character)
 {
-	//All characters to be recognised
-	//as letters
+	//Characters recognised as letters
 	char* letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 	//Iterate through the array of letters
@@ -70,20 +69,28 @@ char silentTestLetter(char character)
 char silentTestNumber(char character)
 {
 	//Characters recognised as numbers
-	char* numbers = "1234567890";
-	//Iterate through array of numbers
-	for(int i = 0; i < strlen(numbers); i++)
+	//char* numbers = "1234567890";
+	if(character >= '0' && character <= '9')
 	{
-		//If character is in the array
-		if(character == numbers[i])
-		{
-			//Return true
-			return 1;
-			//break;
-		}
+		return 1;
 	}
+	else
+	{
+		return 0;
+	}
+	//Iterate through array of numbers
+	//for(int i = 0; i < strlen(numbers); i++)
+	//{
+		//If character is in the array
+	//	if(character == numbers[i])
+	//	{
+			//Return true
+	//		return 1;
+	//		break;
+	//	}
+	//}
 	//Return false
-	return 0;
+	//return 0;
 }
 
 //Test whether the passed token is whitespace
@@ -259,17 +266,18 @@ silentToken* silentTokenize(char* source)
 		//Test for numbers
 		else if(silentTestNumber(source[i]))
 		{
-			unsigned char count = 0;
 			char* value;
-			char floatVal;
-			while(silentTestNumber(source[i+count]));
+			char floatVal = 0;
+			char count = 0;
+			while(silentTestNumber(source[i]))
 			{
-				//if(source[i+count] == *"."){floatVal = 1;}
-				printf("true\n");
-				buffer[count++] = source[i+count];
+				buffer[count] = source[i];
+				i++;
+				count++;
 			}
 
 			//Allocate space for the value and terminator
+			
 			value = malloc(count+1);
 			//Copy the value from the buffer
 			memcpy(value,buffer,count);
@@ -277,8 +285,7 @@ silentToken* silentTokenize(char* source)
 			token.value = value;
 			token.type = silentIntegerToken;
 			if(floatVal){token.type = silentFloatToken;}
-
-            i += count-1;
+            //i += count-1;
 		}
 
 		//Test for quotations
@@ -361,7 +368,6 @@ char* silentCompile(char* path, char* output)
 {
 
 	char* rawSource = readAllText(path);//no AST
-	//char* rawSource = "func int main(){var int testVariable = 5;return 0;}";
 	silentToken* tokens = silentTokenize(rawSource);
 
 }
