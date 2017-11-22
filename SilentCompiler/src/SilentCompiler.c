@@ -162,7 +162,7 @@ typedef struct silentToken
 
 //Tokenizer
 //Extract the array of tokens from source
-silentToken* silentTokenize(char* source)
+silentToken* silentTokenize(char* source, int* count)
 {
 	//Current character
 	long currentChar = 0;
@@ -310,6 +310,7 @@ silentToken* silentTokenize(char* source)
 			continue;
 		}
 		tokens[i] = token;
+		*count++;
 		printf("%s\n",token.value);
 	}
 	return tokens;
@@ -365,12 +366,26 @@ typedef struct silentFunctionNode
 	silentExpressionNode* expressions;
 }silentFunctionNode;
 
+//Node for the program
+typedef struct silentProgramNode
+{
+	//Number of functions
+	int functionCount;
+	//Function array
+	silentFunctionNode* functions;
+}silentProgramNode;
+
+silentProgramNode* silentGenerateAST(silentToken* tokens, int tokenCount)
+{
+	
+}
+
 char* silentCompile(char* path, char* output)
 {
-
 	char* rawSource = readAllText(path);//no AST
-	silentToken* tokens = silentTokenize(rawSource);
-
+	int tokenCount;
+	silentToken* tokens = silentTokenize(rawSource,&tokenCount);
+	silentGenerateAST(tokens,tokenCount);
 }
 
 //Testing
