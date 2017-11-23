@@ -33,6 +33,12 @@ typedef struct silentValue
 	char* value;
 }silentValue;
 
+typedef struct silentVariable
+{	
+	silentValue value;
+	char* name;
+}silentVariable;
+
 //Node for an expression
 typedef struct silentExpression
 {

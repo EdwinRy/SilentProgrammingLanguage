@@ -14,6 +14,7 @@ typedef enum silentTokenType
 	silentQuotationToken,
 	silentSemicolonToken,
 	silentAssignToken,
+	silentCommaToken,
 
 	//Structure
 	silentClassToken,

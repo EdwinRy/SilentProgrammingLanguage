@@ -8,6 +8,7 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 	silentFunction function;
 	*index++;
 	
+	//Get return type
 	if(!(
 		(tokens[*index].type == silentIntegerToken) ||
 		(tokens[*index].type == silentStringToken) ||
@@ -19,23 +20,37 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 		printf("Invalid return type\n");
 		exit(0);
 	}
-
 	*index++;
 
+	//Get function name
 	if(tokens[*index].type != silentIdentifierToken)
 	{
 		printf("Expected funtion name\n");
 		exit(0);
 	}
-
 	function.name = tokens[*index].value;
-
 	*index++;
 
-	if(tokens[*index].type != silentParenthesToken)
+	//Get function parameters
+	if(tokens[*index].value != silentParenthesToken)
 	{
 		printf("Expected parentheses for function %s\n",function.name);
 	}
+	*index++;
+
+	silentVariable buffer[255];
+	//Parse parameters
+	int parameterCount = 0;
+	while(tokens[*index].type != silentParenthesToken)
+	{
+		if(tokens[*index].type != silentCommaToken)
+		{
+			
+			parameterCount++;	
+		}
+		*index++;
+	}
+
 
 	while(1)
 	{

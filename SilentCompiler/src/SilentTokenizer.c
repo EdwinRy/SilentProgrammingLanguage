@@ -32,6 +32,13 @@ silentToken* silentTokenize(char* source, int* count)
 			token.value = ";";
 		}
 
+		//Test for comma
+		if(source[i] == ',')
+		{
+			token.type = silentCommaToken;
+			token.value = ",";
+		}
+
 		//Test for assignment
 		else if(source[i] == '=')
 		{
