@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 //Extract the array of tokens from source
-silentToken* silentTokenize(char* source, int* count)
+silentToken* silentTokenize(char* source, int* tokenCount)
 {
 	//Current character
 	long currentChar = 0;
@@ -59,10 +59,22 @@ silentToken* silentTokenize(char* source, int* count)
 		}
 
 		//Test for curly brackets
-		else if((source[i] == '{') || (source[i] == '}'))
+		else if(source[i] == '{')
 		{
 			//Assign the parentheses type
-			token.type = silentCurlyBracketToken;
+			token.type = silentOpenCurlyBracketToken;
+			//Allocate 2 bytes for the string
+			token.value = malloc(2);
+			//Assign first character to the parentheses
+			token.value[0] = source[i];
+			//Null terminate the string
+			token.value[1] = '\0';
+		}
+
+		else if(source[i] == '}')
+		{
+			//Assign the parentheses type
+			token.type = silentClosingCurlyBracketToken;
 			//Allocate 2 bytes for the string
 			token.value = malloc(2);
 			//Assign first character to the parentheses
@@ -158,9 +170,10 @@ silentToken* silentTokenize(char* source, int* count)
 		else{
 			continue;
 		}
-		tokens[i] = token;
-		*count++;
-		printf("%s\n",token.value);
+		tokens[*tokenCount] = token;
+		//printf("%s\n",tokens[*tokenCount].value);
+		*tokenCount += 1;
 	}
+	//printf("%s\n",tokens[0].value);
 	return tokens;
 }

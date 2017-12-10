@@ -74,5 +74,6 @@ typedef struct silentProgram
 	silentFunction* functions;
 }silentProgram;
 
+
 silentProgram* silentParseProgram(silentToken* tokens, int tokenCount);
 #endif
