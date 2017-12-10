@@ -6,10 +6,11 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 {
 	//Set up the function
 	silentFunction function;
-	*index+=1;
+	//*index+=1;
 	
+	printf("func1:%s\n",tokens[*index].value);
 	//Get return type
-	if(!(
+	if((
 		(tokens[*index].type == silentIntegerToken) ||
 		(tokens[*index].type == silentStringToken) ||
 		(tokens[*index].type == silentFloatToken) ||
@@ -17,12 +18,14 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 	))
 	{
 		//Implement custom type return type
-		printf("Invalid return type\n");
+		printf("Invalid return type %s\n",tokens[*index].value);
 		exit(0);
 	}
 	*index+=1;
 
 	function.returnType = tokens[*index].type;
+
+	printf("func1:%s\n",tokens[*index].value);
 
 	//Get function name
 	if(tokens[*index].type != silentIdentifierToken)
@@ -75,16 +78,17 @@ silentProgram* silentParseProgram(silentToken* tokens, int tokenCount)
 	{
 		switch(tokens[i].type)
 		{
-			case silentFunctionNode:
+			case silentFunctionToken:
 				printf("parsing function\n");
 				silentParseFunction(tokens,&i);
 				printf("done parsing function\n");
 			break;
 
+			/*
 			default:
 				printf("Invalid token in the global scope\n");
 				printf("Invalid token: %s\n",tokens[i].value);
-			break;
+			break;*/
 		}
 	}
 }

@@ -13,7 +13,7 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 	//Character buffer for parsing
     char buffer[255];
 	//Array of tokens
-	silentToken* tokens = malloc(strlen(source));
+	silentToken* tokens = malloc(strlen(source)*sizeof(silentToken));
 
 	//Iterate through the source
 	for(int i = 0; i < strlen(source); i++)
@@ -122,6 +122,10 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			{
 				token.type = silentFloatToken;
 			}
+			else
+			{
+				token.type = silentIdentifierToken;
+			}
 			i += count-1;
 		}
 
@@ -131,8 +135,12 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			char* value;
 			char floatVal = 0;
 			char count = 0;
-			while(isdigit(source[i]))
+			while(isdigit(source[i]) || source[i] == '.')
 			{
+				if(source[i] == '.')
+				{
+					floatVal = 1;
+				}
 				buffer[count] = source[i];
 				i++;
 				count++;
@@ -145,17 +153,17 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			memcpy(value,buffer,count);
 			value[count] = '\0';
 			token.value = value;
-			token.type = silentIntegerToken;
-			if(floatVal){token.type = silentFloatToken;}
-            //i += count-1;
+			token.type = silentNumberToken;
+			if(floatVal){token.type = silentDecimalToken;}
+            i += count-1;
 		}
 
-		//Test for quotations
-		else if(source[i] == *"\"")
+		//Test for text
+		else if(source[i] == '\"')
 		{
 			token.type = silentQuotationToken;
 			token.value = "";
-			for(int j = 1; source[i+j] != *"\"";j++)
+			for(int j = 1; source[i+j] != '\"';j++)
 			{
 				token.value += source[i+j];
 			}
@@ -171,9 +179,9 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			continue;
 		}
 		tokens[*tokenCount] = token;
-		//printf("%s\n",tokens[*tokenCount].value);
+		printf("%i: %s\n",*tokenCount,tokens[*tokenCount].value);
 		*tokenCount += 1;
 	}
-	//printf("%s\n",tokens[0].value);
+	printf("%s\n",tokens[0].value);
 	return tokens;
 }

@@ -33,8 +33,11 @@ typedef enum silentTokenType
 	silentNullToken,
 	silentVoidToken,
 	silentStringToken,
+	silentTextToken,
 	silentIntegerToken,
+	silentNumberToken,
 	silentFloatToken,
+	silentDecimalToken,
 	silentLongToken,
 	silentDoubleToken,
 	silentIdentifierToken
