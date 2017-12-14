@@ -140,7 +140,7 @@ char assemble(char* inFile, char* outFile)
         {
             if(isalpha(line[i]))
             {
-                printf("here\n");
+                //printf("here\n");
                 //Number of characters
 			    unsigned char count = 0;
 			    //prepare space for the value
@@ -158,18 +158,17 @@ char assemble(char* inFile, char* outFile)
 			    //Copy the value from the buffer
 			    memcpy(instructions[instructionIndex],buffer,count);
 			    instructions[instructionIndex][count] = '\0';
-                printf("%s\n",instructions[instructionIndex]);
+                //printf("%s\n",instructions[instructionIndex]);
                 i+=count;
                 instructionIndex+=1;
-                printf("here2\n");
+                //printf("here2\n");
                 
             }
         }
 
-        instructionIndex = 0;
         if(instructions[0][size] == ':')
         {
-            //printf("label %s\n",instructions[0]);
+            printf("label %s\n",instructions[0]);
         }
 
         if(strcmp(instructions[0],"halt") == 0)
@@ -201,8 +200,8 @@ char assemble(char* inFile, char* outFile)
         {
             program[programCounter] = (char)Halt;
             programCounter+=1;
-            printf("%s\n",instructions[0][0]);
-            if(instructions[0][0] == 'i')
+            printf("%c\n",instructions[1][0]);
+            if(instructions[1][0] == 'i')
             {
                 int temp = (int)atoi(instructions[1]+1);
                 memcpy(
@@ -212,7 +211,7 @@ char assemble(char* inFile, char* outFile)
                 );
                 programCounter += sizeof(int);
             }
-            else if(instructions[0][0] == 'd')
+            else if(instructions[1][0] == 'd')
             {
                 float temp = (float)atof(instructions[1]+1);
                 memcpy(
@@ -230,6 +229,11 @@ char assemble(char* inFile, char* outFile)
         }
         currentLine += 1;
         size = getline(&line,&s,f);
+        for(int i = 0; i < instructionIndex; i++)
+        {
+            free(instructions[i]);
+        }
+        instructionIndex = 0;
     }
 
     return 1;
