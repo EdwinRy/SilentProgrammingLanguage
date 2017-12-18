@@ -195,6 +195,25 @@ char assemble(char* inFile, char* outFile)
             program[programCounter] = (char)Halt;
             programCounter+=1;
         }*/
+        if(strcmp(instructions[0],"push1") == 0)
+        {
+            program[programCounter] = (char)Push4;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                char temp = (char)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(char)
+                );
+                programCounter += 1;
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
         if(strcmp(instructions[0],"push4") == 0)
         {
             program[programCounter] = (char)Push4;
