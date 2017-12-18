@@ -176,7 +176,6 @@ char assemble(char* inFile, char* outFile)
         {
             program[programCounter] = (char)Halt;
             programCounter+=1;
-            printf("halt\n");
         }
         if(strcmp(instructions[0],"goto") == 0)
         {
@@ -189,7 +188,6 @@ char assemble(char* inFile, char* outFile)
                 sizeof(int)
             );
             programCounter+=sizeof(int);
-            printf("goto\n");
         }
         /*
         if(strcmp(instructions[0],"call"))
@@ -225,8 +223,14 @@ char assemble(char* inFile, char* outFile)
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
-            printf("push4\n");
         }
+
+        if(strcmp(instructions[0],"addint") == 0)
+        {
+            program[programCounter] = (char)AddInt;
+            programCounter+=1;
+        }
+
         currentLine += 1;
         size = getline(&line,&s,f);
         for(int i = 0; i < instructionIndex; i++)

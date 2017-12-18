@@ -4,36 +4,63 @@
 #include "SilentVM.h"
 int main(int argc, char** argv)
 {
-	if(argc == 1)
+	if(argc == 2)
 	{
-		printf("usage: SilentVM <filename>\n");
-	}
-	else
-	{
-		if(argc == 2 && strcmp(argv[1],"-h")!=0)
+		if(!strcmp(argv[1],"-h")!=0)
 		{
+			//printf("much here\n");
+			//char* bytecode;
+			//FILE *f;
+			//if((f = fopen(argv[1],"r"))==NULL)
+			//{
+			//	printf("File %s doesn't exist!\n",argv[1]);
+			//	exit(-1);
+			//}
+			//fseek(f,0,SEEK_END);
+			//bytecode = malloc(ftell(f));
+			//fseek(f,0,SEEK_SET);
+			//long count = 0;
+			//char c;
+			//while((c = fgetc(f))!=EOF)
+			//{
+			//	bytecode[count++] = (char)c;
+			//}
+			//fclose(f);
+			
+			//SilentMemory* m = createSilentMemory(count,count);
+			//SilentThread* t = createSilentThread(m,bytecode);
+			//executeSilentThread(t);
+		}
+
+		else
+		{
+			printf("much run\n");
 			char* bytecode;
 			FILE *f;
-			if((f = fopen(argv[1],"r"))==NULL)
+			if((f = fopen(argv[1],"rb"))==NULL)
 			{
 				printf("File %s doesn't exist!\n",argv[1]);
 				exit(-1);
 			}
+
 			fseek(f,0,SEEK_END);
-			bytecode = malloc(ftell(f));
-			fseek(f,0,SEEK_SET);
-			long count = 0;
-			char c;
-			while((c = fgetc(f))!=EOF)
-			{
-				bytecode[count++] = (char)c;
-			}
+			long fileSize = ftell(f);
+			rewind(f);
+			bytecode = malloc(fileSize);
+			fread(bytecode,fileSize,1,f);
 			fclose(f);
-			
-			SilentMemory* m = createSilentMemory(count,count);
-			SilentThread* t = createSilentThread(m,bytecode);
-			executeSilentThread(t);
+
+			SilentMemory* mem = createSilentMemory(1000,1000);
+			SilentThread* thread = createSilentThread(mem,bytecode);
+			executeSilentThread(thread);
+			printf("%i\n",*((int*)(mem->stack + 0)));
 		}
 	}
+
+	else
+	{
+		printf("usage: SilentVM <filename>\n");
+	}
+
 	return 0;
 }

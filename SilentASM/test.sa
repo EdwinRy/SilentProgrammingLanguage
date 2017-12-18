@@ -1,3 +1,5 @@
 main:
-push4 i21
+push4 i10
+push4 i9
+addint
 halt
