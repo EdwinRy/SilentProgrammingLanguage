@@ -34,7 +34,6 @@ int main(int argc, char** argv)
 
 		else
 		{
-			printf("much run\n");
 			char* bytecode;
 			FILE *f;
 			if((f = fopen(argv[1],"rb"))==NULL)
