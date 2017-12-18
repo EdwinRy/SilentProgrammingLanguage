@@ -113,6 +113,7 @@ typedef struct silentInstruction
 {
     char* data;
 }silentInstruction;
+
 char assemble(char* inFile, char* outFile)
 {
     char* program = malloc(1000);
@@ -198,9 +199,8 @@ char assemble(char* inFile, char* outFile)
         }*/
         if(strcmp(instructions[0],"push4") == 0)
         {
-            program[programCounter] = (char)Halt;
+            program[programCounter] = (char)Push4;
             programCounter+=1;
-            printf("%c\n",instructions[1][0]);
             if(instructions[1][0] == 'i')
             {
                 int temp = (int)atoi(instructions[1]+1);
@@ -236,6 +236,11 @@ char assemble(char* inFile, char* outFile)
         instructionIndex = 0;
     }
 
+
+    //Write to file
+    FILE* out = fopen(outFile,"wb");
+    fwrite(program,1,programCounter,out);
+    fclose(out);
     return 1;
 }
 
