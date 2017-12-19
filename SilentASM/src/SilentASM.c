@@ -244,11 +244,192 @@ char assemble(char* inFile, char* outFile)
             }
         }
 
+        if(strcmp(instructions[0],"push8") == 0)
+        {
+            program[programCounter] = (char)Push4;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                long temp = (long)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(long)
+                );
+                programCounter += sizeof(long);
+            }
+            else if(instructions[1][0] == 'd')
+            {
+                double temp = (double)atof(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(double)
+                );
+                programCounter += sizeof(double);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+
+
+
+        if(strcmp(instructions[0],"pop1") == 0)
+        {
+            program[programCounter] = (char)Pop1;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"pop4") == 0)
+        {
+            program[programCounter] = (char)Pop4;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"pop8") == 0)
+        {
+            program[programCounter] = (char)Pop8;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"popx") == 0)
+        {
+            program[programCounter] = (char)PopX;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"addbyte") == 0)
+        {
+            program[programCounter] = (char)AddByte;
+            programCounter+=1;
+        }
+
         if(strcmp(instructions[0],"addint") == 0)
         {
             program[programCounter] = (char)AddInt;
             programCounter+=1;
         }
+
+        if(strcmp(instructions[0],"addlong") == 0)
+        {
+            program[programCounter] = (char)AddLong;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"addfloat") == 0)
+        {
+            program[programCounter] = (char)AddFloat;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"adddouble") == 0)
+        {
+            program[programCounter] = (char)AddDouble;
+            programCounter+=1;
+        }
+
+        
+        
+        if(strcmp(instructions[0],"subbyte") == 0)
+        {
+            program[programCounter] = (char)SubByte;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"subint") == 0)
+        {
+            program[programCounter] = (char)SubInt;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"sublong") == 0)
+        {
+            program[programCounter] = (char)SubLong;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"subfloat") == 0)
+        {
+            program[programCounter] = (char)SubFloat;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"subdouble") == 0)
+        {
+            program[programCounter] = (char)SubDouble;
+            programCounter+=1;
+        }
+
+        
+        
+        
+        if(strcmp(instructions[0],"mulbyte") == 0)
+        {
+            program[programCounter] = (char)MulByte;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"mulint") == 0)
+        {
+            program[programCounter] = (char)MulInt;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"mullong") == 0)
+        {
+            program[programCounter] = (char)MulLong;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"mulfloat") == 0)
+        {
+            program[programCounter] = (char)MulFloat;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"muldouble") == 0)
+        {
+            program[programCounter] = (char)MulDouble;
+            programCounter+=1;
+        }
+
+        
+        
+        
+        if(strcmp(instructions[0],"divbyte") == 0)
+        {
+            program[programCounter] = (char)DivByte;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"divint") == 0)
+        {
+            program[programCounter] = (char)DivInt;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"divlong") == 0)
+        {
+            program[programCounter] = (char)DivLong;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"divfloat") == 0)
+        {
+            program[programCounter] = (char)DivFloat;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"divdouble") == 0)
+        {
+            program[programCounter] = (char)DivDouble;
+            programCounter+=1;
+        }
+
+
+
 
         currentLine += 1;
         size = getline(&line,&s,f);

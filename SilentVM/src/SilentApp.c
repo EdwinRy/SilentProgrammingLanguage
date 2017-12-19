@@ -6,30 +6,10 @@ int main(int argc, char** argv)
 {
 	if(argc == 2)
 	{
-		if(!strcmp(argv[1],"-h")!=0)
+		if(strcmp(argv[1],"-h")==0)
 		{
-			//printf("much here\n");
-			//char* bytecode;
-			//FILE *f;
-			//if((f = fopen(argv[1],"r"))==NULL)
-			//{
-			//	printf("File %s doesn't exist!\n",argv[1]);
-			//	exit(-1);
-			//}
-			//fseek(f,0,SEEK_END);
-			//bytecode = malloc(ftell(f));
-			//fseek(f,0,SEEK_SET);
-			//long count = 0;
-			//char c;
-			//while((c = fgetc(f))!=EOF)
-			//{
-			//	bytecode[count++] = (char)c;
-			//}
-			//fclose(f);
-			
-			//SilentMemory* m = createSilentMemory(count,count);
-			//SilentThread* t = createSilentThread(m,bytecode);
-			//executeSilentThread(t);
+			printf("SilentVM -h to display this message\n");
+			printf("SilentVM <filename> to execute the file\n");
 		}
 
 		else
@@ -60,6 +40,5 @@ int main(int argc, char** argv)
 	{
 		printf("usage: SilentVM <filename>\n");
 	}
-
 	return 0;
 }
