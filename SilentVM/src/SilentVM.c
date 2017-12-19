@@ -138,12 +138,12 @@ void executeSilentThread(SilentThread * thread)
 			case Store1:
 				memcpy(
 					thread->memory->storage[
-						*(long*)(thread->bytecode + (++thread->programCounter))
+						*(int*)(thread->bytecode + (++thread->programCounter))
 					],
-				thread->memory->stack + (--thread->memory->stackPointer),
+					thread->memory->stack + (--thread->memory->stackPointer),
 					1
 				);
-				thread->programCounter += 7;
+				thread->programCounter += 3;
 				break;
 
 			//Saves 4 bytes from the stack to allocated space
@@ -151,12 +151,12 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer -= 4;
 				memcpy(
 					thread->memory->storage[
-						*(long*)(thread->bytecode + (++thread->programCounter))
+						*(int*)(thread->bytecode + (++thread->programCounter))
 					],
 					thread->memory->stack + (thread->memory->stackPointer),
 					4
 				);
-				thread->programCounter += 7;
+				thread->programCounter += 3;
 				break;
 
 			//Saves 8 bytes from the stack to allocated space
@@ -164,25 +164,26 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer -= 8;
 				memcpy(	
 					thread->memory->storage[
-						*(long*)(thread->bytecode + (++thread->programCounter))
+						*(int*)(thread->bytecode + (++thread->programCounter))
 					],
 					thread->memory->stack + (thread->memory->stackPointer),
 					8
 				);
-				thread->programCounter += 7;		
+				thread->programCounter += 3;		
 				break;
+
 			//Saves X bytes from stack to allocated space
 			case StoreX://untested
-				lreg = *((long*)(thread->bytecode + (++thread->programCounter)));
-				thread->programCounter+=7;
+				ireg = *((int*)(thread->bytecode + (++thread->programCounter)));
+				thread->programCounter+=4;
 				memcpy(
 					thread->memory->storage[
-						*(long*)(thread->bytecode + (++thread->programCounter))
+						*(int*)(thread->bytecode + (++thread->programCounter))
 					],
 					thread->memory->stack + (thread->memory->stackPointer),
-						lreg);
-				thread->programCounter += 7;
-				thread->memory->stackPointer += lreg;
+					ireg);
+				thread->programCounter += 3;
+				thread->memory->stackPointer -= ireg;
 				break;
 	
 			//Copies 1 byte of data from storage onto the stack
@@ -191,11 +192,11 @@ void executeSilentThread(SilentThread * thread)
 				(
 					thread->memory->stack + (thread->memory->stackPointer++),
 					thread->memory->storage[
-							*(long*)(thread->bytecode + (++thread->programCounter))
+						*(int*)(thread->bytecode + (++thread->programCounter))
 					],
 					1
 				);
-				thread->programCounter += 7;
+				thread->programCounter += 3;
 				break;
 
 			//Copies 4 bytes of data from storage onto the stack
@@ -204,12 +205,12 @@ void executeSilentThread(SilentThread * thread)
 				(
 					thread->memory->stack + (thread->memory->stackPointer),
 					thread->memory->storage[
-							*(long*)(thread->bytecode + (++thread->programCounter))
+							*(int*)(thread->bytecode + (++thread->programCounter))
 					],
 					4
 				);
 				thread->memory->stackPointer += 4;
-				thread->programCounter += 7;
+				thread->programCounter += 3;
 				break;
 
 			//Copies 8 bytes of data from storage onto the stack
@@ -218,66 +219,68 @@ void executeSilentThread(SilentThread * thread)
 				(
 					thread->memory->stack + (thread->memory->stackPointer),
 					thread->memory->storage[
-							*(long*)(thread->bytecode + (++thread->programCounter))
+							*(int*)(thread->bytecode + (++thread->programCounter))
 					],
 					8
 				);
 				thread->memory->stackPointer += 8;
-				thread->programCounter += 7;
+				thread->programCounter += 3;
 				break;
 
 			//Copies X bytes of data from storage onto the stack
 			case LoadX:
-				lreg = *((long*)(thread->bytecode + (++thread->programCounter)));
-				thread->programCounter+=7;
+				ireg = *((int*)(thread->bytecode + (++thread->programCounter)));
+				thread->programCounter+=3;
 				memcpy(
 					thread->memory->storage[
-						*(long*)(thread->bytecode + (++thread->programCounter))
+						*(int*)(thread->bytecode + (++thread->programCounter))
 					],
 					thread->memory->stack + (thread->memory->stackPointer),
 						lreg);
-				thread->programCounter += 7;
-				thread->memory->stackPointer += lreg;
+				thread->programCounter += 3;
+				thread->memory->stackPointer += ireg;
 
 				break;
 
 			//Allocates 1 byte of data for the program
 			case Alloc1:
-				thread->memory->storage[thread->memory->storagePointer++]
+				thread->memory->storage[
+					*(int*)(thread->bytecode + (++thread->programCounter))]
 					= malloc(1);
+				thread->programCounter += 3;
 				break;
 
 			//Allocates 4 bytes of data for the program
 			case Alloc4:
-				thread->memory->storage[thread->memory->storagePointer++]
+				thread->memory->storage[
+					*(int*)(thread->bytecode + (++thread->programCounter))]
 					= malloc(4);
+				thread->programCounter += 3;
 				break;
 
 			//Allocates 8 bytes of data for the program
 			case Alloc8:
-				thread->memory->storage[thread->memory->storagePointer++]
-					= malloc(8);
+				thread->memory->storage[
+					*(int*)(thread->bytecode + (++thread->programCounter))]
+					= malloc(4);
+				thread->programCounter += 3;
 				break;
 
 			//Allocates X bytes of data for the program
 			case AllocX://untested
-				thread->memory->storage[thread->memory->storagePointer++]
-					= malloc(*(long*)(thread->bytecode + (++thread->programCounter)));
-				thread->programCounter += 7;
+				ireg = *(int*)(thread->bytecode + (++thread->programCounter));
+				thread->programCounter += 3;
+				thread->memory->storage[ireg] =
+					malloc(*(int*)(thread->bytecode + (++thread->programCounter)));
+				thread->programCounter += 3;
 				break;
 			
 			//Releases the lastly allocated storage
 			case FREE:
-				free(thread->memory->storage[--thread->memory->storagePointer]);
+				free(thread->memory->storage[
+					*((int*)(thread->bytecode + (++thread->programCounter)))]);
+				thread->programCounter += 3;
 				break;
-
-			/*
-			case LoadPtr:
-				break;
-
-			case EditPtr1:
-				break;
-			*/
 
 			//Adds together 2 bytes on the stack
 			case AddByte:
