@@ -2,4 +2,13 @@ main:
 push4 i10
 push4 i9
 addint
+goto else
+push4 i21
+push4 i360
+addint
+addint
+else:
+push4 i321
+addint
 halt
+

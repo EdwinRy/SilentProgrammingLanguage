@@ -59,7 +59,8 @@ void executeSilentThread(SilentThread * thread)
 			case Goto:
 				thread->programCounter++;
 				thread->programCounter = 
-					*((unsigned long*)(thread->bytecode + (thread->programCounter)));
+					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
+				thread->programCounter--;
 				break;
 			
 			//Will be used to call library functions

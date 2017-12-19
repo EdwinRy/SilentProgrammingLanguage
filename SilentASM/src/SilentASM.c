@@ -114,10 +114,31 @@ typedef struct silentInstruction
     char* data;
 }silentInstruction;
 
+typedef struct silentLabel
+{
+    char* label;
+    int index;
+}silentLabel;
+int getLabelIndex(silentLabel* labels,int count, char* label)
+{
+    for(int i = 0; i < count; i++)
+    {
+        if(strcmp(labels[i].label,label)==0)
+        {
+            //printf("kek %s\n",labels[i].label);
+            return labels[i].index;
+        }
+       
+    }
+}
 char assemble(char* inFile, char* outFile)
 {
     char* program = malloc(1000);
     unsigned int programCounter = 0;
+    silentLabel labels[1000];
+    silentLabel gotos[1000];
+    unsigned int labelIndex = 0;
+    unsigned int gotosIndex = 0;
     FILE* f;
     f = fopen(inFile,"r");
     if(f==NULL)
@@ -166,10 +187,16 @@ char assemble(char* inFile, char* outFile)
                 
             }
         }
-
-        if(instructions[0][size] == ':')
+        if(instructions[0][size-2] == ':')
         {
-            printf("label %s\n",instructions[0]);
+            //printf("label %s\n",instructions[0]);
+            silentLabel label;
+            label.index = programCounter;
+            label.label = malloc(size-1);
+            memcpy(label.label,instructions[0],size-2);
+            label.label[size-1] = '\0';
+            labels[labelIndex] = label;
+            labelIndex += 1;
         }
 
         if(strcmp(instructions[0],"halt") == 0)
@@ -179,25 +206,22 @@ char assemble(char* inFile, char* outFile)
         }
         if(strcmp(instructions[0],"goto") == 0)
         {
-            int temp = (unsigned int)atoi(instructions[1]+1);
+            //int temp = (unsigned int)atoi(instructions[1]+1);
             program[programCounter] = (char)Goto;
-            programCounter+=1;
-            memcpy(
-                program + programCounter,
-                &temp,
-                sizeof(int)
-            );
+            programCounter += 1;
+            silentLabel go;
+            go.index = programCounter;
+            go.label = malloc(size);
+            memcpy(go.label,instructions[1],size);
+            gotos[gotosIndex] = go;
+            gotosIndex += 1;    
             programCounter+=sizeof(int);
         }
-        /*
-        if(strcmp(instructions[0],"call"))
-        {
-            program[programCounter] = (char)Halt;
-            programCounter+=1;
-        }*/
+
+
         if(strcmp(instructions[0],"push1") == 0)
         {
-            program[programCounter] = (char)Push4;
+            program[programCounter] = (char)Push1;
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
@@ -246,7 +270,7 @@ char assemble(char* inFile, char* outFile)
 
         if(strcmp(instructions[0],"push8") == 0)
         {
-            program[programCounter] = (char)Push4;
+            program[programCounter] = (char)Push8;
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
@@ -273,8 +297,6 @@ char assemble(char* inFile, char* outFile)
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
-
-
 
         if(strcmp(instructions[0],"pop1") == 0)
         {
@@ -440,6 +462,21 @@ char assemble(char* inFile, char* outFile)
         instructionIndex = 0;
     }
 
+    //Sort out gotos
+    for(int i = 0; i < gotosIndex; i++)
+    {
+        int index = 
+            getLabelIndex(
+                labels,
+                labelIndex,
+                gotos[i].label
+                );
+        memcpy(
+            program + gotos[i].index,
+            &index,
+            sizeof(int)
+        );
+    }
 
     //Write to file
     FILE* out = fopen(outFile,"wb");
@@ -450,7 +487,7 @@ char assemble(char* inFile, char* outFile)
 
 int main(int argc, char** argv)
 {
-    char* in = argv[1];
-    char* out =argv[2];
+    char* in  = argv[1];
+    char* out = argv[2];
     assemble(in, out);
 }
