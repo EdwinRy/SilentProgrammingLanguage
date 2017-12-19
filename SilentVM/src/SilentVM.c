@@ -67,17 +67,6 @@ void executeSilentThread(SilentThread * thread)
 			case Call: //Not yet implemented
 				break;
 
-			//case ClearMemory://
-			//	for(int i = 0; i < thread->memory->storagePointer; i++)
-			//	{free(thread->memory->storage);}
-			//	thread->memory->storagePointer = 0;
-			//	break;
-
-			//case ClearStack://
-			//	memset(thread->memory->stack, 0, thread->memory->stackPointer);
-			//	thread->memory->stackPointer = 0;
-			//	break;
-
 			//Pushes 1 byte of data to the stack
 			case Push1:
 				thread->memory->stack[thread->memory->stackPointer++] = 
@@ -743,12 +732,13 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->programCounter++;
 					thread->programCounter = 
-					*((unsigned long*)(thread->bytecode + (thread->programCounter)));
+					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
+					thread->programCounter--;
 				}
 
 				else
 				{
-					thread->programCounter += 7;
+					thread->programCounter += 3;
 				}
 				break;
 
@@ -758,12 +748,13 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->programCounter++;
 					thread->programCounter = 
-					*((unsigned long*)(thread->bytecode + (thread->programCounter)));
+					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
+					thread->programCounter--;
 				}
 
 				else
 				{
-					thread->programCounter += 7;
+					thread->programCounter += 3;
 				}
 				break;	
 		}

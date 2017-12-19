@@ -694,6 +694,116 @@ char assemble(char* inFile, char* outFile)
 
 
 
+        if(strcmp(instructions[0],"smallerthanbyte") == 0)
+        {
+            program[programCounter] = (char)SmallerThanByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"smallerthanint") == 0)
+        {
+            program[programCounter] = (char)SmallerThanInt;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"smallerthanlong") == 0)
+        {
+            program[programCounter] = (char)SmallerThanLong;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"smallerthanfloat") == 0)
+        {
+            program[programCounter] = (char)SmallerThanFloat;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"smallerthandouble") == 0)
+        {
+            program[programCounter] = (char)SmallerThanDouble;
+            programCounter+=1;
+        }
+
+
+        if(strcmp(instructions[0],"largerthanbyte") == 0)
+        {
+            program[programCounter] = (char)BiggerThanByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"largerthanint") == 0)
+        {
+            program[programCounter] = (char)BiggerThanInt;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"largerthanlong") == 0)
+        {
+            program[programCounter] = (char)BiggerThanLong;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"largerthanfloat") == 0)
+        {
+            program[programCounter] = (char)BiggerThanFloat;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"largerthandouble") == 0)
+        {
+            program[programCounter] = (char)BiggerThanDouble;
+            programCounter+=1;
+        }
+
+
+        if(strcmp(instructions[0],"equalbyte") == 0)
+        {
+            program[programCounter] = (char)EqualByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"equalint") == 0)
+        {
+            program[programCounter] = (char)EqualInt;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"equallong") == 0)
+        {
+            program[programCounter] = (char)EqualLong;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"equalfloat") == 0)
+        {
+            program[programCounter] = (char)EqualFloat;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"equaldouble") == 0)
+        {
+            program[programCounter] = (char)EqualDouble;
+            programCounter+=1;
+        }
+
+
+        if(strcmp(instructions[0],"if") == 0)
+        {
+            program[programCounter] = (char)If;
+            programCounter+=1;
+            programCounter += 1;
+            silentLabel go;
+            go.index = programCounter;
+            go.label = malloc(size);
+            memcpy(go.label,instructions[1],size);
+            gotos[gotosIndex] = go;
+            gotosIndex += 1;    
+            programCounter+=sizeof(int);
+        }
+        if(strcmp(instructions[0],"ifnot") == 0)
+        {
+            program[programCounter] = (char)IfNot;
+            programCounter+=1;
+            programCounter += 1;
+            silentLabel go;
+            go.index = programCounter;
+            go.label = malloc(size);
+            memcpy(go.label,instructions[1],size);
+            gotos[gotosIndex] = go;
+            gotosIndex += 1;    
+            programCounter+=sizeof(int);
+        }
+
+
+
 
         currentLine += 1;
         size = getline(&line,&s,f);
