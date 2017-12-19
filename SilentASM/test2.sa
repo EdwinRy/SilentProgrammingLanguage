@@ -1,0 +1,20 @@
+main:
+push4 i9
+push4 i10
+goto add
+save:
+alloc4 i0
+store4 i0
+goto continue
+add:
+addint
+goto save
+continue:
+push4 i2
+push4 i360
+push4 i12
+pop8
+load4 i0
+addint
+free i0
+halt

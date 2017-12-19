@@ -341,10 +341,227 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
         }
 
-        if(strcmp(instructions[0],"popx") == 0)
+        if(strcmp(instructions[0],"popx") == 0)//
         {
             program[programCounter] = (char)PopX;
             programCounter+=1;
+        }
+
+
+
+        if(strcmp(instructions[0],"store1") == 0)//
+        {
+            program[programCounter] = (char)Store1;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+        if(strcmp(instructions[0],"store4") == 0)//
+        {
+            program[programCounter] = (char)Store4;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+        if(strcmp(instructions[0],"store8") == 0)//
+        {
+            program[programCounter] = (char)Store8;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+        if(strcmp(instructions[0],"storex") == 0)//
+        {
+            program[programCounter] = (char)StoreX;
+            programCounter+=1;
+        }
+
+
+
+         if(strcmp(instructions[0],"load1") == 0)//
+        {
+            program[programCounter] = (char)Load1;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+         if(strcmp(instructions[0],"load4") == 0)//
+        {
+            program[programCounter] = (char)Load4;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+         if(strcmp(instructions[0],"load8") == 0)//
+        {
+            program[programCounter] = (char)Load8;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+         if(strcmp(instructions[0],"loadx") == 0)//
+        {
+            program[programCounter] = (char)LoadX;
+            programCounter+=1;
+        }
+
+
+
+         if(strcmp(instructions[0],"alloc1") == 0)//
+        {
+            program[programCounter] = (char)Alloc1;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+         if(strcmp(instructions[0],"alloc4") == 0)//
+        {
+            program[programCounter] = (char)Alloc4;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+         if(strcmp(instructions[0],"alloc8") == 0)//
+        {
+            program[programCounter] = (char)Alloc8;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+         if(strcmp(instructions[0],"allocx") == 0)//
+        {
+            program[programCounter] = (char)AllocX;
+            programCounter+=1;
+        }
+
+
+
+        if(strcmp(instructions[0],"free") == 0)//
+        {
+            program[programCounter] = (char)FREE;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
         }
 
         if(strcmp(instructions[0],"addbyte") == 0)
