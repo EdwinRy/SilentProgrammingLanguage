@@ -1,16 +1,8 @@
 alloc4 i0
 alloc4 i1
-alloc4 i2
-alloc4 i3
+push4 i21
 main:
-push4 i9
-push4 i10
+push4 i21
 addint
-push4 i2
-smallerthanint
-if true
-goto end
-true:
-store4 i0
-end:
+goto main
 halt
