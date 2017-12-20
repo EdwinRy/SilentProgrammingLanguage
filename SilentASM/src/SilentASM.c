@@ -150,7 +150,7 @@ int getLabelIndex(silentLabel* labels,int count, char* label)
     {
         if(strcmp(labels[i].label,label)==0)
         {
-            //printf("kek %s\n",labels[i].label);
+            printf("kek %s\n",labels[i].label);
             return labels[i].index;
         }
        
@@ -433,7 +433,7 @@ char assemble(char* inFile, char* outFile)
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
-         if(strcmp(instructions[0],"load4") == 0)//
+        if(strcmp(instructions[0],"load4") == 0)//
         {
             program[programCounter] = (char)Load4;
             programCounter+=1;
@@ -452,7 +452,7 @@ char assemble(char* inFile, char* outFile)
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
-         if(strcmp(instructions[0],"load8") == 0)//
+        if(strcmp(instructions[0],"load8") == 0)//
         {
             program[programCounter] = (char)Load8;
             programCounter+=1;
@@ -471,7 +471,7 @@ char assemble(char* inFile, char* outFile)
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
-         if(strcmp(instructions[0],"loadx") == 0)//
+        if(strcmp(instructions[0],"loadx") == 0)//
         {
             program[programCounter] = (char)LoadX;
             programCounter+=1;
@@ -479,7 +479,7 @@ char assemble(char* inFile, char* outFile)
 
 
 
-         if(strcmp(instructions[0],"alloc1") == 0)//
+        if(strcmp(instructions[0],"alloc1") == 0)//
         {
             program[programCounter] = (char)Alloc1;
             programCounter+=1;
@@ -693,6 +693,94 @@ char assemble(char* inFile, char* outFile)
         }
 
 
+        if(strcmp(instructions[0],"bytetoint") == 0)
+        {
+            program[programCounter] = (char)ByteToInt;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"bytetolong") == 0)
+        {
+            program[programCounter] = (char)ByteToLong;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"bytetofloat") == 0)
+        {
+            program[programCounter] = (char)ByteToFloat;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"bytetodouble") == 0)
+        {
+            program[programCounter] = (char)ByteToDouble;
+            programCounter+=1;
+        }
+
+
+        if(strcmp(instructions[0],"inttobyte") == 0)
+        {
+            program[programCounter] = (char)IntToByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"inttolong") == 0)
+        {
+            program[programCounter] = (char)IntToLong;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"inttofloat") == 0)
+        {
+            program[programCounter] = (char)IntToFloat;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"inttodouble") == 0)
+        {
+            program[programCounter] = (char)IntToDouble;
+            programCounter+=1;
+        }
+
+
+        if(strcmp(instructions[0],"floattobyte") == 0)
+        {
+            program[programCounter] = (char)FloatToByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"floattoint") == 0)
+        {
+            program[programCounter] = (char)FloatToInt;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"floattolong") == 0)
+        {
+            program[programCounter] = (char)FloatToLong;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"floattodouble") == 0)
+        {
+            program[programCounter] = (char)FloatToDouble;
+            programCounter+=1;
+        }
+
+
+
+        if(strcmp(instructions[0],"doubletobyte") == 0)
+        {
+            program[programCounter] = (char)DoubleToByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"doubletoint") == 0)
+        {
+            program[programCounter] = (char)DoubleToInt;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"doubletolong") == 0)
+        {
+            program[programCounter] = (char)DoubleToLong;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"doubletofloat") == 0)
+        {
+            program[programCounter] = (char)DoubleToFloat;
+            programCounter+=1;
+        }
+
 
         if(strcmp(instructions[0],"smallerthanbyte") == 0)
         {
@@ -779,7 +867,7 @@ char assemble(char* inFile, char* outFile)
         {
             program[programCounter] = (char)If;
             programCounter+=1;
-            programCounter += 1;
+            //programCounter += 1;
             silentLabel go;
             go.index = programCounter;
             go.label = malloc(size);

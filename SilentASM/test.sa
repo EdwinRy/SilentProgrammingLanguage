@@ -2,7 +2,6 @@ alloc4 i0
 alloc4 i1
 alloc4 i2
 alloc4 i3
-
 main:
 push4 i9
 push4 i10

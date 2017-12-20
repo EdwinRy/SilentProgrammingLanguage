@@ -1,10 +1,19 @@
 alloc4 i0
 alloc4 i2
+alloc4 i3
 main:
 push4 i20
 store4 i0
 load4 i0
 push4 i1
 addint
+store4 i2
+load4 i2
+push4 i1
+largerthanint
+if do
+halt
+do:
+push4 i32
 store4 i2
 halt

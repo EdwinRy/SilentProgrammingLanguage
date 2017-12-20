@@ -32,8 +32,8 @@ int main(int argc, char** argv)
 			SilentMemory* mem = createSilentMemory(1000,1000);
 			SilentThread* thread = createSilentThread(mem,bytecode);			
 			executeSilentThread(thread);
-			//printf("%i\n",*((int*)(mem->storage[0])));
-			printf("%i\n",*(int*)(mem->storage[2]));
+			printf("%i\n",*((int*)(mem->storage[2])));
+			//printf("%i\n",(thread->programCounter));
 		}
 	}
 
