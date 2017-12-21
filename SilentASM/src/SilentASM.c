@@ -150,7 +150,6 @@ int getLabelIndex(silentLabel* labels,int count, char* label)
     {
         if(strcmp(labels[i].label,label)==0)
         {
-            printf("kek %s\n",labels[i].label);
             return labels[i].index;
         }
        
@@ -961,7 +960,6 @@ char assemble(char* inFile, char* outFile)
         {
             program[programCounter] = (char)If;
             programCounter+=1;
-            //programCounter += 1;
             silentLabel go;
             go.index = programCounter;
             go.label = malloc(size);
@@ -974,7 +972,6 @@ char assemble(char* inFile, char* outFile)
         {
             program[programCounter] = (char)IfNot;
             programCounter+=1;
-            programCounter += 1;
             silentLabel go;
             go.index = programCounter;
             go.label = malloc(size);

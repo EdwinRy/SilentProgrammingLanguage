@@ -1,47 +1,36 @@
-main:       //int main()
-
-alloc4 i0   //n1 = 0
+main:
+alloc4 i0
 push4 i0
 store4 i0
-
-alloc4 i1   //n2 = 1
+alloc4 i1
 push4 i1
 store4 i1
-
-alloc4 i2   //n3 = 0
+alloc4 i2
 push4 i0
 store4 i2
-
-alloc4 i3   //c = 20
+alloc4 i3
 push4 i20
 store4 i3
-
-alloc4 i4   //i = 2
+alloc4 i4
 push4 i2
 store4 i4
-
 for:
 load4 i4
 load4 i3
 smallerthanint
 ifnot end
-
-load4 i0    //n3 = n1 + n2
+load4 i0
 load4 i1
 addint
 store4 i2
-
-load4 i1    //n1 = n2
+load4 i1
 store4 i0
-
-load4 i2    //n2 = n3
+load4 i2
 store4 i1
-
-load4 i4    //i++
+load4 i4
 push4 i1
 addint
 store4 i4
-
 goto for
 end:
 halt

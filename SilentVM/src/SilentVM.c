@@ -758,6 +758,13 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;	
 		}
+		printf("pc:%i\n",thread->programCounter);
+		printf("stackp:%i\n",thread->memory->stackPointer);
+		printf("mem0:%i\n",*((int*)(thread->memory->storage[0])));
+		//printf("mem1:%i\n",*((int*)(thread->memory->storage[2])));
+		//printf("mem2:%i\n",*((int*)(thread->memory->storage[2])));
+		//printf("mem3:%i\n",*((int*)(thread->memory->storage[2])));
+		getchar();
 		thread->programCounter++;
 	}
 }
