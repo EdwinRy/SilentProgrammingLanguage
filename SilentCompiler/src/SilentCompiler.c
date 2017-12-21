@@ -3,8 +3,6 @@
 #include "SilentParser.h"
 #include <stdio.h>
 
-
-
 char* silentCompile(char* path, char* output)
 {
 	char* rawSource = readAllText(path);//no AST

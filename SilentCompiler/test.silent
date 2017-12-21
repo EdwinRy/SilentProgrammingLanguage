@@ -3,5 +3,6 @@ func int main()
 {
     var int testVariable = 360;
     var int test2 = 21;
+    print(test.value);
     return 0;
 }

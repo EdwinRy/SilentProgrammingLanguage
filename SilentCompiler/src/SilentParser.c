@@ -6,11 +6,12 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 {
 	//Set up the function
 	silentFunction function;
-	//*index+=1;
+	*index+=1;
 	
-	printf("func1:%s\n",tokens[*index].value);
+	//printf("func1:%s\n",tokens[*index].value);
+	//printf("func2:%i\n",tokens[*index].type);
 	//Get return type
-	if((
+	if(!(
 		(tokens[*index].type == silentIntegerToken) ||
 		(tokens[*index].type == silentStringToken) ||
 		(tokens[*index].type == silentFloatToken) ||
@@ -25,7 +26,7 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 
 	function.returnType = tokens[*index].type;
 
-	printf("func1:%s\n",tokens[*index].value);
+	//printf("func1:%s\n",tokens[*index].value);
 
 	//Get function name
 	if(tokens[*index].type != silentIdentifierToken)
@@ -43,7 +44,7 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 	}
 	*index+=1;
 
-	printf("declared function of name %s",function.name);
+	printf("declared function of name %s\n",function.name);
 
 	silentVariable buffer[255];
 	//Parse parameters

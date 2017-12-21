@@ -29,11 +29,23 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 		if(source[i] == ';')
 		{
 			token.type = silentSemicolonToken;
-			token.value = ";";
+			//Allocate 2 bytes for the string
+			token.value = malloc(2);
+			//Assign first character to the parentheses
+			token.value[0] = ';';
+			//Null terminate the string
+			token.value[1] = '\0';
+		}
+
+		//Test for fullstop
+		else if(source[i] == '.')
+		{
+			token.type = silentFullstopToken;
+			token.value = ".";
 		}
 
 		//Test for comma
-		if(source[i] == ',')
+		else if(source[i] == ',')
 		{
 			token.type = silentCommaToken;
 			token.value = ",";
@@ -106,19 +118,19 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			token.type = silentIdentifierToken;
 			//Test for non-identifier tokens
 			//If the token is a function
-			if(strcmp(token.value, "func"))
+			if(strcmp(token.value, "func")==0)
 			{
 				token.type = silentFunctionToken;
 			}
-			else if(strcmp(token.value, "var"))
+			else if(strcmp(token.value, "var")==0)
 			{
 				token.type = silentVariableToken;
 			}
-			else if(strcmp(token.value, "int"))
+			else if(strcmp(token.value, "int")==0)
 			{
 				token.type = silentIntegerToken;
 			}
-			else if(strcmp(token.value, "float"))
+			else if(strcmp(token.value, "float")==0)
 			{
 				token.type = silentFloatToken;
 			}
@@ -155,7 +167,8 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			token.value = value;
 			token.type = silentNumberToken;
 			if(floatVal){token.type = silentDecimalToken;}
-            i += count-1;
+            i += count;
+			i--;
 		}
 
 		//Test for text
