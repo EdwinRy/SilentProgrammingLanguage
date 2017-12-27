@@ -5,12 +5,10 @@
 silentFunction* silentParseFunction(silentToken* tokens, int* index)
 {
 	//Set up the function
-	silentFunction function;
+	silentFunction* function = malloc(sizeof(silentFunction));
 	*index+=1;
 	
-	//printf("func1:%s\n",tokens[*index].value);
-	//printf("func2:%i\n",tokens[*index].type);
-	//Get return type
+	//Get return type of the function
 	if(!(
 		(tokens[*index].type == silentIntegerToken) ||
 		(tokens[*index].type == silentStringToken) ||
@@ -18,33 +16,32 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 		(tokens[*index].type == silentVoidToken)
 	))
 	{
-		//Implement custom type return type
+		//To do: Implement custom type return type
 		printf("Invalid return type %s\n",tokens[*index].value);
-		exit(0);
+		exit(1);
 	}
 	*index+=1;
-
-	function.returnType = tokens[*index].type;
-
-	//printf("func1:%s\n",tokens[*index].value);
+	function->returnType = tokens[*index].type;
 
 	//Get function name
 	if(tokens[*index].type != silentIdentifierToken)
 	{
 		printf("Expected funtion name\n");
-		exit(0);
+		exit(1);
 	}
-	function.name = tokens[*index].value;
+	function->name = tokens[*index].value;
 	*index+=1;
+
+
 
 	//Get function parameters
 	if(tokens[*index].type != silentParenthesToken)
 	{
-		printf("Expected parentheses for function %s\n",function.name);
+		printf("Expected parentheses for function %s\n",function->name);
 	}
 	*index+=1;
 
-	printf("declared function of name %s\n",function.name);
+	printf("declared function of name %s\n",function->name);
 
 	silentVariable buffer[255];
 	//Parse parameters
@@ -59,37 +56,37 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 		*index+=1;
 	}
 
-
+	//Parse function scope
 	while(1)
 	{
 		switch(tokens[*index].type)
 		{
 			case silentClosingCurlyBracketToken:
-				return &function;
+				return function;
 			break;
 		}
 		*index+=1;
 	}
 }
 
+//Parse program
 silentProgram* silentParseProgram(silentToken* tokens, int tokenCount)
 {
-	printf("started parsing\n");
+	//Iterate through global scope tokens
 	for(int i = 0; i < tokenCount; i++)
 	{
 		switch(tokens[i].type)
 		{
+			//If the token states a function declaration
 			case silentFunctionToken:
-				printf("parsing function\n");
 				silentParseFunction(tokens,&i);
-				printf("done parsing function\n");
 			break;
 
-			/*
+			//If the token is not supposed to be in the global scope
 			default:
 				printf("Invalid token in the global scope\n");
 				printf("Invalid token: %s\n",tokens[i].value);
-			break;*/
+			break;
 		}
 	}
 }

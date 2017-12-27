@@ -192,9 +192,9 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			continue;
 		}
 		tokens[*tokenCount] = token;
-		printf("%i: %s\n",*tokenCount,tokens[*tokenCount].value);
+		//printf("%i: %s\n",*tokenCount,tokens[*tokenCount].value);
 		*tokenCount += 1;
 	}
-	printf("%s\n",tokens[0].value);
+	//printf("%s\n",tokens[0].value);
 	return tokens;
 }
