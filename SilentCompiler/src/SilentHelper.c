@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "SilentHelper.h"
 //HELPER
 //Read all characters in a file
 char* readAllText(char* path)
@@ -37,4 +38,67 @@ char* readAllText(char* path)
     fclose(f);
     //Return the source
     return text;
+}
+
+vector* createVector(int dataSize)
+{
+    vector* vec = malloc(sizeof(vector));
+    if(vec == NULL)
+    {
+        printf("Couldn't allocate memory\n");
+        exit(1);
+    }
+    vec->dataCount = 0;
+    vec->dataSize = dataSize;
+    return vec;
+}
+
+void vectorPushBack(vector* vec, void* data)
+{
+    vector* vec2 = realloc(vec, (vec->dataCount+=1)*vec->dataSize);
+    if(vec2 == NULL)
+    {
+        printf("Couldn't reallocate memory\n");
+        free(vec);
+        exit(1);
+    }
+    vec = vec2;
+}
+
+void vectorPopBack(vector* vec)
+{
+    vector* vec2 = realloc(vec, (vec->dataCount-=1)*vec->dataSize);
+    if(vec2 == NULL)
+    {
+        printf("Couldn't reallocate memory\n");
+        free(vec);
+        exit(1);
+    }
+    vec = vec2;
+}
+
+void vectorRemove(vector* vec, int index)
+{
+    vector* temp = malloc(vec->dataSize * vec->dataCount);
+    if(temp == NULL)
+    {
+        printf("Couldn't allocate memory\n");
+        exit(1);
+    }
+    memcpy(temp,vec,vec->dataSize * vec->dataCount);
+    vector* vec2 = realloc(vec, (vec->dataCount-=1)*vec->dataSize);
+    if(vec2 == NULL)
+    {
+        printf("Couldn't reallocate memory\n");
+        free(vec);
+        exit(1);
+    }
+    vec = vec2;
+    for(int i = 0; i < vec->dataCount; i++)
+    {
+        if(i == index)
+        {
+            
+        }
+    }
 }
