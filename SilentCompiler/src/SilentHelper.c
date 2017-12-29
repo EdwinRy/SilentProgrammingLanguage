@@ -171,5 +171,10 @@ void vectorInsert(vector* vec, void* data, int index)
                 (vec->dataCount - index - 1) * vec->dataSize);
         }
     }
+}
 
+void vectorDelete(vector* vec)
+{
+    free(vec->characters);
+    free(vec);
 }
