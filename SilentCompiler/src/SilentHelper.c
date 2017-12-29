@@ -50,6 +50,7 @@ vector* createVector(int dataSize)
         printf("Couldn't allocate memory\n");
         exit(1);
     }
+    vec->integers = malloc(dataSize);
     vec->dataCount = 0;
     vec->dataSize = dataSize;
     return vec;
@@ -58,47 +59,53 @@ vector* createVector(int dataSize)
 //Append an item to the end of the list
 void vectorPushBack(vector* vec, void* data)
 {
-    vector* vec2 = realloc(vec, (vec->dataCount+=1)*vec->dataSize);
-    if(vec2 == NULL)
+    char* temp = realloc(vec->characters, (vec->dataCount+1)*vec->dataSize);
+    if(temp == NULL)
     {
         printf("Couldn't reallocate memory\n");
         free(vec);
         exit(1);
     }
-    vec = vec2;
+    vec->characters = temp;
+    memcpy(
+        vec->characters + (vec->dataCount*vec->dataSize),
+        (int*)data,
+        vec->dataSize);
+    vec->dataCount+=1;
 }
 
 //Remove an item at the end of the list
 void vectorPopBack(vector* vec)
 {
-    vector* vec2 = realloc(vec, (vec->dataCount-=1)*vec->dataSize);
-    if(vec2 == NULL)
+    char* temp = realloc(vec->characters, (vec->dataCount-=1)*vec->dataSize);
+    if(temp == NULL)
     {
         printf("Couldn't reallocate memory\n");
         free(vec);
         exit(1);
     }
-    vec = vec2;
+    vec->characters = temp;
 }
 
 //Remove an item at a given index
 void vectorRemove(vector* vec, int index)
 {
-    vector* temp = malloc(vec->dataSize * vec->dataCount);
+    vector* temp = malloc(sizeof(vector));
+    temp->characters = malloc(vec->dataSize * vec->dataCount);
     if(temp == NULL)
     {
         printf("Couldn't allocate memory\n");
         exit(1);
     }
-    memcpy(temp,vec,vec->dataSize * vec->dataCount);
-    vector* vec2 = realloc(vec, (vec->dataCount-=1)*vec->dataSize);
-    if(vec2 == NULL)
+    memcpy(temp->characters,vec->characters,vec->dataSize * vec->dataCount);
+    char* temp2 = realloc(vec->characters, (vec->dataCount-=1)*vec->dataSize);
+    if(temp2 == NULL)
     {
         printf("Couldn't reallocate memory\n");
         free(vec);
         exit(1);
     }
-    vec = vec2;
+    vec->characters = temp2;
     unsigned int count = 0;
     for(int i = 0; i < vec->dataCount; i++)
     {
@@ -115,21 +122,22 @@ void vectorRemove(vector* vec, int index)
 //Insert an element at an index
 void vectorInsert(vector* vec, void* data, int index)
 {
-    vector* temp = malloc(vec->dataSize * vec->dataCount);
+    vector* temp = malloc(sizeof(vector));
+    temp->characters = malloc(vec->dataSize * vec->dataCount);
     if(temp == NULL)
     {
         printf("Couldn't allocate memory\n");
         exit(1);
     }
-    memcpy(temp,vec,vec->dataSize * vec->dataCount);
-    vector* vec2 = realloc(vec, (vec->dataCount+=1)*vec->dataSize);
-    if(vec2 == NULL)
+    memcpy(temp->characters,vec->characters,vec->dataSize * vec->dataCount);
+    char* temp2 = realloc(vec->characters, (vec->dataCount+=1)*vec->dataSize);
+    if(temp2 == NULL)
     {
         printf("Couldn't reallocate memory\n");
         free(vec);
         exit(1);
     }
-    vec = vec2;
+    vec->characters = temp2;
     unsigned int count = 0;
     for(int i = 0; i < vec->dataCount; i++)
     {
