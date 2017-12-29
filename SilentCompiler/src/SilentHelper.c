@@ -87,74 +87,89 @@ void vectorPopBack(vector* vec)
     vec->characters = temp;
 }
 
+
 //Remove an item at a given index
 void vectorRemove(vector* vec, int index)
 {
-    vector* temp = malloc(sizeof(vector));
-    temp->characters = malloc(vec->dataSize * vec->dataCount);
-    if(temp == NULL)
+    if(index == vec->dataCount)
     {
-        printf("Couldn't allocate memory\n");
-        exit(1);
+        vectorPopBack(vec);
     }
-    memcpy(temp->characters,vec->characters,vec->dataSize * vec->dataCount);
-    char* temp2 = realloc(vec->characters, (vec->dataCount-=1)*vec->dataSize);
-    if(temp2 == NULL)
+    else
     {
-        printf("Couldn't reallocate memory\n");
-        free(vec);
-        exit(1);
+        char* temp = malloc(vec->dataSize * vec->dataCount);
+        if(temp == NULL)
+        {
+            printf("Couldn't allocate memory\n");
+            exit(1);
+        }
+        memcpy(temp,vec->characters,vec->dataSize * vec->dataCount);
+        char* temp2 = realloc(vec->characters, (vec->dataCount-=1)*vec->dataSize);
+        if(temp2 == NULL)
+        {
+            printf("Couldn't reallocate memory\n");
+            free(vec);
+            exit(1);
+        }
+        vec->characters = temp2;
+        if(index == 0)
+        {
+            memcpy(vec->characters,temp + vec->dataSize,vec->dataCount*vec->dataSize);
+        }
+        else
+        {
+            memcpy(vec->characters,temp,index * vec->dataSize);
+            memcpy(
+                vec->characters + (index*vec->dataSize),
+                temp+(index*vec->dataSize)+vec->dataSize,
+                (vec->dataCount - index) * vec->dataSize
+            );
+        }
     }
-    vec->characters = temp2;
-    unsigned int count = 0;
-    for(int i = 0; i < vec->dataCount; i++)
-    {
-        if(i == index){count++;}
-        memcpy(
-            vec->characters + (vec->dataSize * i),
-            temp->characters + (vec->dataSize * count),
-            vec->dataSize
-        );
-        count++;
-    }
+    
 }
 
 //Insert an element at an index
 void vectorInsert(vector* vec, void* data, int index)
 {
-    vector* temp = malloc(sizeof(vector));
-    temp->characters = malloc(vec->dataSize * vec->dataCount);
-    if(temp == NULL)
+    if(index == vec->dataCount)
     {
-        printf("Couldn't allocate memory\n");
-        exit(1);
+        vectorPushBack(vec,data);
     }
-    memcpy(temp->characters,vec->characters,vec->dataSize * vec->dataCount);
-    char* temp2 = realloc(vec->characters, (vec->dataCount+=1)*vec->dataSize);
-    if(temp2 == NULL)
+    else
     {
-        printf("Couldn't reallocate memory\n");
-        free(vec);
-        exit(1);
-    }
-    vec->characters = temp2;
-    unsigned int count = 0;
-    for(int i = 0; i < vec->dataCount; i++)
-    {
-        if(i == index)
+        char* temp = malloc(vec->dataSize * vec->dataCount);
+        if(temp == NULL)
         {
-            memcpy(
-            vec->characters + (vec->dataSize * i),
-            data,
-            vec->dataSize
-            );
-            continue;
+            printf("Couldn't allocate memory\n");
+            exit(1);
         }
-        memcpy(
-            vec->characters + (vec->dataSize * i),
-            temp->characters + (vec->dataSize * count),
-            vec->dataSize
-        );
-        count++;
+        memcpy(temp,vec->characters,vec->dataSize * vec->dataCount);
+        char* temp2 = realloc(vec->characters,(vec->dataCount+=1)*vec->dataSize);
+        if(temp2 == NULL)
+        {
+            printf("Couldn't reallocate memory\n");
+            free(vec);
+            exit(1);
+        }
+        vec->characters = temp2;
+        if(index == 0)
+        {
+            memcpy(vec->characters,data,vec->dataSize);
+            memcpy(vec->characters+vec->dataSize,temp,vec->dataCount*vec->dataSize);
+        }
+        else
+        {
+            memcpy(vec->characters,temp,index * vec->dataSize);
+            memcpy(
+                vec->characters + (index * vec->dataSize),
+                data,
+                vec->dataSize);
+            memcpy(
+                vec->characters + ((index+1)*vec->dataSize),
+                temp+(index*vec->dataSize),
+                (vec->dataCount - index - 1) * vec->dataSize);
+        }
     }
+
 }
