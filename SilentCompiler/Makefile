@@ -5,6 +5,9 @@ out = bin/SilentC
 all:
 	$(compiler) $(src) -o $(out)
 
+bit32:
+	$(compiler) -m32 $(src) -o $(out)
+
 gitadd:
 	git add $(src)
 	git add $(out)

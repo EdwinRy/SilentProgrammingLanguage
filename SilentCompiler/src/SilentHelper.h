@@ -21,5 +21,6 @@ char* readAllText(char* path);
 vector* createVector(int dataSize);
 void vectorPushBack(vector* vec, void* data);
 void vectorPopBack(vector* vec);
+void vectorInsert(vector* vec, void* data, int index);
 void vectorRemove(vector* vec, int index);
 #endif
