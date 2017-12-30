@@ -1,6 +1,7 @@
 #ifndef SILENT_PARSER
 #define SILENT_PARSER
 #include "SilentTokenizer.h"
+#include "SilentHelper.h"
 //Type of a node
 typedef enum silentNodeType
 {
@@ -72,6 +73,7 @@ typedef struct silentProgram
 	int functionCount;
 	//Function array
 	silentFunction* functions;
+	vector* functions;
 }silentProgram;
 
 
