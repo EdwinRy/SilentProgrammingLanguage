@@ -72,7 +72,7 @@ typedef struct silentProgram
 	//Number of functions
 	int functionCount;
 	//Function array
-	silentFunction* functions;
+	//silentFunction* functions;
 	vector* functions;
 }silentProgram;
 

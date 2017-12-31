@@ -14,7 +14,11 @@ silentToken* silentTokenize(char* source, int* tokenCount)
     char buffer[255];
 	//Array of tokens
 	silentToken* tokens = malloc(strlen(source)*sizeof(silentToken));
-
+	if(tokens == NULL)
+	{
+		printf("Memory allocation failed\n");
+		exit(1);
+	}
 	//Iterate through the source
 	for(int i = 0; i < strlen(source); i++)
 	{
@@ -107,7 +111,7 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 				isdigit(source[i+count]))
 			{
 				//Assign buffer to the current character
-				buffer[count++] = source[i+count];
+				buffer[count] = source[i+count];count+=1;
 			}
 			//Allocate space for the value and terminator
 			value = malloc(count+1);
@@ -191,7 +195,7 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 		else{
 			continue;
 		}
-		tokens[*tokenCount] = token;
+		tokens[(*tokenCount)] = token;//Problematic on windows
 		//printf("%i: %s\n",*tokenCount,tokens[*tokenCount].value);
 		*tokenCount += 1;
 	}
