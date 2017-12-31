@@ -24,4 +24,5 @@ void vectorPopBack(vector* vec);
 void vectorInsert(vector* vec, void* data, int index);
 void vectorRemove(vector* vec, int index);
 void vectorDelete(vector* vec);
+void* vectorGet(vector* vec,int index);
 #endif

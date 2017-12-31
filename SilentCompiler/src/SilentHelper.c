@@ -178,3 +178,8 @@ void vectorDelete(vector* vec)
     free(vec->characters);
     free(vec);
 }
+
+void* vectorGet(vector* vec,int index)
+{
+    return (void*)(vec->characters+ (index * vec->dataSize));
+}
