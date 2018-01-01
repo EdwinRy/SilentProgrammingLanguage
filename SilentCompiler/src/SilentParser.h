@@ -3,6 +3,7 @@
 #include "SilentTokenizer.h"
 #include "SilentHelper.h"
 //Type of a node
+/*
 typedef enum silentNodeType
 {
 	//Value
@@ -24,12 +25,32 @@ typedef enum silentNodeType
 	silentForNode,
 	silentFunctionNode,
 }silentNodeType;
+*/
+
+typedef enum silentValueType
+{
+	silentFloat,
+	silentInteger,
+	silentIdentifier,
+	silentStructType,
+	silentNull,
+	silentString
+}silentValueType;
+
+typedef enum silentExpressionType
+{
+	silentAssignment,
+	silentAddition,
+	silentSubtraction,
+	silentMultiplication,
+	silentDivision
+}silentExpressionType;
 
 //Node for a value
 typedef struct silentValue
 {
 	//Type of the node
-	silentNodeType type;
+	silentValueType type;
 	//Value of the node
 	char* value;
 }silentValue;
@@ -44,36 +65,43 @@ typedef struct silentVariable
 typedef struct silentExpression
 {
 	//Type of the node
-	silentNodeType type;
+	silentExpressionType type;
 	//Expression parameters
 	//E.G. 2 + 2; 
 	//type: addition; parameters: 2, 2
 	silentValue parameters[2];
 }silentExpression;
 
+typedef struct silentStruct
+{
+	vector* variables;
+	char* name;
+}silentStruct;
+
 //Node for a function
 typedef struct silentFunction
 {
-	//Array of expressions
-	silentExpression* expressions;
 	//Name of the function
 	char* name;
 	//Return type
-	silentTokenType returnType;
+	silentValueType returnType;
+	//Variables
+	vector* variables;
+	//Expressions
+	vector* expressions;
 	//Parameters
-	silentValue* parameters;
-	//Number of parameters
-	int parameterCount;
+	vector* parameters;
 }silentFunction;
 
 //Node for the program
 typedef struct silentProgram
 {
-	//Number of functions
-	int functionCount;
 	//Function array
-	//silentFunction* functions;
 	vector* functions;
+	//Structures
+	vector* structures;
+	//Global variables
+	vector* variables;
 }silentProgram;
 
 

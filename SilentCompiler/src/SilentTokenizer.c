@@ -126,6 +126,10 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			{
 				token.type = silentFunctionToken;
 			}
+			else if(strcmp(token.value, "struct")==0)
+			{
+				token.type = silentStructToken;
+			}
 			else if(strcmp(token.value, "var")==0)
 			{
 				token.type = silentVariableToken;
@@ -138,6 +142,19 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			{
 				token.type = silentFloatToken;
 			}
+			else if(strcmp(token.value, "long")==0)
+			{
+				token.type = silentLongToken;
+			}
+			else if(strcmp(token.value, "double")==0)
+			{
+				token.type = silentDoubleToken;
+			}
+			else if(strcmp(token.value, "string")==0)
+			{
+				token.type = silentStringToken;
+			}
+			
 			else
 			{
 				token.type = silentIdentifierToken;
@@ -176,6 +193,7 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 		}
 
 		//Test for text
+		/*
 		else if(source[i] == '\"')
 		{
 			token.type = silentQuotationToken;
@@ -184,7 +202,7 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			{
 				token.value += source[i+j];
 			}
-		}
+		}*/
 
 		//Test for whitespaces
 		else if(isspace(source[i]))
