@@ -213,10 +213,8 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 		else{
 			continue;
 		}
-		tokens[(*tokenCount)] = token;//Problematic on windows
-		//printf("%i: %s\n",*tokenCount,tokens[*tokenCount].value);
+		tokens[(*tokenCount)] = token;
 		*tokenCount += 1;
 	}
-	//printf("%s\n",tokens[0].value);
 	return tokens;
 }
