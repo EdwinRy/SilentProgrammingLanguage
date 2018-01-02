@@ -7,6 +7,9 @@ bin = bin/*
 all:
 	$(Compiler) $(src) -Wall -o $(out)
 
+bit32:
+	$(Compiler) -m32 $(src) -Wall -o $(out)
+
 install:
 	$(Compiler) $(src) -Wall -o $(out)
 	sudo cp $(out) /usr/bin/SilentVM
