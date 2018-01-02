@@ -1,4 +1,15 @@
 var int sampleGlobalVariable;
+struct sampleStruct
+{
+    var int kek;
+    var string name;
+    var long numberOfKek;
+}
+struct sampleStruct2
+{
+    var int kek;
+    var string name;
+}
 func int main()
 {
     var int testVariable = 360;

@@ -37,6 +37,13 @@ typedef enum silentValueType
 	silentString
 }silentValueType;
 
+typedef enum silentExpressionParameterType
+{
+	silentExpressionValue,
+	silentExpressionResult,
+	silentExpressionVariable
+}silentExpressionParameterType;
+
 typedef enum silentExpressionType
 {
 	silentAssignment,
@@ -61,16 +68,31 @@ typedef struct silentVariable
 	char* name;
 }silentVariable;
 
+typedef struct silentExpression silentExpression;
+
+typedef struct silentExpressionParameter
+{
+	silentExpressionType type;
+	union
+	{
+		silentVariable* variable;
+		silentValue* value;
+		silentExpression* expression;
+	};
+}silentExpressionParameter;
+
 //Node for an expression
-typedef struct silentExpression
+struct silentExpression
 {
 	//Type of the node
 	silentExpressionType type;
 	//Expression parameters
 	//E.G. 2 + 2; 
 	//type: addition; parameters: 2, 2
-	silentValue parameters[2];
-}silentExpression;
+	silentExpressionParameter parameters[2];
+	//struct silentExpression* expressionParameters;
+	//silentValue parameters[2];
+};
 
 typedef struct silentStruct
 {

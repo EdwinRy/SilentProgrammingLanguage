@@ -90,15 +90,161 @@ silentVariable* silentParseGlobalVariable(silentToken* tokens, int* index)
 		variable->name = tokens[*index].value;
 	}
 	*index += 1;
+	if(tokens[*index].type != silentSemicolonToken)
+	{
+		if(tokens[*index].type == silentAssignToken)
+		{
+			printf("Variable initialisation in global scope not allowed: %s\n",
+				variable->name);
+			exit(1);
+		}
+		printf("Incorrect declaration of global variable: %s\n",variable->name);
+		exit(1);
+	}
 	vectorPushBack(globalVariables,variable);
 	printf("Declared global variable of name: %s\n",variable->name);
+	return variable;
+}
+
+silentVariable* silentParseStructVariable(
+	silentToken* tokens, int* index, silentStruct* structure)
+{
+	silentVariable* variable = malloc(sizeof(silentVariable));
+	//Parse type
+	*index += 1;
+	char validity = checkExistingType(tokens[*index]);
+	if(!validity)
+	{
+		printf("invalid type: %s\n",tokens[*index].value);
+		printf("for variable inside struct: %s\n",structure->name);
+		exit(1);
+	}
+	if(validity == 1)
+	{
+		variable->value.type = castTokenToValueType(tokens[*index].type);
+	}
+	else if(validity == 2)
+	{
+		if(strcmp(tokens[*index].value,structure->name)==0)
+		{
+			printf("variable type can't be the same as structure name\n");
+			printf("structure with invalid item: %s\n",structure->name);
+			exit(1);
+		}
+		variable->value.type = silentStructType;
+	}
+	//Parse name
+	*index += 1;
+	if(tokens[*index].type == silentIdentifierToken)
+	{
+		variable->name = tokens[*index].value;
+	}
+	*index += 1;
+	if(tokens[*index].type != silentSemicolonToken)
+	{
+		if(tokens[*index].type == silentAssignToken)
+		{
+			printf("Variable initialisation in a structure not allowed: %s\n",
+				variable->name);
+			exit(1);
+		}
+		printf("Incorrect declaration of struct variable: %s\n",variable->name);
+		exit(1);
+	}
+	//printf("Declared %s struct variable: %s\n", structure->name, variable->name);
 	return variable;
 }
 
 //Parse structure
 silentStruct* silentParseStructure(silentToken* tokens, int* index)
 {
+	silentStruct* structure = malloc(sizeof(silentStruct));
+	structure->variables = createVector(sizeof(silentVariable));
+	//Parse name
+	*index+=1;
+	if(tokens[*index].type != silentIdentifierToken)
+	{
+		printf("Expected struct name\n");
+		exit(1);
+	}
+	structure->name = tokens[*index].value;
 
+	//Parse variables
+	*index+=1;
+	if(tokens[*index].type != silentOpenCurlyBracketToken)
+	{
+		printf("Expected scope for struct: %s\n", structure->name);
+		exit(1);
+	}
+
+	*index+=1;
+	for(;tokens[*index].type != silentClosingCurlyBracketToken;*index+=1)
+	{
+		if(tokens[*index].type == silentVariableToken)
+		{
+			vectorPushBack(
+				structure->variables,
+				silentParseStructVariable(tokens, index, structure)
+			);
+		}
+	}
+	vectorPushBack(structures,structure);
+	printf("Declared structure of name: %s\n",structure->name);
+	printf("Number of variables in the struct: %i\n",structure->variables->dataCount);
+	return structure;
+}
+
+silentVariable* silentParseFunctionVariable(
+	silentToken* tokens, int* index, silentFunction* function)
+{
+	silentVariable* variable = malloc(sizeof(silentVariable));
+	//Parse type
+	*index += 1;
+	char validity = checkExistingType(tokens[*index]);
+	if(!validity)
+	{
+		printf("invalid type: %s\n",tokens[*index].value);
+		printf("for variable inside function: %s\n",function->name);
+		exit(1);
+	}
+	if(validity >= 1)
+	{
+		variable->value.type = castTokenToValueType(tokens[*index].type);
+	}
+	//Parse name
+	*index += 1;
+	if(tokens[*index].type == silentIdentifierToken)
+	{
+		variable->name = tokens[*index].value;
+	}
+	*index += 1;
+	if(tokens[*index].type != silentSemicolonToken)
+	{
+		if(tokens[*index].type == silentAssignToken)
+		{
+			*index -= 1;
+			return variable;
+		}
+		printf("Incorrect declaration of variable: %s\n",variable->name);
+		exit(1);
+	}
+	//printf("Declared %s struct variable: %s\n", structure->name, variable->name);
+	return variable;
+}
+
+silentExpression* silentParseExpression(
+	silentToken* tokens, int* index,silentFunction* function)
+{
+	silentExpression* expression = malloc(sizeof(silentExpression));
+	if(tokens[*index].type == silentIdentifierToken)
+	{
+		*index += 1;
+		if(tokens[*index].type == silentAssignToken)
+		{
+
+		}
+	}
+	return expression;
 }
 //Parse a function
 silentFunction* silentParseFunction(silentToken* tokens, int* index)
