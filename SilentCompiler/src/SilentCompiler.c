@@ -6,7 +6,7 @@
 char* silentCompile(char* path, char* output)
 {
 	char* rawSource = readAllText(path);//no AST
-	int tokenCount;
+	int tokenCount = 0;
 	silentToken* tokens = silentTokenize(rawSource,&tokenCount);
 	silentParseProgram(tokens,tokenCount);
 }
