@@ -10,7 +10,10 @@ typedef enum SilentBytecode
 {
 	Halt,
 	Goto, //X - Byte
-	Call,//
+	CallSys,//
+
+	Call,
+	Return,
 	
 	//ClearMemory,
 	//ClearStack,

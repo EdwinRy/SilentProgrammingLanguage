@@ -2,11 +2,18 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+//<instruction> <argument> <argument>
+//Argument types:
+//X = number
+//Y = string
 typedef enum SilentBytecode
 {
 	Halt,
 	Goto, //X - Byte
-	Call,//
+	CallSys,//
+
+	Call,
+	Return,
 	
 	//ClearMemory,
 	//ClearStack,
