@@ -94,6 +94,13 @@ struct silentExpression
 	//silentValue parameters[2];
 };
 
+typedef struct silentFunctionCall
+{
+
+	silentFunction* function;
+	vector* parameters;
+}silentFunctionCall;
+
 typedef struct silentStruct
 {
 	vector* variables;

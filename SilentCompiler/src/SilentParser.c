@@ -250,12 +250,22 @@ silentExpression* silentParseExpression(
 {
 	silentExpression* expression = malloc(sizeof(silentExpression));
 	if(tokens[*index].type == silentIdentifierToken)
-	{
-		*index += 1;
-		if(tokens[*index].type == silentAssignToken)
+	{		
+		if(checkExistingFunction(tokens[*index]))
 		{
 
 		}
+		else
+		{
+			*index += 1;
+
+		}
+	}
+	else
+	{
+		printf("An expression needs to start with an identifier\n");
+		printf("funcion:%s\n",function->name);
+		exit(1);
 	}
 	return expression;
 }
