@@ -5,6 +5,7 @@
 
 vector* globalVariables;
 vector* structures;
+vector* functions;
 
 silentValueType castTokenToValueType(silentTokenType type)
 {
@@ -54,9 +55,21 @@ char checkExistingType(silentToken token)
 	}
 	for(int i = 0; i < globalVariables->dataCount; i++)
 	{
-		if(strcmp(token.value, (char*)vectorGet(structures,i))==0)
+		if(strcmp(token.value, ((silentStruct*)vectorGet(structures,i))->name)==0)
 		{
 			return 2;
+		}
+	}
+	return 0;
+}
+
+char checkExistingFunction(silentToken token)
+{
+	for(int i = 0; i < functions->dataCount; i++)
+	{
+		if(strcmp(((silentFunction*)vectorGet(functions,i))->name,token.value)==0)
+		{
+			return 1;
 		}
 	}
 	return 0;
@@ -237,12 +250,22 @@ silentExpression* silentParseExpression(
 {
 	silentExpression* expression = malloc(sizeof(silentExpression));
 	if(tokens[*index].type == silentIdentifierToken)
-	{
-		*index += 1;
-		if(tokens[*index].type == silentAssignToken)
+	{		
+		if(checkExistingFunction(tokens[*index]))
 		{
 
 		}
+		else
+		{
+			*index += 1;
+
+		}
+	}
+	else
+	{
+		printf("An expression needs to start with an identifier\n");
+		printf("funcion:%s\n",function->name);
+		exit(1);
 	}
 	return expression;
 }
@@ -315,6 +338,7 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 		}
 		*index+=1;
 	}
+	vectorPushBack(functions,function);
 	return function;
 }
 
@@ -324,6 +348,7 @@ silentProgram* silentParseProgram(silentToken* tokens, int tokenCount)
 	//Setup global variables
 	globalVariables = createVector(sizeof(silentVariable));
 	structures = createVector(sizeof(silentStruct));
+	functions = createVector(sizeof(silentFunction));
 
 
 	//Create program
