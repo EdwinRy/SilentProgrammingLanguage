@@ -2,31 +2,6 @@
 #define SILENT_PARSER
 #include "SilentTokenizer.h"
 #include "SilentHelper.h"
-//Type of a node
-/*
-typedef enum silentNodeType
-{
-	//Value
-	silentStringNode,
-	silentIntegerNode,
-	silentFloatNode,
-
-	//Functionality
-	silentAdditionNode,
-	silentSubtractionNode,
-	silentMultiplicationNode,
-	silentDivisionNode,
-	silentAssignNode,
-	silentReturnNode,
-
-	//Structure
-	silentIfNode,
-	silentWhileNode,
-	silentForNode,
-	silentFunctionNode,
-}silentNodeType;
-*/
-
 typedef enum silentValueType
 {
 	silentFloat,
@@ -94,12 +69,6 @@ struct silentExpression
 	//silentValue parameters[2];
 };
 
-typedef struct silentFunctionCall
-{
-
-	silentFunction* function;
-	vector* parameters;
-}silentFunctionCall;
 
 typedef struct silentStruct
 {
@@ -121,6 +90,13 @@ typedef struct silentFunction
 	//Parameters
 	vector* parameters;
 }silentFunction;
+
+typedef struct silentFunctionCall
+{
+
+	silentFunction* function;
+	vector* parameters;
+}silentFunctionCall;
 
 //Node for the program
 typedef struct silentProgram
