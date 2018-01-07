@@ -33,7 +33,7 @@ int main()
 {
 	char* source = "test.silent";
 	char* out = "out";
-	char compileOption = 0;
+	char compileOption = 1;
 	silentCompile(source,out,compileOption);
 	return 0;
 }

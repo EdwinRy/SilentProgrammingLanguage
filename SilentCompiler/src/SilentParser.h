@@ -6,6 +6,8 @@ typedef enum silentValueType
 {
 	silentFloat,
 	silentInteger,
+	silentDouble,
+	silentLong,
 	silentIdentifier,
 	silentStructType,
 	silentNull,
@@ -28,11 +30,15 @@ typedef enum silentExpressionType
 	silentDivision
 }silentExpressionType;
 
+typedef struct silentStruct silentStruct;
+
 //Node for a value
 typedef struct silentValue
 {
 	//Type of the node
 	silentValueType type;
+	//Value size
+	int size;
 	//Value of the node
 	char* value;
 }silentValue;
@@ -74,6 +80,7 @@ typedef struct silentStruct
 {
 	vector* variables;
 	char* name;
+	int size;
 }silentStruct;
 
 //Node for a function

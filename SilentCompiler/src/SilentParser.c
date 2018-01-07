@@ -32,22 +32,18 @@ silentValueType castTokenToValueType(silentTokenType type)
 	}
 }
 
-char checkExistingType(silentToken token)
+int checkExistingType(silentToken token)
 {
 
 	switch(token.type)
 	{
 		case silentIntegerToken:
-			return 1;
-		break;
 		case silentFloatToken:
-			return 1;
+			return 4;
 		break;
 		case silentLongToken:
-			return 1;
-		break;
 		case silentDoubleToken:
-			return 1;
+			return 8;
 		break;
 		case silentStringToken:
 			return 1;
@@ -57,7 +53,7 @@ char checkExistingType(silentToken token)
 	{
 		if(strcmp(token.value, ((silentStruct*)vectorGet(structures,i))->name)==0)
 		{
-			return 2;
+			return ((silentStruct*)vectorGet(structures,i))->size;
 		}
 	}
 	return 0;
@@ -83,19 +79,42 @@ silentVariable* silentParseGlobalVariable(silentToken* tokens, int* index)
 	//Parse type
 	*index += 1;
 	char validity = checkExistingType(tokens[*index]);
+	
 	if(!validity)
 	{
 		printf("invalid type: %s\n",tokens[*index].value);
 		exit(1);
 	}
-	if(validity == 1)
+	if(validity > 0)
 	{
 		variable->value.type = castTokenToValueType(tokens[*index].type);
 	}
-	else if(validity == 2)
+	else if(validity == 3)
 	{
 		variable->value.type = silentStructType;
 	}
+	
+/*
+	if((tokens[*index].type == silentIntegerToken)&&
+		(tokens[*index].type == silentFloatToken))
+	{
+		variable->value.type = castTokenToValueType(tokens[*index].type);
+		variable->value.size = 4;
+	}
+
+	else if((tokens[*index].type == silentLongToken)&&
+		(tokens[*index].type == silentDoubleToken))
+	{
+		variable->value.type = castTokenToValueType(tokens[*index].type);
+		variable->value.size = 8;
+	}
+
+	else if((tokens[*index].type == silentStringToken))
+	{
+		variable->value.type = castTokenToValueType(tokens[*index].type);
+		variable->value.size = 0;
+	}
+*/
 	//Parse name
 	*index += 1;
 	if(tokens[*index].type == silentIdentifierToken)
