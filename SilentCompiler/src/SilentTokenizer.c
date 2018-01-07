@@ -216,5 +216,8 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 		tokens[(*tokenCount)] = token;
 		*tokenCount += 1;
 	}
+
+	//Closing tokenizer
+	free(source);
 	return tokens;
 }

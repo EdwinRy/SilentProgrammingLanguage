@@ -386,4 +386,5 @@ silentProgram* silentParseProgram(silentToken* tokens, int tokenCount)
 		}
 		//printf("number of functions declared:%i\n",program->functions->dataCount);
 	}
+	return program;
 }
