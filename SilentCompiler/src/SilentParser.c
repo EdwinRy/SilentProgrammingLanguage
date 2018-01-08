@@ -7,6 +7,7 @@ vector* globalVariables;
 vector* structures;
 vector* functions;
 
+//Cast from token type to node type
 silentValueType castTokenToValueType(silentTokenType type)
 {
 	switch(type)
@@ -32,33 +33,40 @@ silentValueType castTokenToValueType(silentTokenType type)
 	}
 }
 
-int checkExistingType(silentToken token)
+//Check for existing types
+char checkExistingType(silentToken token, int* size)
 {
-
+	//Test for built-in types
 	switch(token.type)
 	{
 		case silentIntegerToken:
 		case silentFloatToken:
-			return 4;
+			*size = 4;
+			return 1;
 		break;
 		case silentLongToken:
 		case silentDoubleToken:
-			return 8;
+			*size = 8;
+			return 1;
 		break;
 		case silentStringToken:
+			*size = 8;
 			return 1;
 		break;
 	}
+	//Test for structure types
 	for(int i = 0; i < globalVariables->dataCount; i++)
 	{
 		if(strcmp(token.value, ((silentStruct*)vectorGet(structures,i))->name)==0)
 		{
-			return ((silentStruct*)vectorGet(structures,i))->size;
+			*size = ((silentStruct*)vectorGet(structures,i))->size;
+			return 2;
 		}
 	}
 	return 0;
 }
 
+//Chech whether a function in the global scope has been declared
 char checkExistingFunction(silentToken token)
 {
 	for(int i = 0; i < functions->dataCount; i++)
@@ -74,47 +82,24 @@ char checkExistingFunction(silentToken token)
 //Parse global variable
 silentVariable* silentParseGlobalVariable(silentToken* tokens, int* index)
 {
-	//printf("%s\n",tokens[*index].value);
 	silentVariable* variable = malloc(sizeof(silentVariable));
+
 	//Parse type
 	*index += 1;
-	char validity = checkExistingType(tokens[*index]);
-	
+	int typeSize = 0;
+	char validity = checkExistingType(tokens[*index],&typeSize);
 	if(!validity)
 	{
 		printf("invalid type: %s\n",tokens[*index].value);
 		exit(1);
 	}
-	if(validity > 0)
+	else
 	{
-		variable->value.type = castTokenToValueType(tokens[*index].type);
-	}
-	else if(validity == 3)
-	{
-		variable->value.type = silentStructType;
+		variable->value.size = typeSize;
+		if(validity == 2){variable->value.type = silentStructType;}
+		else{variable->value.type = castTokenToValueType(tokens[*index].type);}
 	}
 	
-/*
-	if((tokens[*index].type == silentIntegerToken)&&
-		(tokens[*index].type == silentFloatToken))
-	{
-		variable->value.type = castTokenToValueType(tokens[*index].type);
-		variable->value.size = 4;
-	}
-
-	else if((tokens[*index].type == silentLongToken)&&
-		(tokens[*index].type == silentDoubleToken))
-	{
-		variable->value.type = castTokenToValueType(tokens[*index].type);
-		variable->value.size = 8;
-	}
-
-	else if((tokens[*index].type == silentStringToken))
-	{
-		variable->value.type = castTokenToValueType(tokens[*index].type);
-		variable->value.size = 0;
-	}
-*/
 	//Parse name
 	*index += 1;
 	if(tokens[*index].type == silentIdentifierToken)
@@ -135,6 +120,7 @@ silentVariable* silentParseGlobalVariable(silentToken* tokens, int* index)
 	}
 	vectorPushBack(globalVariables,variable);
 	printf("Declared global variable of name: %s\n",variable->name);
+	printf("Size of the variable: %i", variable->value.size);
 	return variable;
 }
 
@@ -144,26 +130,18 @@ silentVariable* silentParseStructVariable(
 	silentVariable* variable = malloc(sizeof(silentVariable));
 	//Parse type
 	*index += 1;
-	char validity = checkExistingType(tokens[*index]);
+	int typeSize = 0;
+	char validity = checkExistingType(tokens[*index],&typeSize);	
 	if(!validity)
 	{
 		printf("invalid type: %s\n",tokens[*index].value);
-		printf("for variable inside struct: %s\n",structure->name);
 		exit(1);
 	}
-	if(validity == 1)
+	else
 	{
-		variable->value.type = castTokenToValueType(tokens[*index].type);
-	}
-	else if(validity == 2)
-	{
-		if(strcmp(tokens[*index].value,structure->name)==0)
-		{
-			printf("variable type can't be the same as structure name\n");
-			printf("structure with invalid item: %s\n",structure->name);
-			exit(1);
-		}
-		variable->value.type = silentStructType;
+		variable->value.size = typeSize;
+		if(validity == 2){variable->value.type = silentStructType;}
+		else{variable->value.type = castTokenToValueType(tokens[*index].type);}
 	}
 	//Parse name
 	*index += 1;
@@ -214,14 +192,17 @@ silentStruct* silentParseStructure(silentToken* tokens, int* index)
 	{
 		if(tokens[*index].type == silentVariableToken)
 		{
+			silentVariable* variable = silentParseStructVariable(tokens, index, structure);
 			vectorPushBack(
 				structure->variables,
-				silentParseStructVariable(tokens, index, structure)
+				variable
 			);
+			structure->size += variable->value.size;
+			free(variable);
 		}
 	}
 	vectorPushBack(structures,structure);
-	printf("Declared structure of name: %s\n",structure->name);
+	printf("Declared structure of name: %s size: %i\n",structure->name,structure->size);
 	printf("Number of variables in the struct: %i\n",structure->variables->dataCount);
 	return structure;
 }
@@ -232,6 +213,21 @@ silentVariable* silentParseFunctionVariable(
 	silentVariable* variable = malloc(sizeof(silentVariable));
 	//Parse type
 	*index += 1;
+	int typeSize = 0;
+	char validity = checkExistingType(tokens[*index],&typeSize);
+	
+	if(!validity)
+	{
+		printf("invalid type: %s\n",tokens[*index].value);
+		exit(1);
+	}
+	else
+	{
+		variable->value.size = typeSize;
+		if(validity == 2){variable->value.type = silentStructType;}
+		else{variable->value.type = castTokenToValueType(tokens[*index].type);}
+	}
+	/*
 	char validity = checkExistingType(tokens[*index]);
 	if(!validity)
 	{
@@ -242,7 +238,7 @@ silentVariable* silentParseFunctionVariable(
 	if(validity >= 1)
 	{
 		variable->value.type = castTokenToValueType(tokens[*index].type);
-	}
+	}*/
 	//Parse name
 	*index += 1;
 	if(tokens[*index].type == silentIdentifierToken)
@@ -294,22 +290,19 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 	//Set up the function
 	silentFunction* function = malloc(sizeof(silentFunction));
 	*index+=1;
+	int typeSize = 0;
+	char validity = checkExistingType(tokens[*index],&typeSize);
 	
-	char validity = checkExistingType(tokens[*index]);
-	//Get return type of the function
 	if(!validity)
 	{
-		//To do: Implement custom type return type
-		printf("Invalid return type %s\n",tokens[*index].value);
+		printf("invalid type: %s\n",tokens[*index].value);
 		exit(1);
 	}
-	if(validity == 1)
+	else
 	{
-		function->returnType = castTokenToValueType(tokens[*index].type);
-	}
-	else if(validity == 2)
-	{
-		function->returnType = silentStructType;
+		function->returnType.size = typeSize;
+		if(validity == 2){function->returnType.type = silentStructType;}
+		else{function->returnType.type = castTokenToValueType(tokens[*index].type);}
 	}
 
 	//Get function name

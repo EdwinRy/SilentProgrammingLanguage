@@ -89,7 +89,7 @@ typedef struct silentFunction
 	//Name of the function
 	char* name;
 	//Return type
-	silentValueType returnType;
+	silentValue returnType;
 	//Variables
 	vector* variables;
 	//Expressions

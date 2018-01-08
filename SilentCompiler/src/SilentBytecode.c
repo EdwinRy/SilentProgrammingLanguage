@@ -82,7 +82,7 @@ void silentWriteOutput(char* outFile, vector* outStream)
     FILE* outputFile = fopen(outFile,"w");
     for(int i = 0; i < outStream->dataCount; i++)
     {
-        printf("here");
+        printf("here\n");
         fprintf(outputFile,"%s\n",outStream->strings[i]);
     }
     fclose(outputFile);
