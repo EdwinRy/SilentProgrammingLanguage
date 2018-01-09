@@ -55,8 +55,8 @@ vector* silentGenerateAssembly(silentProgram* program)
             int size = strlen(buffer);
             char* value = malloc(size+1);
             memcpy(value,buffer,size);
-            value[size] = '\0';
-            vectorPushBack(output,value);
+            value[size+1] = '\0';
+            vectorPushBack(output,&value);
             free(value);
         }
         else if(size == 8)
@@ -79,11 +79,12 @@ vector* silentGenerateLibrary(silentProgram* program)
 
 void silentWriteOutput(char* outFile, vector* outStream)
 {
+    printf("Output:\n");
     FILE* outputFile = fopen(outFile,"w");
     for(int i = 0; i < outStream->dataCount; i++)
     {
-        printf("here\n");
-        fprintf(outputFile,"%s\n",outStream->strings[i]);
+        printf("%s\n",outStream->strings[i]);
+        fprintf(outputFile,"%s\n",(char*)outStream->strings[i]);
     }
     fclose(outputFile);
 }
