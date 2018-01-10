@@ -1,4 +1,5 @@
 #include "SilentParser.h"
+//Bytecode used by the virtual machine
 typedef enum SilentBytecode
 {
 	Halt,
@@ -133,7 +134,15 @@ typedef enum SilentBytecode
 	//If the isn't one
 	IfNot
 }SilentBytecode;
+//Generate bytecode for the VM
 vector* silentGenerateBytecode(silentProgram* program);
+//Generate assembly for bytecode assembler
 vector* silentGenerateAssembly(silentProgram* program);
+//Generate library to link with other files
 vector* silentGenerateLibrary(silentProgram* program);
-void silentWriteOutput(char* outFile, vector* outStream);
+//Write bytecode to file
+void silentWriteBytecode(char* outFile, vector* outStream);
+//Write assembly to file
+void silentWriteAssembly(char* outFile, vector* outStream);
+//Write library file
+void silentWriteLibrary(char* outFile, vector* outStream);

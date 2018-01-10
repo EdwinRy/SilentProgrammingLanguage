@@ -53,5 +53,6 @@ typedef struct silentToken
 	char* value;
 }silentToken;
 
+//Turn source code into tokens array
 silentToken* silentTokenize(char* source, int* count);
 #endif

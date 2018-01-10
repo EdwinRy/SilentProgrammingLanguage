@@ -2,38 +2,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+//Keep reference to global structures
 vector* structs;
-unsigned int calculateStructureSize(silentStruct* structure)
-{
 
-}
-unsigned int getTypeSize(silentVariable* variable)
-{
-    unsigned int size = 0;
-
-    switch(variable->value.type)
-    {
-        case silentInteger:
-        case silentFloat:
-            return 4;
-        break;
-        case silentLong:
-        case silentDouble:
-            return 8;
-        break;
-        case silentStructType:
-            //return calculateStructureSize()
-        break;
-    }
-
-    return size;
-}
+//Generate code to be executed by the VM
 vector* silentGenerateBytecode(silentProgram* program)
 {
     vector* output = createVector(sizeof(char*));
     return output;
 }
 
+//Generate assembly-like code for the VM
 vector* silentGenerateAssembly(silentProgram* program)
 {
 
@@ -71,13 +51,21 @@ vector* silentGenerateAssembly(silentProgram* program)
     return output;
 }
 
+//Generate package used to link with other files
 vector* silentGenerateLibrary(silentProgram* program)
 {
     vector* output = createVector(sizeof(char*));
     return output;
 }
 
-void silentWriteOutput(char* outFile, vector* outStream)
+//Write bytecode to file
+void silentWriteBytecode(char* outFile, vector* outStream)
+{
+
+}
+
+//Write assembly to file line by line
+void silentWriteAssembly(char* outFile, vector* outStream)
 {
     printf("Output:\n");
     FILE* outputFile = fopen(outFile,"w");
@@ -87,4 +75,10 @@ void silentWriteOutput(char* outFile, vector* outStream)
         fprintf(outputFile,"%s\n",(char*)outStream->strings[i]);
     }
     fclose(outputFile);
+}
+
+//Write library file
+void silentWriteLibrary(char* outFile, vector* outStream)
+{
+
 }

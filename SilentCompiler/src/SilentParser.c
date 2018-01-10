@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+//Reference to global structures
 vector* globalVariables;
 vector* structures;
 vector* functions;
@@ -82,9 +83,9 @@ char checkExistingFunction(silentToken token)
 //Parse global variable
 silentVariable* silentParseGlobalVariable(silentToken* tokens, int* index)
 {
+	//Allocate space for the variable
 	silentVariable* variable = malloc(sizeof(silentVariable));
-
-	//Parse type
+	//Parse type of the variable
 	*index += 1;
 	int typeSize = 0;
 	char validity = checkExistingType(tokens[*index],&typeSize);
@@ -306,8 +307,7 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 	}
 
 	//Get function name
-	*index+=1;
-	
+	*index+=1;	
 	if(tokens[*index].type != silentIdentifierToken)
 	{
 		printf("Expected funtion name\n");
@@ -315,8 +315,6 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 	}
 	function->name = tokens[*index].value;
 	*index+=1;
-
-
 
 	//Get function parameters
 	if(tokens[*index].type != silentParenthesToken)
@@ -332,7 +330,6 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 	{
 		if(tokens[*index].type != silentCommaToken)
 		{
-			
 			parameterCount+=1;	
 		}
 		*index+=1;

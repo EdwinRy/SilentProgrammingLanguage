@@ -3,7 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-//Extract the array of tokens from source
+
+//Turn the sourcode into tokens array
 silentToken* silentTokenize(char* source, int* tokenCount)
 {
 	//Current character
@@ -120,8 +121,7 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			value[count] = '\0';
 			token.value = value;
 			token.type = silentIdentifierToken;
-			//Test for non-identifier tokens
-			//If the token is a function
+			//Test for language tokens
 			if(strcmp(token.value, "func")==0)
 			{
 				token.type = silentFunctionToken;
@@ -155,6 +155,7 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 				token.type = silentStringToken;
 			}
 			
+			//Set the token to be an identifier if it's not used by the language
 			else
 			{
 				token.type = silentIdentifierToken;
@@ -180,7 +181,6 @@ silentToken* silentTokenize(char* source, int* tokenCount)
 			}
 
 			//Allocate space for the value and terminator
-			
 			value = malloc(count+1);
 			//Copy the value from the buffer
 			memcpy(value,buffer,count);
