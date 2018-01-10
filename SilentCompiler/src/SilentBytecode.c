@@ -83,6 +83,7 @@ void silentWriteAssembly(char* outFile, vector* outStream)
         printf("%s\n",outStream->strings[i]);
         fprintf(outputFile,"%s\n",(char*)outStream->strings[i]);
     }
+    fprintf(outputFile, "halt");
     fclose(outputFile);
 }
 
