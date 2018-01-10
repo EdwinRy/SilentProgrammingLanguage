@@ -29,7 +29,7 @@ char* silentCompile(char* path, char* output, char compileOption)
 
 		case 3:
 			outputCode = silentGenerateBytecode(program);
-			return outputCode;
+			return outputCode->characters;
 		break;
 	}
 	printf("Done!\n");
@@ -39,7 +39,7 @@ char* silentCompile(char* path, char* output, char compileOption)
 int main()
 {
 	char* source = "test.silent";
-	char* out = "out";
+	char* out = "output.test";
 	char compileOption = 1;
 	silentCompile(source,out,compileOption);
 	return 0;

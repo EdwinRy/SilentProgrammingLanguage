@@ -1,5 +1,7 @@
 #include "SilentParser.h"
 //Bytecode used by the virtual machine
+#ifndef SILENT_BYTECODE
+#define SILENT_BYTECODE
 typedef enum SilentBytecode
 {
 	Halt,
@@ -146,3 +148,5 @@ void silentWriteBytecode(char* outFile, vector* outStream);
 void silentWriteAssembly(char* outFile, vector* outStream);
 //Write library file
 void silentWriteLibrary(char* outFile, vector* outStream);
+
+#endif

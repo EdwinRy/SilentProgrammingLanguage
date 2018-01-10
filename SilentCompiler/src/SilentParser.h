@@ -1,7 +1,10 @@
-#ifndef SILENT_PARSER
-#define SILENT_PARSER
 #include "SilentTokenizer.h"
 #include "SilentHelper.h"
+
+#ifndef SILENT_PARSER
+#define SILENT_PARSER
+
+//Type of the value stored by the variable
 typedef enum silentValueType
 {
 	silentFloat,
@@ -14,6 +17,7 @@ typedef enum silentValueType
 	silentString
 }silentValueType;
 
+//Type of a value in an expression
 typedef enum silentExpressionParameterType
 {
 	silentExpressionValue,
@@ -21,6 +25,7 @@ typedef enum silentExpressionParameterType
 	silentExpressionVariable
 }silentExpressionParameterType;
 
+//Type of expression
 typedef enum silentExpressionType
 {
 	silentAssignment,
@@ -30,6 +35,7 @@ typedef enum silentExpressionType
 	silentDivision
 }silentExpressionType;
 
+//Predeclare structure
 typedef struct silentStruct silentStruct;
 
 //Node for a value
@@ -43,14 +49,17 @@ typedef struct silentValue
 	char* value;
 }silentValue;
 
+//Variable node
 typedef struct silentVariable
 {	
 	silentValue value;
 	char* name;
 }silentVariable;
 
+//Predeclare the expression node
 typedef struct silentExpression silentExpression;
 
+//A struct used to express an expression
 typedef struct silentExpressionParameter
 {
 	silentExpressionType type;
@@ -75,11 +84,12 @@ struct silentExpression
 	//silentValue parameters[2];
 };
 
-
+//Node for a structure
 typedef struct silentStruct
 {
 	vector* variables;
 	char* name;
+	//Size in bytes for the structure
 	int size;
 }silentStruct;
 
@@ -98,6 +108,7 @@ typedef struct silentFunction
 	vector* parameters;
 }silentFunction;
 
+//Node for a function call
 typedef struct silentFunctionCall
 {
 
@@ -116,6 +127,6 @@ typedef struct silentProgram
 	vector* variables;
 }silentProgram;
 
-
+//Turn token array into a syntax tree
 silentProgram* silentParseProgram(silentToken* tokens, int tokenCount);
 #endif

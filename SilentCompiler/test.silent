@@ -1,4 +1,5 @@
 var int sampleGlobalVariable;
+var float sampleGlobalVariable2;
 struct sampleStruct
 {
     var int kek;

@@ -28,7 +28,7 @@ vector* silentGenerateAssembly(silentProgram* program)
     {
         memset(buffer,0,1024);
         unsigned int size = 
-            getTypeSize((silentVariable*)vectorGet(program->variables,i));
+            ((silentVariable*)vectorGet(program->variables,i))->value.size;
         if(size == 4)
         {
             sprintf(buffer,"alloc4 i%i",i);
@@ -37,7 +37,6 @@ vector* silentGenerateAssembly(silentProgram* program)
             memcpy(value,buffer,size);
             value[size+1] = '\0';
             vectorPushBack(output,&value);
-            free(value);
         }
         else if(size == 8)
         {
