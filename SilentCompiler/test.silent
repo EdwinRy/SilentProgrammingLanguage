@@ -14,6 +14,11 @@ struct sampleStruct2
 
 var sampleStruct sampleGlobalVariable3;
 
+func int add()
+{
+    return 5+5;
+}
+
 func int main()
 {
     var int testVariable = 360;
