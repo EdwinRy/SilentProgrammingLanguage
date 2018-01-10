@@ -1,7 +1,7 @@
 #include "SilentVM.h"
 #include <memory.h>
 
-//Allocate memory for the progra
+//Allocate memory for the program
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
 {
 	SilentMemory* memory = malloc(sizeof(SilentMemory));

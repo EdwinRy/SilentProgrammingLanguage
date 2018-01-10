@@ -31,25 +31,25 @@ typedef enum SilentBytecode
 	PopX, //X - X byte value, X - value
 
 	//Store value in dedicated memory
-	Store1, //X - memory adress
-	Store4, //X - memory adress
-	Store8, //X - memory adress
-	StoreX, //X - X value size, X - memory adress
+	Store1, //X - memory address
+	Store4, //X - memory address
+	Store8, //X - memory address
+	StoreX, //X - X value size, X - memory address
 	
 	//Load value from memory
-	Load1, //X - memory adress
-	Load4, //X - memory adress
-	Load8, //X - memory adress
-	LoadX, //X - X value size, X - memory adress
+	Load1, //X - memory address
+	Load4, //X - memory address
+	Load8, //X - memory address
+	LoadX, //X - X value size, X - memory address
 
 	//Allocate space for a value
-	Alloc1, //X - memory adress
-	Alloc4, //X - memory adress
-	Alloc8, //X - memory adress
-	AllocX, //X - memory adress
+	Alloc1, //X - memory address
+	Alloc4, //X - memory address
+	Alloc8, //X - memory address
+	AllocX, //X - memory address
 
-	//Free a value at adress
-	FREE, //X - memory adress
+	//Free a value at address
+	FREE, //X - memory address
 
 	//Add numbers on the stack together
 	AddByte,
