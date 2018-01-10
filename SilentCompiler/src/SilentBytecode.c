@@ -24,13 +24,11 @@ vector* silentTransformExpression(silentExpression* expression)
 //Generate assembly-like code for the VM
 vector* silentGenerateAssembly(silentProgram* program)
 {
-
     vector* output = createVector(sizeof(char*));
     //Current information about program
     unsigned int globalVariableCount = program->variables->dataCount;
-
+    //Buffer for the instruction
     char buffer[1024];
-
     //Write global variables
     for(int i = 0; i < program->variables->dataCount; i++)
     {
