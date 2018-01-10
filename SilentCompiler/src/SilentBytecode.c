@@ -41,10 +41,20 @@ vector* silentGenerateAssembly(silentProgram* program)
         else if(size == 8)
         {
             sprintf(buffer,"alloc8 i%i",i);
+            int size = strlen(buffer);
+            char* value = malloc(size+1);
+            memcpy(value,buffer,size);
+            value[size+1] = '\0';
+            vectorPushBack(output,&value);
         }
         else
         {
             sprintf(buffer,"allocx i%i i%i",size,i);
+            int size = strlen(buffer);
+            char* value = malloc(size+1);
+            memcpy(value,buffer,size);
+            value[size+1] = '\0';
+            vectorPushBack(output,&value);
         }
     }
     return output;

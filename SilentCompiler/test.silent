@@ -1,5 +1,5 @@
 var int sampleGlobalVariable;
-var float sampleGlobalVariable2;
+var long sampleGlobalVariable2;
 struct sampleStruct
 {
     var int kek;
@@ -11,6 +11,9 @@ struct sampleStruct2
     var int kek;
     var string name;
 }
+
+var sampleStruct sampleGlobalVariable3;
+
 func int main()
 {
     var int testVariable = 360;
