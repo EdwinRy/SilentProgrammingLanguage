@@ -14,9 +14,9 @@ struct sampleStruct2
 
 var sampleStruct sampleGlobalVariable3;
 
-func int add()
+func int add(int x, int y)
 {
-    return 5+5;
+    return x+y;
 }
 
 func int main()

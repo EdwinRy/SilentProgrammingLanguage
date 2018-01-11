@@ -139,8 +139,8 @@ silentVariable* silentParseGlobalVariable(silentToken* tokens, int* index)
 		exit(1);
 	}
 	vectorPushBack(globalVariables,variable);
-	printf("Declared global variable of name: %s\n",variable->name);
-	printf("Size of the variable: %i\n", variable->value.size);
+	//printf("Declared global variable of name: %s\n",variable->name);
+	//printf("Size of the variable: %i\n", variable->value.size);
 	return variable;
 }
 
@@ -224,8 +224,8 @@ silentStruct* silentParseStructure(silentToken* tokens, int* index)
 		}
 	}
 	vectorPushBack(structures,structure);
-	printf("Declared structure of name: %s size: %i\n",structure->name,structure->size);
-	printf("Number of variables in the struct: %i\n",structure->variables->dataCount);
+	//printf("Declared structure of name: %s size: %i\n",structure->name,structure->size);
+	//printf("Number of variables in the struct: %i\n",structure->variables->dataCount);
 	return structure;
 }
 
@@ -271,28 +271,64 @@ silentVariable* silentParseFunctionVariable(
 	return variable;
 }
 
+silentVariable* silentParseParameterVariable(silentToken* tokens, int* index)
+{
+	silentVariable* variable = malloc(sizeof(silentVariable));
+	//Parse type
+	//*index += 1;
+	int typeSize = 0;
+	char validity = checkExistingType(tokens[*index],&typeSize);	
+	if(!validity)
+	{
+		printf("invalid type: %s\n",tokens[*index].value);
+		exit(1);
+	}
+	else
+	{
+		variable->value.size = typeSize;
+		if(validity == 2){variable->value.type = silentStructType;}
+		else{variable->value.type = castTokenToValueType(tokens[*index].type);}
+	}
+	//Parse name
+	*index += 1;
+	if(tokens[*index].type == silentIdentifierToken)
+	{
+		variable->name = tokens[*index].value;
+	}
+	*index += 1;
+	if(tokens[*index].type != silentCommaToken &&
+		tokens[*index].type != silentParenthesToken)
+	{
+		if(tokens[*index].type == silentAssignToken)
+		{
+			printf("Variable initialisation in a parameter not allowed: %s\n",
+				variable->name);
+			exit(1);
+		}
+		printf("Incorrect declaration of parameter: %s\n",variable->name);
+		exit(1);
+	}
+	return variable;
+}
+
+vector* silentParseParameters(silentToken* tokens, int* index)
+{
+	vector* parameters = createVector(sizeof(silentVariable));
+	//*index+=1;
+	while(tokens[*index].type != silentOpenCurlyBracketToken)
+	{
+		vectorPushBack(parameters,silentParseParameterVariable(tokens, index));
+		*index+=1;
+	}
+	*index+=1;
+	return parameters;
+}
+
 silentExpression* silentParseExpression(
 	silentToken* tokens, int* index,silentFunction* function)
 {
 	silentExpression* expression = malloc(sizeof(silentExpression));
-	if(tokens[*index].type == silentIdentifierToken)
-	{		
-		if(checkExistingFunction(tokens[*index]))
-		{
-
-		}
-		else
-		{
-			*index += 1;
-
-		}
-	}
-	else
-	{
-		printf("An expression needs to start with an identifier\n");
-		printf("function:%s\n",function->name);
-		exit(1);
-	}
+	
 	return expression;
 }
 //Parse a function
@@ -300,6 +336,7 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 {
 	//Set up the function
 	silentFunction* function = malloc(sizeof(silentFunction));
+	//function->parameters = createVector(sizeof(silentVariable*));
 	*index+=1;
 	int typeSize = 0;
 	char validity = checkExistingType(tokens[*index],&typeSize);
@@ -329,21 +366,23 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 	//Get function parameters
 	if(tokens[*index].type != silentParenthesToken)
 	{
-		printf("Expected parentheses for declaration of function %s\n",function->name);
+		printf("Expected parentheses for declaration of function %s\n",
+			function->name);
 	}
 	*index+=1;
 
 	silentVariable buffer[255];
 	//Parse parameters
-	int parameterCount = 0;
-	while(tokens[*index].type != silentParenthesToken)
+	if(tokens[*index].type != silentParenthesToken)
 	{
-		if(tokens[*index].type != silentCommaToken)
-		{
-			parameterCount+=1;	
-		}
-		*index+=1;
+		function->parameters = silentParseParameters(tokens,index);
 	}
+	else
+	{
+		function->parameters = createVector(sizeof(silentVariable));
+		function->parameters->dataCount = 0;
+	}
+	
 	printf("declared function of name: %s\n",function->name);
 
 	//Parse function scope
@@ -352,6 +391,7 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 		switch(tokens[*index].type)
 		{
 			case silentClosingCurlyBracketToken:
+				vectorPushBack(functions,function);
 				return function;
 			break;
 		}

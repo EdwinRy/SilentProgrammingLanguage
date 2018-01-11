@@ -68,6 +68,7 @@ typedef struct silentExpressionParameter
 		silentVariable* variable;
 		silentValue* value;
 		silentExpression* expression;
+		vector* parameters;
 	};
 }silentExpressionParameter;
 

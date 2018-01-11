@@ -21,18 +21,16 @@ vector* silentTransformExpression(silentExpression* expression)
     return instructions;
 }
 
-//Generate assembly-like code for the VM
-vector* silentGenerateAssembly(silentProgram* program)
+void silentWriteGlobals(silentProgram* program, vector* toWrite)
 {
-    vector* output = createVector(sizeof(char*));
-    //Current information about program
-    unsigned int globalVariableCount = program->variables->dataCount;
     //Buffer for the instruction
     char buffer[1024];
     //Write global variables
     for(int i = 0; i < program->variables->dataCount; i++)
     {
+        //Make sure buffer is empty
         memset(buffer,0,1024);
+        //Get variable size
         unsigned int varSize = 
             ((silentVariable*)vectorGet(program->variables,i))->value.size;
         if(varSize == 4)
@@ -42,7 +40,7 @@ vector* silentGenerateAssembly(silentProgram* program)
             char* value = malloc(size+1);
             memcpy(value,buffer,size);
             value[size+1] = '\0';
-            vectorPushBack(output,&value);
+            vectorPushBack(toWrite,&value);
         }
         else if(varSize == 8)
         {
@@ -51,7 +49,7 @@ vector* silentGenerateAssembly(silentProgram* program)
             char* value = malloc(size+1);
             memcpy(value,buffer,size);
             value[size+1] = '\0';
-            vectorPushBack(output,&value);
+            vectorPushBack(toWrite,&value);
         }
         else
         {
@@ -60,29 +58,87 @@ vector* silentGenerateAssembly(silentProgram* program)
             char* value = malloc(size+1);
             memcpy(value,buffer,size);
             value[size+1] = '\0';
-            vectorPushBack(output,&value);
+            vectorPushBack(toWrite,&value);
         }
     }
+}
+
+void silentWriteExpression(silentFunction* function, vector* toWrite)
+{
+
+}
+
+void silentWriteFunction(silentFunction* function, vector* toWrite)
+{
+    //Buffer for the instruction
+    char buffer[1024];
+
+    //Write function name
+    sprintf(buffer,"%s:",function->name);
+    int size = strlen(buffer);
+    char* value = malloc(size+1);
+    memcpy(value,buffer,size);
+    value[size] = '\0';
+    vectorPushBack(toWrite,&value);
+
+    //Write parameters
+    for(int j = 0; j < function->parameters->dataCount; j++)
+    {
+        //memset(buffer,0,1024);
+        unsigned int varSize = 
+            ((silentVariable*)vectorGet(function->parameters,j))->value.size;
+        if(varSize == 4)
+        {
+            sprintf(buffer,"store4 i%i",j);
+            int size = strlen(buffer);
+            char* value = malloc(size+1);
+            memcpy(value,buffer,size);
+            value[size] = '\0';
+            vectorPushBack(toWrite,&value);
+        }
+        else if(varSize == 8)
+        {
+            sprintf(buffer,"store8 i%i",j);
+            int size = strlen(buffer);
+            char* value = malloc(size+1);
+            memcpy(value,buffer,size);
+            value[size] = '\0';
+            vectorPushBack(toWrite,&value);
+        }
+        else
+        {
+            sprintf(buffer,"storex i%i i%i",varSize,j);
+            int size = strlen(buffer);
+            char* value = malloc(size+1);
+            memcpy(value,buffer,size);
+            value[size] = '\0';
+            vectorPushBack(toWrite,&value);
+        }
+    }
+
+    for(int j = 0; j < function->expressions->dataCount; j++)
+    {
+        silentWriteExpression(function, toWrite);
+    }
+}
+
+//Generate assembly-like code for the VM
+vector* silentGenerateAssembly(silentProgram* program)
+{
+    vector* output = createVector(sizeof(char*));
+    //Current information about program
+    unsigned int globalVariableCount = program->variables->dataCount;
+    //Buffer for the instruction
+    char buffer[1024];
+    
+    //Write globals
+    silentWriteGlobals(program, output);
 
     //Write functions
-    for(int i = 0; i < program->functions->dataCount;i++)
+    for(int i = 0; i < program->functions->dataCount; i++)
     {
-        silentFunction* currentFunc = 
-            (silentFunction*)(vectorGet(program->functions,i));
-        //Write function name
-        sprintf(buffer,"%s:",currentFunc->name);
-        int size = strlen(buffer);
-        char* value = malloc(size+1);
-        memcpy(value,buffer,size);
-        value[size+1] = '\0';
-        vectorPushBack(output,&value);
-        for(int j = 0; i < currentFunc->expressions->dataCount; i++)
-        {
-            silentExpression* currentExpression = 
-                (silentExpression*)(vectorGet(currentFunc->expressions,i));
-        }
+        silentWriteFunction(vectorGet(program->functions, i), output);
     }
-
     return output;
 }
 
