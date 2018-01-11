@@ -8,11 +8,16 @@
 //Y = string
 typedef enum SilentBytecode
 {
+	//Stops the execution of the program
 	Halt,
+	//Moves the program counter to X
 	Goto, //X - Byte
-	CallSys,//
+	//Call native subroutine
+	CallSys,//X - 4 bytes
 
-	Call,
+	//Call silent subrouting
+	Call,//X - 4 bytes
+	//Return back from subroutine
 	Return,
 	
 	//ClearMemory,
@@ -47,6 +52,27 @@ typedef enum SilentBytecode
 	Alloc4, //X - memory address
 	Alloc8, //X - memory address
 	AllocX, //X - memory address
+
+	//Return a pointer to X and push it to stack
+	GetPtr, //X - memory address
+
+	//Push 1 byte from the pointer
+	LoadPtr1, 
+	//Push 4 byte from the pointer
+	LoadPtr4, 
+	//Push 8 byte from the pointer
+	LoadPtr8, 
+	//Push X bytes from the pointer
+	LoadPtrX, //X - value size
+
+	//Change 1 byte at a pointer
+	EditPtr1,
+	//Change 4 bytes at a pointer
+	EditPtr4,
+	//Change 8 bytes at a pointer
+	EditPtr8,
+	//Change X bytes at a pointer
+	EditPtrX, //X - value size
 
 	//Free a value at address
 	FREE, //X - memory address
@@ -247,6 +273,45 @@ char assemble(char* inFile, char* outFile)
             gotos[gotosIndex] = go;
             gotosIndex += 1;    
             programCounter+=sizeof(int);
+        }
+
+
+
+        if(strcmp(instructions[0],"callsys") == 0)
+        {
+            program[programCounter] = (char)CallSys;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                char temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += 1;
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+        if(strcmp(instructions[0],"call") == 0)
+        {
+            program[programCounter] = (char)Call;
+            programCounter+=1;
+            silentLabel go;
+            go.index = programCounter;
+            go.label = malloc(size);
+            memcpy(go.label,instructions[1],size);
+            gotos[gotosIndex] = go;
+            gotosIndex += 1;    
+            programCounter+=sizeof(int);
+        }
+        if(strcmp(instructions[0],"return") == 0)
+        {
+            program[programCounter] = (char)Return;
+            programCounter+=1;
         }
 
 
@@ -649,6 +714,58 @@ char assemble(char* inFile, char* outFile)
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
+        }
+
+
+
+        if(strcmp(instructions[0],"getptr") == 0)
+        {
+            program[programCounter] = (char)AllocX;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"loadptr1") == 0)
+        {
+            program[programCounter] = (char)AllocX;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"loadptr4") == 0)
+        {
+            program[programCounter] = (char)AllocX;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"loadptr8") == 0)
+        {
+            program[programCounter] = (char)AllocX;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"loadptrx") == 0)
+        {
+            program[programCounter] = (char)AllocX;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"editptr1") == 0)
+        {
+            program[programCounter] = (char)AllocX;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"editptr4") == 0)
+        {
+            program[programCounter] = (char)AllocX;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"editptr8") == 0)
+        {
+            program[programCounter] = (char)AllocX;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"editptrx") == 0)
+        {
+            program[programCounter] = (char)AllocX;
+            programCounter+=1;
         }
 
 
