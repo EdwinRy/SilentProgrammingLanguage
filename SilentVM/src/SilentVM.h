@@ -1,18 +1,23 @@
 #include <stdlib.h>
-
-#ifndef SILENTVM
-#define SILENTVM
+#include "SilentVector.h"
+#ifndef SILENT_VM
+#define SILENT_VM
 //<instruction> <argument> <argument>
 //Argument types:
 //X = number
 //Y = string
 typedef enum SilentBytecode
 {
+	//Stops the execution of the program
 	Halt,
+	//Moves the program counter to X
 	Goto, //X - Byte
-	CallSys,//
+	//Call native subroutine
+	CallSys,//X - 4 bytes
 
-	Call,
+	//Call silent subrouting
+	Call,//X - 4 bytes
+	//Return back from subroutine
 	Return,
 	
 	//ClearMemory,
@@ -47,6 +52,27 @@ typedef enum SilentBytecode
 	Alloc4, //X - memory address
 	Alloc8, //X - memory address
 	AllocX, //X - memory address
+
+	//Return a pointer to X and push it to stack
+	GetPtr, //X - memory address
+
+	//Push 1 byte from the pointer
+	LoadPtr1, 
+	//Push 4 byte from the pointer
+	LoadPtr4, 
+	//Push 8 byte from the pointer
+	LoadPtr8, 
+	//Push X bytes from the pointer
+	LoadPtrX, //X - value size
+
+	//Change 1 byte at a pointer
+	EditPtr1,
+	//Change 4 bytes at a pointer
+	EditPtr4,
+	//Change 8 bytes at a pointer
+	EditPtr8,
+	//Change X bytes at a pointer
+	EditPtrX, //X - value size
 
 	//Free a value at address
 	FREE, //X - memory address
@@ -143,7 +169,8 @@ typedef enum SilentBytecode
 
 typedef struct SilentMemory
 {
-	char** storage;
+	//char** storage;
+	vector* storage;
 	char* stack;
 	unsigned int storagePointer;
 	unsigned int stackPointer;
