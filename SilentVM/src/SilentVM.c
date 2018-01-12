@@ -262,7 +262,7 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			//Allocates 4 bytes of data for the program
-			case Alloc4://
+			case Alloc4:
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
 				while(ireg >= memory->storageSize)
@@ -318,24 +318,28 @@ void executeSilentThread(SilentThread * thread)
 
 
 			case LoadPtr1://
+				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
-					*(int*)(memory->stack + (memory->stackPointer-=4)),1);
+					(long*)lreg,1);
 				memory->stackPointer+=1;
 			break;
 
-			case LoadPtr4://
+			case LoadPtr4:
+				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
-					*(int*)(memory->stack + (memory->stackPointer-=4)),4);
+					(long*)lreg,4);
 					memory->stackPointer+=4;
 			break;
 			case LoadPtr8://
+				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
-					*(int*)(memory->stack + (memory->stackPointer-=4)),8);
+					(long*)lreg,8);
 				memory->stackPointer+=8;
 			break;
 			case LoadPtrX://
+				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
-					*(int*)(memory->stack + (memory->stackPointer-=4)),
+					(long*)lreg,
 					*(int*)(thread->bytecode + (++thread->programCounter)));
 				thread->programCounter += 3;
 			break;
@@ -844,12 +848,6 @@ void executeSilentThread(SilentThread * thread)
 				}
 				break;	
 		}
-		//printf("pc:%i\n",thread->programCounter);
-		//printf("stackp:%i\n",thread->memory->stackPointer);
-		//printf("mem0:%i\n",*((int*)(thread->memory->storage[0])));
-		//printf("mem1:%i\n",*((int*)(thread->memory->storage[2])));
-		//printf("mem2:%i\n",*((int*)(thread->memory->storage[2])));
-		//printf("mem3:%i\n",*((int*)(thread->memory->storage[2])));
 		thread->programCounter++;
 	}
 }

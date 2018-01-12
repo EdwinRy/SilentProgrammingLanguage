@@ -6,6 +6,8 @@ push4 i21
 store4 i0
 load4 i0
 push4 i9
+load4 i21
+addint
 addint
 getptr i0
 halt
