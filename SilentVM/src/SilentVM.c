@@ -56,6 +56,7 @@ void executeSilentThread(SilentThread * thread)
 
 	SilentMemory* memory = thread->memory;
 
+	//printf("%i\n", memory->storage);
 	//Often used values
 	while(thread->running)
 	{
@@ -250,7 +251,7 @@ void executeSilentThread(SilentThread * thread)
 			case Alloc1://
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
-				while(ireg >= memory->reallocSize)
+				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
 					memory->storage = 
@@ -264,7 +265,7 @@ void executeSilentThread(SilentThread * thread)
 			case Alloc4://
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
-				while(ireg >= memory->reallocSize)
+				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
 					memory->storage = 
@@ -278,7 +279,7 @@ void executeSilentThread(SilentThread * thread)
 			case Alloc8://
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
-				while(ireg >= memory->reallocSize)
+				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
 					memory->storage = 
@@ -292,7 +293,7 @@ void executeSilentThread(SilentThread * thread)
 			case AllocX://untested
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
-				while(ireg >= memory->reallocSize)
+				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
 					memory->storage = 
@@ -305,6 +306,49 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 3;
 				break;
 			
+			case GetPtr:
+				memcpy(thread->memory->stack + thread->memory->stackPointer,
+						(int*)&memory->storage[
+							*(int*)(thread->bytecode + (++thread->programCounter))
+						]->data,
+						4);
+				thread->programCounter += 3;
+				thread->memory->stackPointer += 4;
+				break;
+
+
+			case LoadPtr1://
+				memcpy(thread->memory->stack + thread->memory->stackPointer,
+					*(int*)(memory->stack + (memory->stackPointer-=4)),1);
+				memory->stackPointer+=1;
+			break;
+
+			case LoadPtr4://
+				memcpy(thread->memory->stack + thread->memory->stackPointer,
+					*(int*)(memory->stack + (memory->stackPointer-=4)),4);
+					memory->stackPointer+=4;
+			break;
+			case LoadPtr8://
+				memcpy(thread->memory->stack + thread->memory->stackPointer,
+					*(int*)(memory->stack + (memory->stackPointer-=4)),8);
+				memory->stackPointer+=8;
+			break;
+			case LoadPtrX://
+				memcpy(thread->memory->stack + thread->memory->stackPointer,
+					*(int*)(memory->stack + (memory->stackPointer-=4)),
+					*(int*)(thread->bytecode + (++thread->programCounter)));
+				thread->programCounter += 3;
+			break;
+
+			case EditPtr1://
+			break;
+			case EditPtr4://
+			break;
+			case EditPtr8://
+			break;
+			case EditPtrX://
+			break;
+
 			//Releases the lastly allocated storage
 			case FREE:
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
@@ -806,7 +850,6 @@ void executeSilentThread(SilentThread * thread)
 		//printf("mem1:%i\n",*((int*)(thread->memory->storage[2])));
 		//printf("mem2:%i\n",*((int*)(thread->memory->storage[2])));
 		//printf("mem3:%i\n",*((int*)(thread->memory->storage[2])));
-		//getchar();
 		thread->programCounter++;
 	}
 }
