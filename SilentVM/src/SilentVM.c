@@ -44,10 +44,10 @@ void deleteSilentThread(SilentThread * thread)
 
 void executeSilentThread(SilentThread * thread)
 {
-	long lreg = 0;
-	int ireg = 0;
 	char breg = 0;
+	int ireg = 0;
 	float freg = 0;
+	long lreg = 0;
 	double dreg = 0;
 	thread->running = 1;
 
