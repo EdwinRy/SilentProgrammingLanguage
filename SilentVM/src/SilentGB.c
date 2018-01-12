@@ -1,4 +1,5 @@
 #include "SilentGB.h"
+#include "SilentVM.h"
 #include <stdlib.h>
 
 SilentGB* createSilentGB()
@@ -9,21 +10,27 @@ SilentGB* createSilentGB()
     return gb;
 }
 
-void silentSweep(SilentGB* gb, vector* storage)
+void silentSweep(SilentGB* gb, SilentMemory* memory)
 {
     gb->currentMark = (gb->currentMark == 0) ? 1 : 0;
 
-    silentBlock* storageData = (silentBlock*)(storage->voidPtr);
-    silentBlock* gbData = (silentBlock*)(gb->pointers->voidPtr);
-    for(int i = 0; i < storage->dataCount; i++)
+    silentBlock** gbData = (silentBlock**)(gb->pointers->voidPtr);
+    silentBlock** storageData = memory->storage;
+    for(int i = 0; i < memory->storageSize; i++)
     {
-        storageData[i].marked = gb->currentMark;
+        if(storageData[i] != NULL)
+        {
+            storageData[i]->marked = gb->currentMark;
+        }
     }
 
     for(int i = 0; i < gb->pointers->dataCount; i++)
     {
-        if(gbData[i].marked != gb->currentMark)
-            //free(gbData[i]);
+        if(gbData[i]->marked != gb->currentMark)
+        {
+            free(gbData[i]->data);
+            free(gbData[i]);
+        }
     }
 
 

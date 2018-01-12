@@ -1,5 +1,6 @@
 #include <stdlib.h>
 //#include "SilentVector.h"
+#include "SilentGB.h"
 #ifndef SILENT_VM
 #define SILENT_VM
 //<instruction> <argument> <argument>
@@ -197,4 +198,4 @@ void deleteSilentMemory(SilentMemory* memory);
 void deleteSilentThread(SilentThread* thread);
 void executeSilentThread(SilentThread* thread);
 
-#endif SILENT_VM
+#endif //SILENT_VM
