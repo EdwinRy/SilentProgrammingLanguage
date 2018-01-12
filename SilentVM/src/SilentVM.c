@@ -7,12 +7,13 @@
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
 {
 	SilentMemory* memory = malloc(sizeof(SilentMemory));
-	//memory->storage = malloc(sizeof(char*)*storageSize);
-	memory->storage = createVector(sizeof(silentBlock));
 	memory->stack = malloc(stackSize);
-	memory->storagePointer = 0;
 	memory->stackPointer = 0;
-	memory->functionPointer = 0;
+	memory->storage = malloc(sizeof(silentBlock*)*storageSize);
+	memory->reallocSize = storageSize;
+	memory->storageSize = storageSize;
+	memory->storagePointer = 0;
+	memory->reallocSize = storageSize;
 	return memory;
 }
 
@@ -134,11 +135,14 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			//Saves 1 byte from the stack to allocated space
-			case Store1:
+			case Store1://
 				memcpy(			
-					((silentBlock*)(vectorGet(memory->storage,
+					/*((silentBlock*)(vectorGet(memory->storage,
 						*(int*)(thread->bytecode +
-						(++thread->programCounter)))))->data,
+						(++thread->programCounter)))))->data*/
+					memory->storage[
+						*(int*)(thread->bytecode +(++thread->programCounter))
+					]->data,
 					thread->memory->stack + (--thread->memory->stackPointer),
 					1
 				);
@@ -146,12 +150,12 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			//Saves 4 bytes from the stack to allocated space
-			case Store4:
+			case Store4://
 				thread->memory->stackPointer -= 4;
 				memcpy(
-					((silentBlock*)(vectorGet(memory->storage,
-						*(int*)(thread->bytecode +
-						(++thread->programCounter)))))->data,
+					memory->storage[
+						*(int*)(thread->bytecode +(++thread->programCounter))
+					]->data,
 					thread->memory->stack + (thread->memory->stackPointer),
 					4
 				);
@@ -159,12 +163,12 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			//Saves 8 bytes from the stack to allocated space
-			case Store8:		
+			case Store8://		
 				thread->memory->stackPointer -= 8;
 				memcpy(	
-					((silentBlock*)(vectorGet(memory->storage,
-						*(int*)(thread->bytecode +
-						(++thread->programCounter)))))->data,
+					memory->storage[
+						*(int*)(thread->bytecode +(++thread->programCounter))
+					]->data,
 					thread->memory->stack + (thread->memory->stackPointer),
 					8
 				);
@@ -173,12 +177,13 @@ void executeSilentThread(SilentThread * thread)
 
 			//Saves X bytes from stack to allocated space
 			case StoreX://untested
+				//Data size
 				ireg = *((int*)(thread->bytecode + (++thread->programCounter)));
 				thread->programCounter+=4;
 				memcpy(
-					((silentBlock*)(vectorGet(memory->storage,
-						*(int*)(thread->bytecode +
-						(++thread->programCounter)))))->data,
+					memory->storage[
+						*(int*)(thread->bytecode +(++thread->programCounter))
+					]->data,
 					thread->memory->stack + (thread->memory->stackPointer),
 					ireg);
 				thread->programCounter += 3;
@@ -186,26 +191,26 @@ void executeSilentThread(SilentThread * thread)
 				break;
 	
 			//Copies 1 byte of data from storage onto the stack
-			case Load1:
+			case Load1://
 				memcpy
 				(
 					thread->memory->stack + (thread->memory->stackPointer++),
-					((silentBlock*)(vectorGet(memory->storage,
-						*(int*)(thread->bytecode +
-						(++thread->programCounter)))))->data,
+					memory->storage[
+						*(int*)(thread->bytecode +(++thread->programCounter))
+					]->data,
 					1
 				);
 				thread->programCounter += 3;
 				break;
 
 			//Copies 4 bytes of data from storage onto the stack
-			case Load4:
+			case Load4://
 				memcpy
 				(
 					thread->memory->stack + (thread->memory->stackPointer),
-					((silentBlock*)(vectorGet(memory->storage,
-						*(int*)(thread->bytecode +
-						(++thread->programCounter)))))->data,
+					memory->storage[
+						*(int*)(thread->bytecode +(++thread->programCounter))
+					]->data,
 					4
 				);
 				thread->memory->stackPointer += 4;
@@ -213,13 +218,13 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			//Copies 8 bytes of data from storage onto the stack
-			case Load8:
+			case Load8://
 				memcpy
 				(
 					thread->memory->stack + (thread->memory->stackPointer),
-					((silentBlock*)(vectorGet(memory->storage,
-						*(int*)(thread->bytecode +
-						(++thread->programCounter)))))->data,
+					memory->storage[
+						*(int*)(thread->bytecode +(++thread->programCounter))
+					]->data,
 					8
 				);
 				thread->memory->stackPointer += 8;
@@ -227,60 +232,84 @@ void executeSilentThread(SilentThread * thread)
 				break;
 
 			//Copies X bytes of data from storage onto the stack
-			case LoadX:
+			case LoadX://
 				ireg = *((int*)(thread->bytecode + (++thread->programCounter)));
 				thread->programCounter+=3;
 				memcpy(
-					((silentBlock*)(vectorGet(memory->storage,
-						*(int*)(thread->bytecode +
-						(++thread->programCounter)))))->data,
+					memory->storage[
+						*(int*)(thread->bytecode +(++thread->programCounter))
+					]->data,
 					thread->memory->stack + (thread->memory->stackPointer),
-						lreg);
+					ireg);
 				thread->programCounter += 3;
 				thread->memory->stackPointer += ireg;
 
 				break;
 
 			//Allocates 1 byte of data for the program
-			case Alloc1:
-				((silentBlock*)(vectorGet(memory->storage,
-					*(int*)(thread->bytecode +
-					(++thread->programCounter)))))->data = malloc(1);
+			case Alloc1://
+				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
+				while(ireg >= memory->reallocSize)
+				{
+					memory->storageSize += memory->reallocSize;
+					memory->storage = 
+						realloc(memory->storage,memory->storageSize);
+				}
+				memory->storage[ireg] = malloc(sizeof(silentBlock));
+				memory->storage[ireg]->data = malloc(1);
 				break;
 
 			//Allocates 4 bytes of data for the program
-			case Alloc4:
-				((silentBlock*)(vectorGet(memory->storage,
-					*(int*)(thread->bytecode +
-					(++thread->programCounter)))))->data = malloc(4);
+			case Alloc4://
+				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
+				while(ireg >= memory->reallocSize)
+				{
+					memory->storageSize += memory->reallocSize;
+					memory->storage = 
+						realloc(memory->storage,memory->storageSize);
+				}
+				memory->storage[ireg] = malloc(sizeof(silentBlock));
+				memory->storage[ireg]->data = malloc(4);
 				break;
 
 			//Allocates 8 bytes of data for the program
-			case Alloc8:
-				((silentBlock*)(vectorGet(memory->storage,
-					*(int*)(thread->bytecode +
-					(++thread->programCounter)))))->data= malloc(8);
+			case Alloc8://
+				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
+				while(ireg >= memory->reallocSize)
+				{
+					memory->storageSize += memory->reallocSize;
+					memory->storage = 
+						realloc(memory->storage,memory->storageSize);
+				}
+				memory->storage[ireg] = malloc(sizeof(silentBlock));
+				memory->storage[ireg]->data = malloc(8);
 				break;
 
 			//Allocates X bytes of data for the program
 			case AllocX://untested
-				ireg = *(int*)(thread->bytecode + (++thread->programCounter));
+				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
-				((silentBlock*)(vectorGet(memory->storage,ireg)))->data =
-					malloc(*(int*)(thread->bytecode + (++thread->programCounter)));
-				//thread->memory->storage[ireg] =
-				//	malloc(*(int*)(thread->bytecode + (++thread->programCounter)));
+				while(ireg >= memory->reallocSize)
+				{
+					memory->storageSize += memory->reallocSize;
+					memory->storage = 
+						realloc(memory->storage,memory->storageSize);
+				}
+				memory->storage[ireg] = malloc(sizeof(silentBlock));
+				memory->storage[ireg]->data = malloc(
+					*(int*)(thread->bytecode + (++thread->programCounter))
+				);
 				thread->programCounter += 3;
 				break;
 			
 			//Releases the lastly allocated storage
 			case FREE:
-				free(((silentBlock*)(vectorGet(memory->storage,
-						*(int*)(thread->bytecode +
-						(++thread->programCounter)))))->data);
+				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
+				free(memory->storage[ireg]->data);
+				free(memory->storage[ireg]);
 				thread->programCounter += 3;
 				break;
 

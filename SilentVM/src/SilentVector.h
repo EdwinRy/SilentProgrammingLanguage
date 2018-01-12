@@ -18,10 +18,12 @@ typedef struct vector
     unsigned int dataSize;
     //Number of items int he array
     unsigned int dataCount;
+    //For how many elements is the memory still allocated
+    unsigned int reserved;
 
 }vector;
 //Create new dynamic array
-vector* createVector(int dataSize);
+vector* createVector(int dataSize, int reserveSize);
 //Append to the back of the dynamic array
 void vectorPushBack(vector* vec, void* data);
 //Remove the last item of the dynamic array

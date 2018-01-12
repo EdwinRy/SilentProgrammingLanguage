@@ -11,6 +11,7 @@ typedef struct silentBlock
 typedef struct SilentGB
 {
     vector* pointers;
+    char currentMark;
 }SilentGB;
 
 SilentGB* createSilentGB();

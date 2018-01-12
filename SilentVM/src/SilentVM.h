@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "SilentVector.h"
+//#include "SilentVector.h"
 #ifndef SILENT_VM
 #define SILENT_VM
 //<instruction> <argument> <argument>
@@ -170,11 +170,14 @@ typedef enum SilentBytecode
 typedef struct SilentMemory
 {
 	//char** storage;
-	vector* storage;
+	silentBlock** storage;
 	char* stack;
+	//Current storage size
+	unsigned int storageSize;
+	//How much to add to realloc size
+	unsigned int reallocSize;
 	unsigned int storagePointer;
 	unsigned int stackPointer;
-	unsigned int functionPointer;
 }SilentMemory;
 
 typedef struct SilentThread
@@ -194,4 +197,4 @@ void deleteSilentMemory(SilentMemory* memory);
 void deleteSilentThread(SilentThread* thread);
 void executeSilentThread(SilentThread* thread);
 
-#endif //SILENTVM
+#endif SILENT_VM

@@ -4,7 +4,7 @@
 #include "SilentVector.h"
 
 //Create new dynamically allocated vector (list)
-vector* createVector(int dataSize)
+vector* createVector(int dataSize, int reserveSize)
 {
     vector* vec = malloc(sizeof(vector));
     if(vec == NULL)
@@ -12,9 +12,10 @@ vector* createVector(int dataSize)
         printf("Couldn't allocate memory\n");
         exit(1);
     }
-    vec->integers = malloc(dataSize);
+    vec->voidPtr = malloc(dataSize*reserveSize);
     vec->dataCount = 0;
     vec->dataSize = dataSize;
+    vec->reserved;
     return vec;
 }
 
