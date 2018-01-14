@@ -7,13 +7,13 @@
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
 {
 	SilentMemory* memory = malloc(sizeof(SilentMemory));
+	memory->storagePointers = createVector(sizeof(int));
+	memory->programCounters = createVector(sizeof(int));
 	memory->stack = malloc(stackSize);
 	memory->stackPointer = 0;
 	memory->storage = malloc(sizeof(silentBlock*)*storageSize);
 	memory->reallocSize = storageSize;
 	memory->storageSize = storageSize;
-	memory->storagePointer = 0;
-	memory->reallocSize = storageSize;
 	return memory;
 }
 
@@ -50,11 +50,11 @@ void executeSilentThread(SilentThread * thread)
 	long lreg = 0;
 	double dreg = 0;
 	thread->running = 1;
-
-	//int storageInUse = 0;
-	//int storagePointer = 0;
-
 	SilentMemory* memory = thread->memory;
+	int localStoragePointer = 0;
+	int* storagePointer = memory->storagePointers->integers;
+	int* lastPC = memory->programCounters->integers;
+
 
 	//printf("%i\n", memory->storage);
 	//Often used values
@@ -76,7 +76,20 @@ void executeSilentThread(SilentThread * thread)
 				break;
 			
 			//Will be used to call library functions
-			case Call: //Not yet implemented
+			case CallSys: //Not yet implemented
+				break;
+
+			case Call://
+				vectorInsert(memory->storagePointers,localStoragePointer,0);
+				vectorInsert(memory->pcLocations,thread->programCounter,0);
+				thread->programCounter++;
+				thread->programCounter = 
+					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
+				thread->programCounter--;
+				break;
+
+			case Return://
+				vectorRemove(memory->storagePointers,0);
 				break;
 
 			//Pushes 1 byte of data to the stack
@@ -251,6 +264,9 @@ void executeSilentThread(SilentThread * thread)
 			case Alloc1://
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
+				ireg += *storagePointer;
+				if(ireg > localStoragePointer)
+					localStoragePointer = ireg;
 				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
@@ -265,6 +281,8 @@ void executeSilentThread(SilentThread * thread)
 			case Alloc4:
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
+				if(ireg > localStoragePointer)
+					localStoragePointer = ireg;
 				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
@@ -279,6 +297,8 @@ void executeSilentThread(SilentThread * thread)
 			case Alloc8://
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
+				if(ireg > localStoragePointer)
+					localStoragePointer = ireg;
 				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
@@ -293,6 +313,8 @@ void executeSilentThread(SilentThread * thread)
 			case AllocX://untested
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
+				if(ireg > localStoragePointer)
+					localStoragePointer = ireg;
 				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;

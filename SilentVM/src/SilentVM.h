@@ -172,12 +172,13 @@ typedef struct SilentMemory
 {
 	//char** storage;
 	silentBlock** storage;
+	vector* storagePointers;
+	vector* programCounters;
 	char* stack;
 	//Current storage size
 	unsigned int storageSize;
 	//How much to add to realloc size
 	unsigned int reallocSize;
-	unsigned int storagePointer;
 	unsigned int stackPointer;
 }SilentMemory;
 
