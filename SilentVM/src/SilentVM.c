@@ -64,48 +64,56 @@ void executeSilentThread(SilentThread * thread)
 		{
 			//Stops the execution of the program
 			case Halt:
+				//printf("halt\n");
 				thread->running = 0;
-				break;
+			break;
 			
 			//Changes the program pointer based on bytecode
 			case Goto:
+				//printf("goto\n");
 				thread->programCounter++;
 				thread->programCounter = 
 					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
 				thread->programCounter--;
-				break;
+			break;
 			
 			//Will be used to call library functions
 			case CallSys: //Not yet implemented
-				break;
+			break;
 
 			case Call://
-				vectorInsert(memory->storagePointers,localStoragePointer,0);
-				vectorInsert(memory->pcLocations,thread->programCounter,0);
+				//printf("call\n");
+				vectorInsert(memory->storagePointers,&localStoragePointer,0);
+				vectorInsert(memory->programCounters,&thread->programCounter,0);
 				thread->programCounter++;
 				thread->programCounter = 
 					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
 				thread->programCounter--;
-				break;
+			break;
 
 			case Return://
+			//printf("return\n");
+				thread->programCounter = (*lastPC) + 4;
 				vectorRemove(memory->storagePointers,0);
-				break;
+				vectorRemove(memory->programCounters,0);
+				localStoragePointer = *storagePointer;
+			break;
 
 			//Pushes 1 byte of data to the stack
 			case Push1:
 				thread->memory->stack[thread->memory->stackPointer++] = 
 					thread->bytecode[++thread->programCounter];
-				break;
+			break;
 				
 			//Pushes 4 bytes of data to the stack
 			case Push4:
+			//printf("push4\n");
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						4);
 				thread->programCounter += 3;
 				thread->memory->stackPointer += 4;
-				break;
+			break;
 			
 			//Pushes 8 bytes of data to the stack
 			case Push8:
@@ -114,7 +122,7 @@ void executeSilentThread(SilentThread * thread)
 						8);
 				thread->programCounter += 7;
 				thread->memory->stackPointer += 8;
-				break;
+			break;
 
 			//Pushes X (in bytecode) bytes of data to the stack
 			case PushX:
@@ -124,29 +132,30 @@ void executeSilentThread(SilentThread * thread)
 						lreg);
 				thread->programCounter += (7+lreg);
 				thread->memory->stackPointer += lreg;
-				break;
+			break;
 			
 			//Decreases the stack pointer by 1
 			case Pop1:
 				thread->memory->stackPointer--;
-				break;
+			break;
 			
 			//Decreases the stack pointer by 4
 			case Pop4:
+			//printf("pop4\n");
 				thread->memory->stackPointer-=4;
-				break;
+			break;
 					
 			//Decreases the stack pointer by 8
 			case Pop8:
 				thread->memory->stackPointer-=8;
-				break;
+			break;
 
 			//Decreases the stack pointer by X (in bytecode)
 			case PopX:
 				thread->memory->stackPointer-=
 					*(long*)(thread->bytecode + (++thread->programCounter));
 				thread->programCounter += 7;
-				break;
+			break;
 
 			//Saves 1 byte from the stack to allocated space
 			case Store1://
@@ -161,7 +170,7 @@ void executeSilentThread(SilentThread * thread)
 					1
 				);
 				thread->programCounter += 3;
-				break;
+			break;
 
 			//Saves 4 bytes from the stack to allocated space
 			case Store4://
@@ -174,7 +183,7 @@ void executeSilentThread(SilentThread * thread)
 					4
 				);
 				thread->programCounter += 3;
-				break;
+			break;
 
 			//Saves 8 bytes from the stack to allocated space
 			case Store8://		
@@ -187,7 +196,7 @@ void executeSilentThread(SilentThread * thread)
 					8
 				);
 				thread->programCounter += 3;		
-				break;
+			break;
 
 			//Saves X bytes from stack to allocated space
 			case StoreX://untested
@@ -202,7 +211,7 @@ void executeSilentThread(SilentThread * thread)
 					ireg);
 				thread->programCounter += 3;
 				thread->memory->stackPointer -= ireg;
-				break;
+			break;
 	
 			//Copies 1 byte of data from storage onto the stack
 			case Load1://
@@ -215,7 +224,7 @@ void executeSilentThread(SilentThread * thread)
 					1
 				);
 				thread->programCounter += 3;
-				break;
+			break;
 
 			//Copies 4 bytes of data from storage onto the stack
 			case Load4://
@@ -229,7 +238,7 @@ void executeSilentThread(SilentThread * thread)
 				);
 				thread->memory->stackPointer += 4;
 				thread->programCounter += 3;
-				break;
+			break;
 
 			//Copies 8 bytes of data from storage onto the stack
 			case Load8://
@@ -243,7 +252,7 @@ void executeSilentThread(SilentThread * thread)
 				);
 				thread->memory->stackPointer += 8;
 				thread->programCounter += 3;
-				break;
+			break;
 
 			//Copies X bytes of data from storage onto the stack
 			case LoadX://
@@ -257,8 +266,7 @@ void executeSilentThread(SilentThread * thread)
 					ireg);
 				thread->programCounter += 3;
 				thread->memory->stackPointer += ireg;
-
-				break;
+			break;
 
 			//Allocates 1 byte of data for the program
 			case Alloc1://
@@ -275,12 +283,14 @@ void executeSilentThread(SilentThread * thread)
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(1);
-				break;
+			break;
 
 			//Allocates 4 bytes of data for the program
-			case Alloc4:
+			case Alloc4://
+				//printf("alloc4\n");
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
+				ireg += *storagePointer;
 				if(ireg > localStoragePointer)
 					localStoragePointer = ireg;
 				while(ireg >= memory->storageSize)
@@ -291,7 +301,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(4);
-				break;
+			break;
 
 			//Allocates 8 bytes of data for the program
 			case Alloc8://
@@ -307,7 +317,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(8);
-				break;
+			break;
 
 			//Allocates X bytes of data for the program
 			case AllocX://untested
@@ -326,7 +336,7 @@ void executeSilentThread(SilentThread * thread)
 					*(int*)(thread->bytecode + (++thread->programCounter))
 				);
 				thread->programCounter += 3;
-				break;
+			break;
 			
 			case GetPtr:
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
@@ -336,7 +346,7 @@ void executeSilentThread(SilentThread * thread)
 						4);
 				thread->programCounter += 3;
 				thread->memory->stackPointer += 4;
-				break;
+			break;
 
 
 			case LoadPtr1://
@@ -381,35 +391,36 @@ void executeSilentThread(SilentThread * thread)
 				free(memory->storage[ireg]->data);
 				free(memory->storage[ireg]);
 				thread->programCounter += 3;
-				break;
+			break;
 
 			//Adds together 2 bytes on the stack
 			case AddByte:
 				thread->memory->stackPointer--;
 				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) += 
 					*(char*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Adds together 2 integers on the stack
 			case AddInt:
+				//printf("addint\n");
 				thread->memory->stackPointer-=4;
 				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) += 
 					*(int*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Adds together 2 longs on the stack
 			case AddLong:
 				thread->memory->stackPointer-=8;
 				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) += 
 					*(long*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Adds together 2 floats on the stack
 			case AddFloat:
 				thread->memory->stackPointer-=4;
 				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) += 
 					*(float*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Adds together 2 doubles on the stack
 			case AddDouble:
@@ -417,35 +428,35 @@ void executeSilentThread(SilentThread * thread)
 				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) += 
 					*(double*)(thread->memory->stack + thread->memory->stackPointer);
 
-				break;
+			break;
 
 			//Subtracts the last number from the second last number on the stack
 			case SubByte:
 				thread->memory->stackPointer--;
 				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) -= 
 					*(char*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Subtracts the last number from the second last number on the stack
 			case SubInt:
 				thread->memory->stackPointer-=4;
 				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) -= 
 					*(int*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Subtracts the last number from the second last number on the stack
 			case SubLong:
 				thread->memory->stackPointer-=8;
 				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) -= 
 					*(long*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Subtracts the last number from the second last number on the stack
 			case SubFloat:
 				thread->memory->stackPointer-=4;
 				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) -= 
 					*(float*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Subtracts the last number from the second last number on the stack
 			case SubDouble:
@@ -453,77 +464,77 @@ void executeSilentThread(SilentThread * thread)
 				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) -= 
 					*(double*)(thread->memory->stack + thread->memory->stackPointer);
 
-				break;
+			break;
 			
 			//Multiplies 2 bytes together
 			case MulByte:
 				thread->memory->stackPointer--;
 				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) *= 
 					*(char*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Multiplies 2 integers together
 			case MulInt:
 				thread->memory->stackPointer-=4;
 				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) *= 
 					*(int*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Multiplies 2 longs together
 			case MulLong:
 				thread->memory->stackPointer-=8;
 				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) *= 
 					*(long*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Multiplies 2 floats together
 			case MulFloat:
 				thread->memory->stackPointer-=4;
 				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) *= 
 					*(float*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Multiplies 2 doubles together
 			case MulDouble:
 				thread->memory->stackPointer-=8;
 				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) *= 
 					*(double*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Divides 2 bytes
 			case DivByte:
 				thread->memory->stackPointer--;
 				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) /= 
 					*(char*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Divides 2 integers
 			case DivInt:
 				thread->memory->stackPointer-=4;
 				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) /= 
 					*(int*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Divides 2 longs
 			case DivLong:
 				thread->memory->stackPointer-=8;
 				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) /= 
 					*(long*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Divides 2 floats
 			case DivFloat:
 				thread->memory->stackPointer-=4;
 				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) /= 
 					*(float*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Divides 2 doubles
 			case DivDouble:
 				thread->memory->stackPointer-=8;
 				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) /= 
 					*(double*)(thread->memory->stack + thread->memory->stackPointer);
-				break;
+			break;
 
 			//Byte to integer conversion
 			case ByteToInt://untested
@@ -534,7 +545,7 @@ void executeSilentThread(SilentThread * thread)
 					&ireg, 
 					4);
 				thread->memory->stackPointer+=4;
-				break;
+			break;
 
 			//Byte to long conversion
 			case ByteToLong://untested
@@ -545,7 +556,7 @@ void executeSilentThread(SilentThread * thread)
 					&lreg,
 					8);
 				thread->memory->stackPointer+=8;
-				break;
+			break;
 
 			//Byte to float conversion
 			case ByteToFloat://untested
@@ -556,7 +567,7 @@ void executeSilentThread(SilentThread * thread)
 					&freg,
 					4);
 				thread->memory->stackPointer+=4;
-				break;
+			break;
 
 			//Byte to double conversion
 			case ByteToDouble://untested
@@ -567,8 +578,7 @@ void executeSilentThread(SilentThread * thread)
 					&dreg,
 					8);
 				thread->memory->stackPointer+=8;
-
-				break;
+			break;
 
 			//Integer to byte conversion
 			case IntToByte://untested
@@ -580,7 +590,7 @@ void executeSilentThread(SilentThread * thread)
 					1);
 				thread->memory->stackPointer++;
 
-				break;
+			break;
 
 			//Integer to long conversion
 			case IntToLong://untested
@@ -591,7 +601,7 @@ void executeSilentThread(SilentThread * thread)
 					&lreg,
 					8);
 				thread->memory->stackPointer+=8;
-				break;
+			break;
 			
 			//Integer to float conversion
 			case IntToFloat://untested
@@ -601,7 +611,7 @@ void executeSilentThread(SilentThread * thread)
 					thread->memory->stack + (thread->memory->stackPointer-4),
 					&freg,
 					4);
-				break;
+			break;
 
 			//Integer to double conversion
 			case IntToDouble://untested
@@ -612,8 +622,7 @@ void executeSilentThread(SilentThread * thread)
 					&freg,
 					8);
 				thread->memory->stackPointer+=4;
-
-				break;
+			break;
 
 			//Float to integer conversion
 			case FloatToInt://untested
@@ -622,9 +631,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Float to double conversion
 			case FloatToDouble://untested
-				thread->memory->stackPointer+=4;
-				
-				break;
+				thread->memory->stackPointer+=4;				
+			break;
 			
 			//Compare value of 2 bytes
 			case SmallerThanByte:
@@ -638,7 +646,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 4 bytes
 			case SmallerThanInt:
@@ -652,7 +660,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}			
-				break;
+			break;
 
 			//Compare value of 2 8 bytes
 			case SmallerThanLong:
@@ -666,7 +674,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 4 bytes
 			case SmallerThanFloat:
@@ -680,7 +688,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 8 bytes
 			case SmallerThanDouble:
@@ -694,7 +702,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 bytes
 			case BiggerThanByte:
@@ -708,7 +716,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 4 bytes
 			case BiggerThanInt:
@@ -722,7 +730,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 8 bytes
 			case BiggerThanLong:
@@ -736,7 +744,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 4 bytes
 			case BiggerThanFloat:
@@ -750,7 +758,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 8 bytes
 			case BiggerThanDouble:
@@ -764,7 +772,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 bytes
 			case EqualByte:
@@ -778,7 +786,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 4 bytes
 			case EqualInt:
@@ -792,7 +800,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 8 bytes
 			case EqualLong:
@@ -806,7 +814,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 4 bytes
 			case EqualFloat:
@@ -821,7 +829,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 			//Compare value of 2 8 bytes
 			case EqualDouble:
@@ -835,7 +843,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->memory->stack[thread->memory->stackPointer-1] = 0;
 				}
-				break;
+			break;
 
 
 			case If:
@@ -852,7 +860,7 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->programCounter += 3;
 				}
-				break;
+			break;
 
 
 			case IfNot:
@@ -868,8 +876,12 @@ void executeSilentThread(SilentThread * thread)
 				{
 					thread->programCounter += 3;
 				}
-				break;	
+			break;	
 		}
+		//printf("stack 1st element:%i\n",(int)memory->stack[0]);
+		//printf("programCounter:%i\n",(int)thread->programCounter);
+		//printf("Which function:%i\n",(int)memory->storagePointers->dataCount);
+		//getchar();
 		thread->programCounter++;
 	}
 }

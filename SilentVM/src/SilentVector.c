@@ -53,6 +53,7 @@ void vectorPopBack(vector* vec)
 //Remove an item at a given index
 void vectorRemove(vector* vec, int index)
 {
+    char decrease = 0;
     if(index == vec->dataCount)
     {
         vectorPopBack(vec);
@@ -66,14 +67,22 @@ void vectorRemove(vector* vec, int index)
             exit(1);
         }
         memcpy(temp,vec->characters,vec->dataSize * vec->dataCount);
-        char* temp2 = realloc(vec->characters, (vec->dataCount-=1)*vec->dataSize);
-        if(temp2 == NULL)
+        if((vec->dataCount-1)*vec->dataSize > 0)
         {
-            printf("Couldn't reallocate memory\n");
-            free(vec);
-            exit(1);
+            char* temp2 = realloc(vec->characters, (vec->dataCount-=1)*vec->dataSize);
+            if(temp2 == NULL)
+            {
+                printf("%i\n",(vec->dataCount-1)*vec->dataSize);
+                printf("Couldn't reallocate memory when removing\n");
+                free(vec);
+                exit(1);
+            }
+            vec->characters = temp2;
         }
-        vec->characters = temp2;
+        else
+        {
+            decrease = 1;
+        }
         if(index == 0)
         {
             memcpy(vec->characters,temp + vec->dataSize,vec->dataCount*vec->dataSize);
@@ -86,6 +95,10 @@ void vectorRemove(vector* vec, int index)
                 temp+(index*vec->dataSize)+vec->dataSize,
                 (vec->dataCount - index) * vec->dataSize
             );
+        }
+        if(decrease)
+        {
+            vec->dataCount -= 1;
         }
     }
     

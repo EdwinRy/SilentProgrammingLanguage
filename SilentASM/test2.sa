@@ -1,0 +1,24 @@
+goto main
+
+addRemainder:
+push4 i2
+addint
+return
+
+addTen:
+push4 i10
+addint
+call addRemainder
+return
+
+dontCallThis:
+push4 i4
+alloc4 i0
+store4 i0
+
+main:
+push4 i9
+call addTen
+pop4
+push4 i19
+halt
