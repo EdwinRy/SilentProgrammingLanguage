@@ -135,6 +135,12 @@ typedef enum SilentBytecode
 	DoubleToInt,//
 	DoubleToLong,//
 	DoubleToFloat,//
+
+	//Cast long value to other data types
+	LongToByte,//
+	LongToInt,//
+	LongToFloat,//
+	LongToDouble,//
 	
 	//Smaller than operators
 	//Same order as with subtraction

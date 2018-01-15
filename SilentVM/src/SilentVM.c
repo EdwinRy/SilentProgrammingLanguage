@@ -55,9 +55,6 @@ void executeSilentThread(SilentThread * thread)
 	int* storagePointer = memory->storagePointers->integers;
 	int* lastPC = memory->programCounters->integers;
 
-
-	//printf("%i\n", memory->storage);
-	//Often used values
 	while(thread->running)
 	{
 		switch(thread->bytecode[thread->programCounter])
@@ -81,7 +78,7 @@ void executeSilentThread(SilentThread * thread)
 			case CallSys: //Not yet implemented
 			break;
 
-			case Call://
+			case Call:
 				//printf("call\n");
 				vectorInsert(memory->storagePointers,&localStoragePointer,0);
 				vectorInsert(memory->programCounters,&thread->programCounter,0);
@@ -91,7 +88,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter--;
 			break;
 
-			case Return://
+			case Return:
 			//printf("return\n");
 				thread->programCounter = (*lastPC) + 4;
 				vectorRemove(memory->storagePointers,0);
@@ -819,7 +816,6 @@ void executeSilentThread(SilentThread * thread)
 			//Compare value of 2 4 bytes
 			case EqualFloat:
 				thread->memory->stackPointer-=7;
-
 				if((*(float*)(thread->memory->stack + (thread->memory->stackPointer-1))) == 
 					(*(float*)(thread->memory->stack + thread->memory->stackPointer+3)))
 				{
@@ -855,7 +851,6 @@ void executeSilentThread(SilentThread * thread)
 					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
 					thread->programCounter--;
 				}
-
 				else
 				{
 					thread->programCounter += 3;
@@ -871,7 +866,6 @@ void executeSilentThread(SilentThread * thread)
 					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
 					thread->programCounter--;
 				}
-
 				else
 				{
 					thread->programCounter += 3;
