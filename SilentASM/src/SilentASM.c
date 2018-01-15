@@ -314,13 +314,12 @@ char assemble(char* inFile, char* outFile)
             gotosIndex += 1;    
             programCounter+=sizeof(int);
         }
+        
         if(strcmp(instructions[0],"return") == 0)
         {
             program[programCounter] = (char)Return;
             programCounter+=1;
         }
-
-
 
         if(strcmp(instructions[0],"push1") == 0)
         {
