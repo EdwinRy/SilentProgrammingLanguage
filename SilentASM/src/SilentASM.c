@@ -1126,6 +1126,27 @@ char assemble(char* inFile, char* outFile)
         }
 
 
+        if(strcmp(instructions[0],"longtobyte") == 0)
+        {
+            program[programCounter] = (char)LongToByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"longtoint") == 0)
+        {
+            program[programCounter] = (char)LongToInt;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"longtofloat") == 0)
+        {
+            program[programCounter] = (char)LongToFloat;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"longtodouble") == 0)
+        {
+            program[programCounter] = (char)LongToDouble;
+            programCounter+=1;
+        }
+
 
         if(strcmp(instructions[0],"smallerthanbyte") == 0)
         {
