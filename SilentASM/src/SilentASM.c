@@ -215,7 +215,6 @@ char assemble(char* inFile, char* outFile)
     size_t s = 0;
     int size = 0;
     size = getline(&line,&s,f);
-
     while(size != -1)
     {
         char buffer[255];
@@ -225,7 +224,6 @@ char assemble(char* inFile, char* outFile)
         {
             if(isalpha(line[i]))
             {
-                //printf("here\n");
                 //Number of characters
 			    unsigned char count = 0;
 			    //prepare space for the value
@@ -235,8 +233,12 @@ char assemble(char* inFile, char* outFile)
                     isdigit(line[i+count]) || 
                     line[i+count] == ':')
 			    {
+                    //printf("%s\n",buffer);
 				    //Assign buffer to the current character
-				    buffer[count++] = line[i+count];
+                    //printf("count %i\n",count);
+                    //printf("i %i \n",i);
+				    buffer[count] = line[i+count];
+                    count+=1;
 			    }
 			    //Allocate space for the value and terminator
 			    instructions[instructionIndex] = malloc(count+1);
@@ -246,7 +248,7 @@ char assemble(char* inFile, char* outFile)
                 //printf("%s\n",instructions[instructionIndex]);
                 i+=count;
                 instructionIndex+=1;
-                //printf("here2\n");
+                //printf("%s\n",buffer);
                 
             }
         }
@@ -1285,7 +1287,7 @@ char assemble(char* inFile, char* outFile)
     }
 
     //Write to file
-    FILE* out = fopen(outFile,"wb");
+    FILE* out = fopen(outFile,"w");
     fwrite(program,1,programCounter,out);
     fclose(out);
     return 1;
