@@ -324,11 +324,45 @@ vector* silentParseParameters(silentToken* tokens, int* index)
 	return parameters;
 }
 
+silentVariable* getFunctionVariable(char* name, silentFunction* function)
+{
+	for(int i = 0; i < function->variables->dataCount; i++)
+	{
+		silentVariable* var = ((silentVariable*)vectorGet(function->variables,i));
+		if(strcmp(name,var->name)==0)
+		{
+			return var;
+		}
+	}
+	for(int i = 0; i < function->parameters->dataCount; i++)
+	{
+		silentVariable* var = ((silentVariable*)vectorGet(function->parameters,i));
+		if(strcmp(name,var->name)==0)
+		{
+			return var;
+		}
+	}
+	return NULL;
+}
+
 silentExpression* silentParseExpression(
 	silentToken* tokens, int* index,silentFunction* function)
 {
 	silentExpression* expression = malloc(sizeof(silentExpression));
-	
+	if(tokens[*index].type == silentIdentifierToken)
+	{
+		*index += 1;
+		if(tokens[*index].type == silentAssignToken)
+		{
+			expression->type = silentAssignment;
+			silentExpressionParameter* parameter1 = 
+				malloc(sizeof(silentExpressionParameter));
+			parameter1->type = silentExpressionVariable;
+			parameter1->variable = getFunctionVariable(
+				tokens[*index].value, function);
+			expression->parameters[0] = parameter1;
+		}
+	}
 	return expression;
 }
 //Parse a function

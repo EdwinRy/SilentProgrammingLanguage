@@ -53,6 +53,7 @@ void executeSilentThread(SilentThread * thread)
 	SilentMemory* memory = thread->memory;
 	int localStoragePointer = 0;
 	int* storagePointer = memory->storagePointers->integers;
+	int altStoragePointer = 0;
 	int* lastPC = memory->programCounters->integers;
 
 	while(thread->running)
@@ -78,10 +79,21 @@ void executeSilentThread(SilentThread * thread)
 			case CallSys: //Not yet implemented
 			break;
 
+			//Disable storage pointer
+			case UseGlobal://
+				altStoragePointer = 0;
+			break;
+
+			//Call silent subrouting
+			case EndGlobal://
+				altStoragePointer = *storagePointer;
+			break;
+
 			case Call:
 				//printf("call\n");
 				vectorInsert(memory->storagePointers,&localStoragePointer,0);
 				vectorInsert(memory->programCounters,&thread->programCounter,0);
+				altStoragePointer = *storagePointer;
 				thread->programCounter++;
 				thread->programCounter = 
 					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
@@ -94,6 +106,7 @@ void executeSilentThread(SilentThread * thread)
 				vectorRemove(memory->storagePointers,0);
 				vectorRemove(memory->programCounters,0);
 				localStoragePointer = *storagePointer;
+				altStoragePointer = *storagePointer;
 			break;
 
 			//Pushes 1 byte of data to the stack
@@ -157,11 +170,9 @@ void executeSilentThread(SilentThread * thread)
 			//Saves 1 byte from the stack to allocated space
 			case Store1://
 				memcpy(			
-					/*((silentBlock*)(vectorGet(memory->storage,
-						*(int*)(thread->bytecode +
-						(++thread->programCounter)))))->data*/
 					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter))
+						*(int*)(thread->bytecode +(++thread->programCounter)) +
+						altStoragePointer
 					]->data,
 					thread->memory->stack + (--thread->memory->stackPointer),
 					1
@@ -175,7 +186,8 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer -= 4;
 				memcpy(
 					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter))
+						*(int*)(thread->bytecode +(++thread->programCounter)) +
+						altStoragePointer
 					]->data,
 					thread->memory->stack + (thread->memory->stackPointer),
 					4
@@ -188,7 +200,8 @@ void executeSilentThread(SilentThread * thread)
 				thread->memory->stackPointer -= 8;
 				memcpy(	
 					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter))
+						*(int*)(thread->bytecode +(++thread->programCounter)) +
+						altStoragePointer
 					]->data,
 					thread->memory->stack + (thread->memory->stackPointer),
 					8
@@ -203,7 +216,8 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter+=4;
 				memcpy(
 					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter))
+						*(int*)(thread->bytecode +(++thread->programCounter)) +
+						altStoragePointer
 					]->data,
 					thread->memory->stack + (thread->memory->stackPointer),
 					ireg);
@@ -217,7 +231,8 @@ void executeSilentThread(SilentThread * thread)
 				(
 					thread->memory->stack + (thread->memory->stackPointer++),
 					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter))
+						*(int*)(thread->bytecode +(++thread->programCounter)) +
+						altStoragePointer
 					]->data,
 					1
 				);
@@ -231,7 +246,8 @@ void executeSilentThread(SilentThread * thread)
 				(
 					thread->memory->stack + (thread->memory->stackPointer),
 					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter))
+						*(int*)(thread->bytecode +(++thread->programCounter)) +
+						altStoragePointer
 					]->data,
 					4
 				);
@@ -245,7 +261,8 @@ void executeSilentThread(SilentThread * thread)
 				(
 					thread->memory->stack + (thread->memory->stackPointer),
 					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter))
+						*(int*)(thread->bytecode +(++thread->programCounter)) +
+						altStoragePointer
 					]->data,
 					8
 				);
@@ -259,7 +276,8 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter+=3;
 				memcpy(
 					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter))
+						*(int*)(thread->bytecode +(++thread->programCounter)) +
+						altStoragePointer
 					]->data,
 					thread->memory->stack + (thread->memory->stackPointer),
 					ireg);
@@ -271,7 +289,7 @@ void executeSilentThread(SilentThread * thread)
 			case Alloc1://
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
-				ireg += *storagePointer;
+				ireg += altStoragePointer;
 				if(ireg > localStoragePointer)
 					localStoragePointer = ireg;
 				while(ireg >= memory->storageSize)
@@ -289,7 +307,7 @@ void executeSilentThread(SilentThread * thread)
 				//printf("alloc4\n");
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
-				ireg += *storagePointer;
+				ireg += altStoragePointer;
 				if(ireg > localStoragePointer)
 					localStoragePointer = ireg;
 				while(ireg >= memory->storageSize)
@@ -306,6 +324,7 @@ void executeSilentThread(SilentThread * thread)
 			case Alloc8://
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
+				ireg += altStoragePointer;
 				if(ireg > localStoragePointer)
 					localStoragePointer = ireg;
 				while(ireg >= memory->storageSize)
@@ -322,6 +341,7 @@ void executeSilentThread(SilentThread * thread)
 			case AllocX://untested
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
+				ireg += altStoragePointer;
 				if(ireg > localStoragePointer)
 					localStoragePointer = ireg;
 				while(ireg >= memory->storageSize)
@@ -340,7 +360,8 @@ void executeSilentThread(SilentThread * thread)
 			case GetPtr:
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						(int*)&memory->storage[
-							*(int*)(thread->bytecode + (++thread->programCounter))
+							*(int*)(thread->bytecode + (++thread->programCounter)) +
+							altStoragePointer
 						]->data,
 						4);
 				thread->programCounter += 3;
@@ -386,7 +407,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Releases the lastly allocated storage
 			case FREE:
-				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
+				ireg = *(int*)(thread->bytecode +(++thread->programCounter)) +
+					altStoragePointer;
 				free(memory->storage[ireg]->data);
 				free(memory->storage[ireg]);
 				thread->programCounter += 3;
@@ -877,7 +899,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 			break;	
 		}
-		//printf("stack 1st element:%i\n",(int)memory->stack[0]);
+		//printf("stack 1st element:%u\n",(int)memory->stack[0]);
 		//printf("programCounter:%i\n",(int)thread->programCounter);
 		//printf("Which function:%i\n",(int)memory->storagePointers->dataCount);
 		//getchar();

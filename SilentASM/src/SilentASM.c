@@ -15,6 +15,9 @@ typedef enum SilentBytecode
 	//Call native subroutine
 	CallSys,//X - 4 bytes
 
+    UseGlobal,
+    EndGlobal,
+
 	//Call silent subrouting
 	Call,//X - 4 bytes
 	//Return back from subroutine
@@ -221,6 +224,12 @@ char assemble(char* inFile, char* outFile)
     size = getline(&line,&s,f);
     while(size != -1)
     {
+        if(line[0] == '/')
+        {
+            currentLine += 1;
+            size = getline(&line,&s,f);
+            continue;
+        }
         char buffer[255];
         char* instructions[3];
         int instructionIndex = 0;
@@ -307,6 +316,19 @@ char assemble(char* inFile, char* outFile)
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
+
+        if(strcmp(instructions[0],"useglobal") == 0)
+        {
+            program[programCounter] = (char)UseGlobal;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"endglobal") == 0)
+        {
+            program[programCounter] = (char)EndGlobal;
+            programCounter+=1;
+        }
+
         if(strcmp(instructions[0],"call") == 0)
         {
             program[programCounter] = (char)Call;

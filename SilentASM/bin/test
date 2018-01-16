@@ -1,7 +1,0 @@
-halt
-:main
-push1 5
-push1 6
-addByte
-pop1
-pop1

@@ -80,7 +80,7 @@ struct silentExpression
 	//Expression parameters
 	//E.G. 2 + 2; 
 	//type: addition; parameters: 2, 2
-	silentExpressionParameter parameters[2];
+	silentExpressionParameter* parameters[2];
 	//struct silentExpression* expressionParameters;
 	//silentValue parameters[2];
 };

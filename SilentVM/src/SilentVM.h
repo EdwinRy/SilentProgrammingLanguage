@@ -16,6 +16,11 @@ typedef enum SilentBytecode
 	//Call native subroutine
 	CallSys,//X - 4 bytes
 
+	//Disable storage pointer
+    UseGlobal,
+	//Enable storage pointer
+    EndGlobal,
+
 	//Call silent subrouting
 	Call,//X - 4 bytes
 	//Return back from subroutine
@@ -206,3 +211,4 @@ void deleteSilentThread(SilentThread* thread);
 void executeSilentThread(SilentThread* thread);
 
 #endif //SILENT_VM
+

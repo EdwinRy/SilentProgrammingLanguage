@@ -24,8 +24,10 @@ store4 i2
 goto loop
 end:
 load4 i2
+push4 i2
+divint
 return
 main:
-push4 i4
+push4 i7
 call fac
 halt
