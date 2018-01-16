@@ -89,7 +89,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case Return:
-			//printf("return\n");
+				//printf("return\n");
 				thread->programCounter = (*lastPC) + 4;
 				vectorRemove(memory->storagePointers,0);
 				vectorRemove(memory->programCounters,0);
@@ -104,7 +104,7 @@ void executeSilentThread(SilentThread * thread)
 				
 			//Pushes 4 bytes of data to the stack
 			case Push4:
-			//printf("push4\n");
+				//printf("push4\n");
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						4);
@@ -138,7 +138,7 @@ void executeSilentThread(SilentThread * thread)
 			
 			//Decreases the stack pointer by 4
 			case Pop4:
-			//printf("pop4\n");
+				//printf("pop4\n");
 				thread->memory->stackPointer-=4;
 			break;
 					
@@ -171,6 +171,7 @@ void executeSilentThread(SilentThread * thread)
 
 			//Saves 4 bytes from the stack to allocated space
 			case Store4://
+				//printf("store4\n");
 				thread->memory->stackPointer -= 4;
 				memcpy(
 					memory->storage[
@@ -225,6 +226,7 @@ void executeSilentThread(SilentThread * thread)
 
 			//Copies 4 bytes of data from storage onto the stack
 			case Load4://
+				//printf("load4\n");
 				memcpy
 				(
 					thread->memory->stack + (thread->memory->stackPointer),
@@ -472,6 +474,7 @@ void executeSilentThread(SilentThread * thread)
 
 			//Multiplies 2 integers together
 			case MulInt:
+				//printf("mulint\n");
 				thread->memory->stackPointer-=4;
 				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) *= 
 					*(int*)(thread->memory->stack + thread->memory->stackPointer);
@@ -647,6 +650,7 @@ void executeSilentThread(SilentThread * thread)
 
 			//Compare value of 2 4 bytes
 			case SmallerThanInt:
+				//printf("smallerint\n");
 				thread->memory->stackPointer-=7;
 				if(*(int*)(thread->memory->stack + thread->memory->stackPointer-1) < 
 					*(int*)(thread->memory->stack + thread->memory->stackPointer+3))
@@ -843,7 +847,7 @@ void executeSilentThread(SilentThread * thread)
 
 
 			case If:
-
+				//printf("if\n");
 				if(*(char*)(thread->memory->stack + --thread->memory->stackPointer))
 				{
 					thread->programCounter++;
@@ -853,12 +857,13 @@ void executeSilentThread(SilentThread * thread)
 				}
 				else
 				{
-					thread->programCounter += 3;
+					thread->programCounter += 4;
 				}
 			break;
 
 
 			case IfNot:
+				//printf("ifn\n");
 				if(!(*(char*)(thread->memory->stack + (--thread->memory->stackPointer))))
 				{
 					thread->programCounter++;
@@ -868,14 +873,14 @@ void executeSilentThread(SilentThread * thread)
 				}
 				else
 				{
-					thread->programCounter += 3;
+					thread->programCounter += 4;
 				}
 			break;	
 		}
-		printf("stack 1st element:%i\n",(int)memory->stack[0]);
-		printf("programCounter:%i\n",(int)thread->programCounter);
-		printf("Which function:%i\n",(int)memory->storagePointers->dataCount);
-		getchar();
+		//printf("stack 1st element:%i\n",(int)memory->stack[0]);
+		//printf("programCounter:%i\n",(int)thread->programCounter);
+		//printf("Which function:%i\n",(int)memory->storagePointers->dataCount);
+		//getchar();
 		thread->programCounter++;
 	}
 }

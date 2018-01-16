@@ -1,0 +1,31 @@
+goto main
+fac:
+alloc4 i0
+alloc4 i1
+alloc4 i2
+store4 i0
+push4 i1
+store4 i1
+push4 i2
+store4 i2
+loop:
+load4 i1
+load4 i0
+smallerthanint
+ifnot end
+load4 i1
+push4 i1
+addint
+store4 i1
+load4 i2
+load4 i1
+mulint
+store4 i2
+goto loop
+end:
+load4 i2
+return
+main:
+push4 i4
+call fac
+halt
