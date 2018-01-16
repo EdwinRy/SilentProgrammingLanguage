@@ -872,10 +872,10 @@ void executeSilentThread(SilentThread * thread)
 				}
 			break;	
 		}
-		//printf("stack 1st element:%i\n",(int)memory->stack[0]);
-		//printf("programCounter:%i\n",(int)thread->programCounter);
-		//printf("Which function:%i\n",(int)memory->storagePointers->dataCount);
-		//getchar();
+		printf("stack 1st element:%i\n",(int)memory->stack[0]);
+		printf("programCounter:%i\n",(int)thread->programCounter);
+		printf("Which function:%i\n",(int)memory->storagePointers->dataCount);
+		getchar();
 		thread->programCounter++;
 	}
 }

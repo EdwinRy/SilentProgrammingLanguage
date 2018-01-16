@@ -173,6 +173,7 @@ typedef enum SilentBytecode
 	IfNot
 }SilentBytecode;
 
+
 typedef struct silentInstruction
 {
     char* data;
@@ -185,10 +186,13 @@ typedef struct silentLabel
 }silentLabel;
 int getLabelIndex(silentLabel* labels,int count, char* label)
 {
+    //printf("label %s\n",label);
     for(int i = 0; i < count; i++)
     {
+       // printf("label test:%s\n",labels[i].label);
         if(strcmp(labels[i].label,label)==0)
         {
+            //printf("label2 %s\n",labels[i].label);
             return labels[i].index;
         }
        
@@ -254,12 +258,11 @@ char assemble(char* inFile, char* outFile)
         }
         if(instructions[0][size-2] == ':')
         {
-            //printf("label %s\n",instructions[0]);
             silentLabel label;
             label.index = programCounter;
-            label.label = malloc(size-1);
+            label.label = malloc(size-2);
             memcpy(label.label,instructions[0],size-2);
-            label.label[size-1] = '\0';
+            label.label[size-2] = '\0';
             labels[labelIndex] = label;
             labelIndex += 1;
         }
@@ -1279,6 +1282,7 @@ char assemble(char* inFile, char* outFile)
                 labelIndex,
                 gotos[i].label
                 );
+        //printf("%i\n",index);
         memcpy(
             program + gotos[i].index,
             &index,
@@ -1287,7 +1291,7 @@ char assemble(char* inFile, char* outFile)
     }
 
     //Write to file
-    FILE* out = fopen(outFile,"w");
+    FILE* out = fopen(outFile,"wb");
     fwrite(program,1,programCounter,out);
     fclose(out);
     return 1;

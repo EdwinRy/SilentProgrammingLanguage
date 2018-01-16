@@ -1,0 +1,14 @@
+goto main
+label:
+push4 i10
+addint
+call address
+return
+address:
+push4 i2
+addint
+return
+main:
+push4 i9
+call label
+halt
