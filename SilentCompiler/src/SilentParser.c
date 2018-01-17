@@ -81,17 +81,18 @@ char checkExistingGlobal(char* value)
 	return 0;
 }
 
-//Check whether a function in the global scope has been declared
-char checkExistingFunction(silentToken token)
+//Get function pointer by name
+silentFunction* getFunction(char* name)
 {
 	for(int i = 0; i < functions->dataCount; i++)
 	{
-		if(strcmp(((silentFunction*)vectorGet(functions,i))->name,token.value)==0)
+		silentFunction* function = ((silentFunction*)vectorGet(functions,i))
+		if(strcmp(function->name,name)==0)
 		{
-			return 1;
+			return function;
 		}
 	}
-	return 0;
+	return NULL;
 }
 
 //Parse global variable
@@ -189,7 +190,7 @@ silentVariable* silentParseStructVariable(
 silentStruct* silentParseStructure(silentToken* tokens, int* index)
 {
 	silentStruct* structure = malloc(sizeof(silentStruct));
-	structure->variables = createVector(sizeof(silentVariable));
+	structure->variables = createVector(sizeof(silentVariable*));
 	structure->size = 0;
 	//Parse name
 	*index+=1;
@@ -217,7 +218,7 @@ silentStruct* silentParseStructure(silentToken* tokens, int* index)
 				silentParseStructVariable(tokens, index, structure);
 			vectorPushBack(
 				structure->variables,
-				variable
+				&variable
 			);
 			structure->size += variable->value.size;
 			free(variable);
@@ -227,6 +228,28 @@ silentStruct* silentParseStructure(silentToken* tokens, int* index)
 	//printf("Declared structure of name: %s size: %i\n",structure->name,structure->size);
 	//printf("Number of variables in the struct: %i\n",structure->variables->dataCount);
 	return structure;
+}
+
+
+silentVariable* getFunctionVariable(char* name, silentFunction* function)
+{
+	for(int i = 0; i < function->variables->dataCount; i++)
+	{
+		silentVariable* var = ((silentVariable*)vectorGet(function->variables,i));
+		if(strcmp(name,var->name)==0)
+		{
+			return var;
+		}
+	}
+	for(int i = 0; i < function->parameters->dataCount; i++)
+	{
+		silentVariable* var = ((silentVariable*)vectorGet(function->parameters,i));
+		if(strcmp(name,var->name)==0)
+		{
+			return var;
+		}
+	}
+	return NULL;
 }
 
 silentVariable* silentParseFunctionVariable(
@@ -313,37 +336,40 @@ silentVariable* silentParseParameterVariable(silentToken* tokens, int* index)
 
 vector* silentParseParameters(silentToken* tokens, int* index)
 {
-	vector* parameters = createVector(sizeof(silentVariable));
+	vector* parameters = createVector(sizeof(silentVariable*));
 	//*index+=1;
 	while(tokens[*index].type != silentOpenCurlyBracketToken)
 	{
-		vectorPushBack(parameters,silentParseParameterVariable(tokens, index));
+		vectorPushBack(parameters,&silentParseParameterVariable(tokens, index));
 		*index+=1;
 	}
 	*index+=1;
 	return parameters;
 }
 
-silentVariable* getFunctionVariable(char* name, silentFunction* function)
+vector* silentParseArguments(silentToken* tokens, int* index, silentFunction* currentFunction)
 {
-	for(int i = 0; i < function->variables->dataCount; i++)
+	vector* arguments = createVector(sizeof(silentVariable*));
+	*index+=1;
+	//parse arguments
+	while(tokens[*index] != silentParenthesToken)
 	{
-		silentVariable* var = ((silentVariable*)vectorGet(function->variables,i));
-		if(strcmp(name,var->name)==0)
+		silentVariable* var = getFunctionVariable(token[*index]->value,currentFunction);
+		if(var != NULL)
 		{
-			return var;
+			vectorPushBack(arguments,&var);
+		}
+		else
+		{
+			printf("Variable %s not in function scope in ",token[*index]->value);
+			printf("function %s", currentFunction->name);
 		}
 	}
-	for(int i = 0; i < function->parameters->dataCount; i++)
-	{
-		silentVariable* var = ((silentVariable*)vectorGet(function->parameters,i));
-		if(strcmp(name,var->name)==0)
-		{
-			return var;
-		}
-	}
-	return NULL;
+	//Check if parameters are valid
+	//not implemented
+	return arguments;
 }
+
 
 silentExpression* silentParseExpression(
 	silentToken* tokens, int* index,silentFunction* function)
@@ -361,6 +387,15 @@ silentExpression* silentParseExpression(
 			parameter1->variable = getFunctionVariable(
 				tokens[*index].value, function);
 			expression->parameters[0] = parameter1;
+		}
+
+		else if(tokens[*index].type == silentParenthesToken)
+		{
+			expression->type = silentFunctionCall;
+			silentExpressionParameter* parameter1 = 
+				malloc(sizeof(silentExpressionParameter));
+			parameter1->type = silentExpressionCall;
+			parameter1->
 		}
 	}
 	return expression;
@@ -413,7 +448,7 @@ silentFunction* silentParseFunction(silentToken* tokens, int* index)
 	}
 	else
 	{
-		function->parameters = createVector(sizeof(silentVariable));
+		function->parameters = createVector(sizeof(silentVariable*));
 		function->parameters->dataCount = 0;
 	}
 	

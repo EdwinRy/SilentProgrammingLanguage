@@ -22,7 +22,9 @@ typedef enum silentExpressionParameterType
 {
 	silentExpressionValue,
 	silentExpressionResult,
-	silentExpressionVariable
+	silentExpressionVariable,
+	silentExpressionCall,
+
 }silentExpressionParameterType;
 
 //Type of expression
@@ -32,7 +34,8 @@ typedef enum silentExpressionType
 	silentAddition,
 	silentSubtraction,
 	silentMultiplication,
-	silentDivision
+	silentDivision,
+	silentFunctionCall,
 }silentExpressionType;
 
 //Predeclare structure
@@ -69,6 +72,7 @@ typedef struct silentExpressionParameter
 		silentValue* value;
 		silentExpression* expression;
 		vector* parameters;
+		silentFunction* function;
 	};
 }silentExpressionParameter;
 
@@ -108,14 +112,6 @@ typedef struct silentFunction
 	//Parameters
 	vector* parameters;
 }silentFunction;
-
-//Node for a function call
-typedef struct silentFunctionCall
-{
-
-	silentFunction* function;
-	vector* parameters;
-}silentFunctionCall;
 
 //Node for the program
 typedef struct silentProgram
