@@ -80,12 +80,12 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Disable storage pointer
-			case UseGlobal://
+			case UseGlobal:
 				altStoragePointer = 0;
 			break;
 
 			//Call silent subrouting
-			case EndGlobal://
+			case EndGlobal:
 				altStoragePointer = *storagePointer;
 			break;
 
@@ -135,7 +135,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Pushes X (in bytecode) bytes of data to the stack
-			case PushX:
+			case PushX://
 				lreg = *((long*)(thread->bytecode + (++thread->programCounter)));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + 8 + thread->programCounter,
@@ -161,7 +161,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Decreases the stack pointer by X (in bytecode)
-			case PopX:
+			case PopX://
 				thread->memory->stackPointer-=
 					*(long*)(thread->bytecode + (++thread->programCounter));
 				thread->programCounter += 7;
@@ -357,7 +357,7 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 3;
 			break;
 			
-			case GetPtr:
+			case GetPtr://
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						(int*)&memory->storage[
 							*(int*)(thread->bytecode + (++thread->programCounter)) +
@@ -376,11 +376,11 @@ void executeSilentThread(SilentThread * thread)
 				memory->stackPointer+=1;
 			break;
 
-			case LoadPtr4:
+			case LoadPtr4://
 				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 					(long*)lreg,4);
-					memory->stackPointer+=4;
+				memory->stackPointer+=4;
 			break;
 			case LoadPtr8://
 				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
@@ -397,16 +397,42 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case EditPtr1://
+				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+				memcpy(
+					(void*)lreg,
+					memory->stack + (memory->stackPointer-=sizeof(char)),
+					sizeof(char)
+				);
 			break;
 			case EditPtr4://
+				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+				memcpy(
+					(void*)lreg,
+					memory->stack + (memory->stackPointer-=sizeof(int)),
+					sizeof(int)
+				);
 			break;
 			case EditPtr8://
+				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+				memcpy(
+					(void*)lreg,
+					memory->stack + (memory->stackPointer-=sizeof(long)),
+					sizeof(long)
+				);
 			break;
 			case EditPtrX://
+				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
+				memcpy(
+					(void*)lreg,
+					memory->stack + (memory->stackPointer-=ireg),
+					ireg
+				);
+				thread->programCounter += 3;
 			break;
 
 			//Releases the lastly allocated storage
-			case FREE:
+			case FREE://
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter)) +
 					altStoragePointer;
 				free(memory->storage[ireg]->data);

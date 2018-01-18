@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 			SilentMemory* mem = createSilentMemory(1000,1000);
 			SilentThread* thread = createSilentThread(mem,bytecode);			
 			executeSilentThread(thread);
-			//printf("%i\n",*((int*)(mem->storage[2])));
+			//printf("%i\n",*(int*)((silentBlock*)(mem->storage[1]))->data);
 			//printf("%i\n",(mem->storageSize));
 		}
 	}

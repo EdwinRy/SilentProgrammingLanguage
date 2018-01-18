@@ -203,7 +203,8 @@ typedef struct SilentThread
 
 //Create structures
 SilentMemory* createSilentMemory(int storageSize, int stackSize);
-SilentThread* createSilentThread(SilentMemory* memory, char* bytecode);
+SilentThread* createSilentThread(SilentMemory* memory,
+	char* bytecode);
 
 //Virtual machine functions
 void deleteSilentMemory(SilentMemory* memory);

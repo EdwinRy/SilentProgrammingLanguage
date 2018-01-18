@@ -1,2 +1,33 @@
 goto main
+globaltest:
+useglobal
+push4 i45
+store4 i0
+/endglobal
+alloc4 i0
+push4 i43
+store4 i0
+return
+//globaltest function
+globalsetup:
+alloc4 i0
+push4 i30
+store4 i0
+useglobal
+push4 i4
+store4 i0
+call globaltest
+return
+//main function
 main:
+alloc4 i0
+alloc4 i1
+alloc4 i2
+push4 i21
+push4 i22
+push4 i23
+store4 i2
+store4 i1
+store4 i0
+call globalsetup
+halt
