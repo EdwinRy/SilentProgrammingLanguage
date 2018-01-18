@@ -135,7 +135,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Pushes X (in bytecode) bytes of data to the stack
-			case PushX://
+			case PushX:
 				lreg = *((int*)(thread->bytecode + (++thread->programCounter)));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + 4 + thread->programCounter,
@@ -161,14 +161,14 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Decreases the stack pointer by X (in bytecode)
-			case PopX://
+			case PopX:
 				thread->memory->stackPointer-=
 					*(int*)(thread->bytecode + (++thread->programCounter));
 				thread->programCounter += 3;
 			break;
 
 			//Saves 1 byte from the stack to allocated space
-			case Store1://
+			case Store1:
 				memcpy(			
 					memory->storage[
 						*(int*)(thread->bytecode +(++thread->programCounter)) +
@@ -181,7 +181,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Saves 4 bytes from the stack to allocated space
-			case Store4://
+			case Store4:
 				//printf("store4\n");
 				thread->memory->stackPointer -= 4;
 				memcpy(
@@ -196,7 +196,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Saves 8 bytes from the stack to allocated space
-			case Store8://		
+			case Store8:
 				thread->memory->stackPointer -= 8;
 				memcpy(	
 					memory->storage[
@@ -210,19 +210,19 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Saves X bytes from stack to allocated space
-			case StoreX://untested
+			case StoreX:
 				//Data size
-				ireg = *((int*)(thread->bytecode + (++thread->programCounter)));
+				ireg = *((int*)(thread->bytecode + (++thread->programCounter)))+1;
 				thread->programCounter+=4;
+				thread->memory->stackPointer-=ireg;
 				memcpy(
 					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter)) +
+						(*(int*)(thread->bytecode +(thread->programCounter))) +
 						altStoragePointer
 					]->data,
-					thread->memory->stack + (thread->memory->stackPointer),
+					thread->memory->stack + (++thread->memory->stackPointer),
 					ireg);
 				thread->programCounter += 3;
-				thread->memory->stackPointer -= ireg;
 			break;
 	
 			//Copies 1 byte of data from storage onto the stack
@@ -240,7 +240,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Copies 4 bytes of data from storage onto the stack
-			case Load4://
+			case Load4:
 				//printf("load4\n");
 				memcpy
 				(
@@ -256,7 +256,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Copies 8 bytes of data from storage onto the stack
-			case Load8://
+			case Load8:
 				memcpy
 				(
 					thread->memory->stack + (thread->memory->stackPointer),
@@ -271,7 +271,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Copies X bytes of data from storage onto the stack
-			case LoadX://
+			case LoadX:
 				ireg = *((int*)(thread->bytecode + (++thread->programCounter)));
 				thread->programCounter+=3;
 				memcpy(
@@ -282,16 +282,17 @@ void executeSilentThread(SilentThread * thread)
 					thread->memory->stack + (thread->memory->stackPointer),
 					ireg);
 				thread->programCounter += 3;
-				thread->memory->stackPointer += ireg;
+				printf("%i\n",ireg);
+				memory->stackPointer += ireg;
 			break;
 
 			//Allocates 1 byte of data for the program
-			case Alloc1://
+			case Alloc1:
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
 				ireg += altStoragePointer;
-				if(ireg > localStoragePointer)
-					localStoragePointer = ireg;
+				if(ireg >= localStoragePointer)
+					localStoragePointer = ireg + 1;
 				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
@@ -303,13 +304,13 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Allocates 4 bytes of data for the program
-			case Alloc4://
+			case Alloc4:
 				//printf("alloc4\n");
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
 				ireg += altStoragePointer;
-				if(ireg > localStoragePointer)
-					localStoragePointer = ireg;
+				if(ireg >= localStoragePointer)
+					localStoragePointer = ireg + 1;
 				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
@@ -321,12 +322,12 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Allocates 8 bytes of data for the program
-			case Alloc8://
+			case Alloc8:
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
 				ireg += altStoragePointer;
-				if(ireg > localStoragePointer)
-					localStoragePointer = ireg;
+				if(ireg >= localStoragePointer)
+					localStoragePointer = ireg + 1;
 				while(ireg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
@@ -338,23 +339,23 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Allocates X bytes of data for the program
-			case AllocX://untested
-				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
+			case AllocX:
+				ireg = *(int*)(thread->bytecode + (++thread->programCounter)) + 1;
 				thread->programCounter += 3;
-				ireg += altStoragePointer;
-				if(ireg > localStoragePointer)
-					localStoragePointer = ireg;
-				while(ireg >= memory->storageSize)
+				lreg = *(int*)(thread->bytecode + (++thread->programCounter));
+				thread->programCounter += 3;
+				lreg += altStoragePointer;
+				if(lreg >= localStoragePointer)
+					localStoragePointer = lreg + 1;
+				while(lreg >= memory->storageSize)
 				{
 					memory->storageSize += memory->reallocSize;
 					memory->storage = 
 						realloc(memory->storage,memory->storageSize);
 				}
-				memory->storage[ireg] = malloc(sizeof(silentBlock));
-				memory->storage[ireg]->data = malloc(
-					*(int*)(thread->bytecode + (++thread->programCounter))
-				);
-				thread->programCounter += 3;
+				
+				memory->storage[lreg] = malloc(sizeof(silentBlock));
+				memory->storage[lreg]->data = malloc(ireg);
 			break;
 			
 			case GetPtr://
@@ -397,7 +398,8 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case EditPtr1://
-				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+				memory->stackPointer -= 4;
+				lreg = *(int*)(memory->stack + (memory->stackPointer));
 				memcpy(
 					(void*)lreg,
 					memory->stack + (memory->stackPointer-=sizeof(char)),

@@ -1,24 +1,25 @@
 goto main
 
-addRemainder:
-push4 i2
+editString:
+useglobal
+push1 i116
+getptr i1
+push4 i9
 addint
+editptr1
 return
 
-addTen:
-push4 i10
-addint
-call addRemainder
+storeString:
+useglobal
+allocx i11 i1
+pushx i11 "Sample TexT"
+storex i12 i1
 return
-
-dontCallThis:
-push4 i4
-alloc4 i0
-store4 i0
 
 main:
-push4 i9
-call addTen
-pop4
-push4 i19
+alloc4 i0
+push4 i21
+store4 i0
+call storeString
+call editString
 halt

@@ -637,6 +637,20 @@ char assemble(char* inFile, char* outFile)
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
+            if(instructions[2][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[2]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
         }
 
 
@@ -705,6 +719,20 @@ char assemble(char* inFile, char* outFile)
             if(instructions[1][0] == 'i')
             {
                 int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+            if(instructions[2][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[2]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
