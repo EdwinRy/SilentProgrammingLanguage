@@ -235,6 +235,7 @@ char assemble(char* inFile, char* outFile)
         int instructionIndex = 0;
         for(int i = 0; i < size;i++)
         {
+            //Parse token
             if(isalpha(line[i]))
             {
                 //Number of characters
@@ -246,10 +247,6 @@ char assemble(char* inFile, char* outFile)
                     isdigit(line[i+count]) || 
                     line[i+count] == ':')
 			    {
-                    //printf("%s\n",buffer);
-				    //Assign buffer to the current character
-                    //printf("count %i\n",count);
-                    //printf("i %i \n",i);
 				    buffer[count] = line[i+count];
                     count+=1;
 			    }
@@ -258,11 +255,60 @@ char assemble(char* inFile, char* outFile)
 			    //Copy the value from the buffer
 			    memcpy(instructions[instructionIndex],buffer,count);
 			    instructions[instructionIndex][count] = '\0';
-                //printf("%s\n",instructions[instructionIndex]);
                 i+=count;
                 instructionIndex+=1;
-                //printf("%s\n",buffer);
-                
+            }
+            //Parse string
+            if(line[i] == '\"')
+            {
+                i+=1;
+                int count = 1;
+                buffer[0] = 's';
+                for(count = 1;line[i]!='\"';count++)
+                {
+                    if(line[i] == '\\')
+                    {
+                        i += 1;
+                        if(line[i] = 'n')
+                        {
+                            buffer[count] = '\n';
+                        }
+                        else if(line[i] = 't')
+                        {
+                            buffer[count] = '\t';
+                        }
+                        else if(line[i] = '\\')
+                        {
+                            buffer[count] = '\\';
+                        }
+                        else if(line[i] = 'v')
+                        {
+                            buffer[count] = '\v';
+                        }
+                        else if(line[i] = 'r')
+                        {
+                            buffer[count] = '\r';
+                        }
+                        else if(line[i] = 'f')
+                        {
+                            buffer[count] = '\f';
+                        }
+                        else{
+                            buffer[count] = line[i];
+                        }
+                    }
+                    else{
+                        buffer[count] = line[i];
+                    }
+                    i+=1;
+                }
+                //Allocate space for the value and terminator
+			    instructions[instructionIndex] = malloc(count+1);
+			    //Copy the value from the buffer
+			    memcpy(instructions[instructionIndex],buffer,count);
+			    instructions[instructionIndex][count] = '\0';
+                i+=count;
+                instructionIndex+=1;
             }
         }
         if(instructions[0][size-2] == ':')
@@ -432,6 +478,7 @@ char assemble(char* inFile, char* outFile)
             if(instructions[1][0] == 'i')
             {
                 int temp = (int)atoi(instructions[1]+1);
+                if(instructions[2][0] == 's'){temp+=1;}
                 memcpy(
                     program + programCounter,
                     &temp,
@@ -454,9 +501,25 @@ char assemble(char* inFile, char* outFile)
                 );
                 programCounter += sizeof(int);
             }
-            else
+            else if(instructions[2][0] == 'f')
             {
-                printf("Use of incorrect type on line %i\n",currentLine);
+                int temp = (float)atof(instructions[2]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(float)
+                );
+                programCounter += sizeof(float);
+            }
+            else if(instructions[2][0] == 's')
+            {
+                int len = strlen(instructions[2] + 1) + 1;
+                memcpy(
+                    program + programCounter,
+                    instructions[2] + 1,
+                    len
+                );
+                programCounter += len;
             }
         }
 

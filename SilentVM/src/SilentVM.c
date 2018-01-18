@@ -136,11 +136,11 @@ void executeSilentThread(SilentThread * thread)
 
 			//Pushes X (in bytecode) bytes of data to the stack
 			case PushX://
-				lreg = *((long*)(thread->bytecode + (++thread->programCounter)));
+				lreg = *((int*)(thread->bytecode + (++thread->programCounter)));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
-						thread->bytecode + 8 + thread->programCounter,
+						thread->bytecode + 4 + thread->programCounter,
 						lreg);
-				thread->programCounter += (7+lreg);
+				thread->programCounter += (3+lreg);
 				thread->memory->stackPointer += lreg;
 			break;
 			
@@ -163,8 +163,8 @@ void executeSilentThread(SilentThread * thread)
 			//Decreases the stack pointer by X (in bytecode)
 			case PopX://
 				thread->memory->stackPointer-=
-					*(long*)(thread->bytecode + (++thread->programCounter));
-				thread->programCounter += 7;
+					*(int*)(thread->bytecode + (++thread->programCounter));
+				thread->programCounter += 3;
 			break;
 
 			//Saves 1 byte from the stack to allocated space

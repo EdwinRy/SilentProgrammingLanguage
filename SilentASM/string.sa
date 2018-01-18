@@ -1,0 +1,3 @@
+goto main
+main:
+pushx i12 "my nama jeff"
