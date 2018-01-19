@@ -2,6 +2,7 @@
 #include "SilentGB.h"
 #include <stdlib.h>
 #include <memory.h>
+#include <stdio.h>
 
 //Allocate memory for the program
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
@@ -127,6 +128,7 @@ void executeSilentThread(SilentThread * thread)
 			
 			//Pushes 8 bytes of data to the stack
 			case Push8:
+				//printf("push8\n");
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						8);
@@ -136,6 +138,7 @@ void executeSilentThread(SilentThread * thread)
 
 			//Pushes X (in bytecode) bytes of data to the stack
 			case PushX:
+				//printf("pushx\n");
 				lreg = *((int*)(thread->bytecode + (++thread->programCounter)));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						thread->bytecode + 4 + thread->programCounter,
@@ -211,6 +214,7 @@ void executeSilentThread(SilentThread * thread)
 
 			//Saves X bytes from stack to allocated space
 			case StoreX:
+				//printf("storex\n");
 				//Data size
 				ireg = *((int*)(thread->bytecode + (++thread->programCounter)))+1;
 				thread->programCounter+=4;
@@ -226,7 +230,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 	
 			//Copies 1 byte of data from storage onto the stack
-			case Load1://
+			case Load1:
 				memcpy
 				(
 					thread->memory->stack + (thread->memory->stackPointer++),
@@ -282,7 +286,6 @@ void executeSilentThread(SilentThread * thread)
 					thread->memory->stack + (thread->memory->stackPointer),
 					ireg);
 				thread->programCounter += 3;
-				printf("%i\n",ireg);
 				memory->stackPointer += ireg;
 			break;
 
@@ -358,48 +361,58 @@ void executeSilentThread(SilentThread * thread)
 				memory->storage[lreg]->data = malloc(ireg);
 			break;
 			
-			case GetPtr://
+			case GetPtr:
+				//printf("getptr\n");
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 						(int*)&memory->storage[
 							*(int*)(thread->bytecode + (++thread->programCounter)) +
 							altStoragePointer
 						]->data,
-						4);
+						8);
 				thread->programCounter += 3;
-				thread->memory->stackPointer += 4;
+				thread->memory->stackPointer += 8;
 			break;
 
 
-			case LoadPtr1://
-				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+			case LoadPtr1:
+				memory->stackPointer-=8;
+				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 					(long*)lreg,1);
 				memory->stackPointer+=1;
 			break;
 
-			case LoadPtr4://
-				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+			case LoadPtr4:
+				memory->stackPointer-=8;
+				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 					(long*)lreg,4);
 				memory->stackPointer+=4;
 			break;
-			case LoadPtr8://
-				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+
+			case LoadPtr8:
+				memory->stackPointer-=8;
+				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
 					(long*)lreg,8);
 				memory->stackPointer+=8;
 			break;
-			case LoadPtrX://
-				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+
+			case LoadPtrX:
+				memory->stackPointer-=8;
+				lreg = *(long*)(memory->stack + (memory->stackPointer));
+				ireg = *(int*)(thread->bytecode + (++thread->programCounter));
 				memcpy(thread->memory->stack + thread->memory->stackPointer,
-					(long*)lreg,
-					*(int*)(thread->bytecode + (++thread->programCounter)));
+					(long*)lreg,ireg);
 				thread->programCounter += 3;
+				memory->stackPointer += ireg;
 			break;
 
 			case EditPtr1://
-				memory->stackPointer -= 4;
-				lreg = *(int*)(memory->stack + (memory->stackPointer));
+				printf("editptr1\n");
+				memory->stackPointer -= 8;
+				lreg = *(long*)(memory->stack + (memory->stackPointer));
+				printf("%s\n",(char*)lreg);
 				memcpy(
 					(void*)lreg,
 					memory->stack + (memory->stackPointer-=sizeof(char)),

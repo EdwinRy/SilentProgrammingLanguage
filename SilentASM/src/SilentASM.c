@@ -269,29 +269,33 @@ char assemble(char* inFile, char* outFile)
                     if(line[i] == '\\')
                     {
                         i += 1;
-                        if(line[i] = 'n')
+                        if(line[i] == 'n')
                         {
                             buffer[count] = '\n';
                         }
-                        else if(line[i] = 't')
+                        else if(line[i] == 't')
                         {
                             buffer[count] = '\t';
                         }
-                        else if(line[i] = '\\')
+                        else if(line[i] == '\\')
                         {
                             buffer[count] = '\\';
                         }
-                        else if(line[i] = 'v')
+                        else if(line[i] == 'v')
                         {
                             buffer[count] = '\v';
                         }
-                        else if(line[i] = 'r')
+                        else if(line[i] == 'r')
                         {
                             buffer[count] = '\r';
                         }
-                        else if(line[i] = 'f')
+                        else if(line[i] == 'f')
                         {
                             buffer[count] = '\f';
+                        }
+                        else if(line[i] == '0')
+                        {
+                            buffer[count] = '\0';
                         }
                         else{
                             buffer[count] = line[i];
@@ -302,11 +306,12 @@ char assemble(char* inFile, char* outFile)
                     }
                     i+=1;
                 }
+                printf("%i\n",count);
                 //Allocate space for the value and terminator
-			    instructions[instructionIndex] = malloc(count+1);
+			    instructions[instructionIndex] = malloc(count);
 			    //Copy the value from the buffer
 			    memcpy(instructions[instructionIndex],buffer,count);
-			    instructions[instructionIndex][count] = '\0';
+			    //instructions[instructionIndex][count] = '\0';
                 i+=count;
                 instructionIndex+=1;
             }
@@ -478,7 +483,9 @@ char assemble(char* inFile, char* outFile)
             if(instructions[1][0] == 'i')
             {
                 int temp = (int)atoi(instructions[1]+1);
-                if(instructions[2][0] == 's'){temp+=1;}
+                //if(instructions[2][0] == 's'){temp+=1;}
+                printf("%s\n",instructions[2]);
+                printf("temp %i\n",temp);
                 memcpy(
                     program + programCounter,
                     &temp,
@@ -513,7 +520,8 @@ char assemble(char* inFile, char* outFile)
             }
             else if(instructions[2][0] == 's')
             {
-                int len = strlen(instructions[2] + 1) + 1;
+                int len = strlen(instructions[2]);
+                printf("len %i\n",len);
                 memcpy(
                     program + programCounter,
                     instructions[2] + 1,
@@ -864,58 +872,17 @@ char assemble(char* inFile, char* outFile)
         {
             program[programCounter] = (char)LoadPtr1;
             programCounter+=1;
-            if(instructions[1][0] == 'i')
-            {
-                int temp = (int)atoi(instructions[1]+1);
-                memcpy(
-                    program + programCounter,
-                    &temp,
-                    sizeof(int)
-                );
-                programCounter += sizeof(int);
-            }
-            else
-            {
-                printf("Use of incorrect type on line %i\n",currentLine);
-            }
+
         }
         if(strcmp(instructions[0],"loadptr4") == 0)
         {
             program[programCounter] = (char)LoadPtr4;
             programCounter+=1;
-            if(instructions[1][0] == 'i')
-            {
-                int temp = (int)atoi(instructions[1]+1);
-                memcpy(
-                    program + programCounter,
-                    &temp,
-                    sizeof(int)
-                );
-                programCounter += sizeof(int);
-            }
-            else
-            {
-                printf("Use of incorrect type on line %i\n",currentLine);
-            }
         }
         if(strcmp(instructions[0],"loadptr8") == 0)
         {
             program[programCounter] = (char)LoadPtr8;
             programCounter+=1;
-            if(instructions[1][0] == 'i')
-            {
-                int temp = (int)atoi(instructions[1]+1);
-                memcpy(
-                    program + programCounter,
-                    &temp,
-                    sizeof(int)
-                );
-                programCounter += sizeof(int);
-            }
-            else
-            {
-                printf("Use of incorrect type on line %i\n",currentLine);
-            }
         }
         if(strcmp(instructions[0],"loadptrx") == 0)
         {

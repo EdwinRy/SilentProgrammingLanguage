@@ -1,9 +1,12 @@
 goto main
-
 main:
-alloc1 i0
-push1 i21
-store1 i0
-load1 i0
-push4 i21
+allocx i6 i0
+pushx i6 "hello\0"
+storex i6 i0
+pushx i1 "a"
+getptr i0
+push8 i2
+addlong
+editptr1
+loadx i6 i0
 halt
