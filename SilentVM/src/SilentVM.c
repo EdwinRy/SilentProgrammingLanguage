@@ -408,39 +408,48 @@ void executeSilentThread(SilentThread * thread)
 				memory->stackPointer += ireg;
 			break;
 
-			case EditPtr1://
-				printf("editptr1\n");
+			case EditPtr1:
+				//printf("editptr1\n");
 				memory->stackPointer -= 8;
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				printf("%s\n",(char*)lreg);
+				memory->stackPointer -= 1;
 				memcpy(
 					(void*)lreg,
-					memory->stack + (memory->stackPointer-=sizeof(char)),
+					(memory->stack + (memory->stackPointer)),
 					sizeof(char)
 				);
 			break;
-			case EditPtr4://
-				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+
+			case EditPtr4:
+				memory->stackPointer -= 8;
+				lreg = *(long*)(memory->stack + (memory->stackPointer));
+				memory->stackPointer -= 4;
 				memcpy(
 					(void*)lreg,
-					memory->stack + (memory->stackPointer-=sizeof(int)),
+					memory->stack + (memory->stackPointer),
 					sizeof(int)
 				);
 			break;
-			case EditPtr8://
-				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+
+			case EditPtr8:
+				memory->stackPointer -= 8;
+				lreg = *(long*)(memory->stack + (memory->stackPointer));
+				memory->stackPointer -= 8;
 				memcpy(
 					(void*)lreg,
-					memory->stack + (memory->stackPointer-=sizeof(long)),
+					memory->stack + (memory->stackPointer),
 					sizeof(long)
 				);
 			break;
-			case EditPtrX://
-				lreg = *(int*)(memory->stack + (memory->stackPointer-=4));
+
+			case EditPtrX:
+				memory->stackPointer -= 8;
+				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
+				memory->stackPointer -= ireg;
 				memcpy(
 					(void*)lreg,
-					memory->stack + (memory->stackPointer-=ireg),
+					memory->stack + (memory->stackPointer),
 					ireg
 				);
 				thread->programCounter += 3;

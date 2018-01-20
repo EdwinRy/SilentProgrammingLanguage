@@ -41,6 +41,20 @@ void silentSavePointer(SilentGB* gb, void* ptr)
     vectorPushBack(gb->pointers, &ptr);
 }
 
+void silentDeletePointer(SilentGB* gb, void* ptr)
+{
+    silentBlock** gbData = (silentBlock**)(gb->pointers->voidPtr);
+    for(int i = 0; i < gb->pointers->dataCount; i++)
+    {
+        if(ptr == gbData[i]->data)
+        {
+            free(gbData[i]->data);
+            free(gbData[i]);
+            break;
+        }
+    }
+}
+
 void silentDeleteGB(SilentGB* gb)
 {
     vectorDelete(gb->pointers);

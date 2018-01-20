@@ -232,6 +232,7 @@ char assemble(char* inFile, char* outFile)
         }
         char buffer[255];
         char* instructions[3];
+        int tempVar = 0;
         int instructionIndex = 0;
         for(int i = 0; i < size;i++)
         {
@@ -306,7 +307,6 @@ char assemble(char* inFile, char* outFile)
                     }
                     i+=1;
                 }
-                printf("%i\n",count);
                 //Allocate space for the value and terminator
 			    instructions[instructionIndex] = malloc(count);
 			    //Copy the value from the buffer
@@ -480,12 +480,9 @@ char assemble(char* inFile, char* outFile)
         {
             program[programCounter] = (char)PushX;
             programCounter+=1;
+            int temp = (int)atoi(instructions[1]+1);
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
-                //if(instructions[2][0] == 's'){temp+=1;}
-                printf("%s\n",instructions[2]);
-                printf("temp %i\n",temp);
                 memcpy(
                     program + programCounter,
                     &temp,
@@ -500,34 +497,32 @@ char assemble(char* inFile, char* outFile)
 
             if(instructions[2][0] == 'i')
             {
-                int temp = (int)atoi(instructions[2]+1);
+                int temp2 = (int)atoi(instructions[2]+1);
                 memcpy(
                     program + programCounter,
-                    &temp,
+                    &temp2,
                     sizeof(int)
                 );
                 programCounter += sizeof(int);
             }
             else if(instructions[2][0] == 'f')
             {
-                int temp = (float)atof(instructions[2]+1);
+                int temp2 = (float)atof(instructions[2]+1);
                 memcpy(
                     program + programCounter,
-                    &temp,
+                    &temp2,
                     sizeof(float)
                 );
                 programCounter += sizeof(float);
             }
             else if(instructions[2][0] == 's')
             {
-                int len = strlen(instructions[2]);
-                printf("len %i\n",len);
                 memcpy(
                     program + programCounter,
                     instructions[2] + 1,
-                    len
+                    temp
                 );
-                programCounter += len;
+                programCounter += temp;
             }
         }
 
