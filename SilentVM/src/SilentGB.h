@@ -18,7 +18,7 @@ typedef struct SilentGB
 }SilentGB;
 
 SilentGB* createSilentGB();
-void silentSweep(SilentGB* gb, SilentMemory* memory);
+void silentSweep(SilentGB* gb, SilentMemory* memory, int localStorage);
 void silentSavePointer(SilentGB* gb, void* ptr);
 void silentDeletePointer(SilentGB* gb, void* ptr);
 void silentDeleteGB(SilentGB* gb);

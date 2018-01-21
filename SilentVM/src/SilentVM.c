@@ -46,13 +46,19 @@ void deleteSilentThread(SilentThread * thread)
 
 void executeSilentThread(SilentThread * thread)
 {
+	//Setup registers
 	char breg = 0;
 	int ireg = 0;
 	float freg = 0;
 	long lreg = 0;
 	double dreg = 0;
+
+	//Set thread state to running
 	thread->running = 1;
+
+	//Get memory pointer
 	SilentMemory* memory = thread->memory;
+	//Get garbage collecter pointer
 	SilentGB* gb = thread->garbageCollector;
 	int localStoragePointer = 0;
 	int* storagePointer = memory->storagePointers->integers;
@@ -108,9 +114,9 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter = (*lastPC) + 4;
 				vectorRemove(memory->storagePointers,0);
 				vectorRemove(memory->programCounters,0);
-				localStoragePointer = *storagePointer;
-				altStoragePointer = *storagePointer;
-				silentSweep(gb,memory);
+				localStoragePointer = storagePointer[0];
+				altStoragePointer = storagePointer[0];
+				silentSweep(gb,memory,localStoragePointer);
 			break;
 
 			//Pushes 1 byte of data to the stack
@@ -304,11 +310,12 @@ void executeSilentThread(SilentThread * thread)
 					memory->storageSize += memory->reallocSize;
 					memory->storage = 
 						realloc(memory->storage,memory->storageSize);
-					silentSweep(gb,memory);
+					//silentSweep(gb,memory);
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(1);
 				memory->storage[ireg]->marked = 0;
+				silentSavePointer(gb,memory->storage[ireg]);
 			break;
 
 			//Allocates 4 bytes of data for the program
@@ -324,11 +331,12 @@ void executeSilentThread(SilentThread * thread)
 					memory->storageSize += memory->reallocSize;
 					memory->storage = 
 						realloc(memory->storage,memory->storageSize);
-					silentSweep(gb,memory);
+					//silentSweep(gb,memory);
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(4);
 				memory->storage[ireg]->marked = 0;
+				silentSavePointer(gb,memory->storage[ireg]);
 			break;
 
 			//Allocates 8 bytes of data for the program
@@ -343,10 +351,11 @@ void executeSilentThread(SilentThread * thread)
 					memory->storageSize += memory->reallocSize;
 					memory->storage = 
 						realloc(memory->storage,memory->storageSize);
-					silentSweep(gb,memory);
+					//silentSweep(gb,memory);
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(8);
+				silentSavePointer(gb,memory->storage[ireg]);
 			break;
 
 			//Allocates X bytes of data for the program
@@ -363,11 +372,12 @@ void executeSilentThread(SilentThread * thread)
 					memory->storageSize += memory->reallocSize;
 					memory->storage = 
 						realloc(memory->storage,memory->storageSize);
-					silentSweep(gb,memory);
+					//silentSweep(gb,memory);
 				}
 				
 				memory->storage[lreg] = malloc(sizeof(silentBlock));
 				memory->storage[lreg]->data = malloc(ireg);
+				silentSavePointer(gb,memory->storage[ireg]);
 			break;
 			
 			case GetPtr:

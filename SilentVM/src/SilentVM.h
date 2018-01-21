@@ -186,7 +186,6 @@ typedef struct SilentMemory
 	vector* storagePointers;
 	vector* programCounters;
 	char* stack;
-	//Current storage size
 	unsigned int storageSize;
 	//How much to add to realloc size
 	unsigned int reallocSize;

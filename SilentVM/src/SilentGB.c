@@ -11,29 +11,33 @@ SilentGB* createSilentGB(int size)
     return gb;
 }
 
-void silentSweep(SilentGB* gb, SilentMemory* memory)
+void silentSweep(SilentGB* gb, SilentMemory* memory, int localStorage)
 {
     printf("sweeping\n");
     gb->currentMark = (gb->currentMark == 0) ? 1 : 0;
-    printf("current mark %i\n",gb->currentMark);
     silentBlock** gbData = (silentBlock**)(gb->pointers->voidPtr);
     silentBlock** storageData = memory->storage;
-    for(int i = 0; i < memory->storageSize; i++)
+    printf("localSt %i\n",localStorage);
+    for(int i = 0; i < localStorage; i++)
     {
+        printf("here\n");
         if(storageData[i] != NULL)
         {
             storageData[i]->marked = gb->currentMark;
         }
     }
 
-    for(int i = 0; i < gb->pointers->dataCount -1; i++)
+    for(int i = 0; i < gb->pointers->dataCount; i++)
     {
-        printf("here\n");
-        if(gbData[i]->marked != gb->currentMark && gbData[i]->marked != NULL)
+        printf("here2\n");
+        if(gbData[i] != NULL)
         {
-            printf("free\n");
-            free(gbData[i]->data);
-            free(gbData[i]);
+            if(gbData[i]->marked != gb->currentMark)
+            {
+                free(gbData[i]->data);
+                free(gbData[i]);
+                printf("freed\n");
+            }
         }
     }
 

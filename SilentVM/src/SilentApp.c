@@ -29,10 +29,10 @@ int main(int argc, char** argv)
 			fread(bytecode,fileSize,1,f);
 			fclose(f);
 
-			SilentMemory* mem = createSilentMemory(2,100);
+			SilentMemory* mem = createSilentMemory(100,100);
 			SilentThread* thread = createSilentThread(mem,bytecode);			
 			executeSilentThread(thread);
-			printf("%s\n",(char*)((silentBlock*)(mem->storage[0]))->data);
+			printf("%i\n",*(int*)((silentBlock*)(mem->storage[3]))->data);
 			//printf("%s\n",(char*)(mem->stack));
 			//printf("%i\n",mem->stackPointer);
 		}
