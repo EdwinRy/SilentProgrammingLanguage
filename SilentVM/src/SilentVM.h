@@ -199,6 +199,7 @@ typedef struct SilentThread
 	char running;
 	unsigned int programCounter;
 	SilentMemory* memory;
+	SilentGB* garbageCollector;
 }SilentThread;
 
 //Create structures

@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 			fread(bytecode,fileSize,1,f);
 			fclose(f);
 
-			SilentMemory* mem = createSilentMemory(1000,1000);
+			SilentMemory* mem = createSilentMemory(2,100);
 			SilentThread* thread = createSilentThread(mem,bytecode);			
 			executeSilentThread(thread);
 			printf("%s\n",(char*)((silentBlock*)(mem->storage[0]))->data);

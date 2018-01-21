@@ -14,10 +14,12 @@ typedef struct SilentGB
 {
     vector* pointers;
     char currentMark;
+    int size;
 }SilentGB;
 
 SilentGB* createSilentGB();
 void silentSweep(SilentGB* gb, SilentMemory* memory);
 void silentSavePointer(SilentGB* gb, void* ptr);
+void silentDeletePointer(SilentGB* gb, void* ptr);
 void silentDeleteGB(SilentGB* gb);
 #endif

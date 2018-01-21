@@ -1,25 +1,34 @@
 goto main
 
-editString:
+test:
 useglobal
-push1 i116
-getptr i1
-push4 i9
-addint
-editptr1
+
+alloc4 i2
+push4 i4
+store4 i2
+
+alloc4 i3
+push4 i5
+store4 i3
 return
 
-storeString:
-useglobal
-allocx i11 i1
-pushx i11 "Sample TexT"
-storex i12 i1
-return
 
 main:
 alloc4 i0
-push4 i21
+push4 i1
 store4 i0
-call storeString
-call editString
+
+alloc4 i1
+push4 i2
+store4 i1
+
+alloc4 i2
+push4 i3
+store4 i2
+
+alloc4 i3
+push4 i4
+store4 i3
+
+call test
 halt

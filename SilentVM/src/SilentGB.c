@@ -2,18 +2,20 @@
 #include "SilentVM.h"
 #include <stdlib.h>
 
-SilentGB* createSilentGB()
+SilentGB* createSilentGB(int size)
 {
     SilentGB* gb = malloc(sizeof(SilentGB));
     gb->pointers = createVector(sizeof(void*));
+    gb->size = size;
     gb->currentMark = 0;
     return gb;
 }
 
 void silentSweep(SilentGB* gb, SilentMemory* memory)
 {
+    printf("sweeping\n");
     gb->currentMark = (gb->currentMark == 0) ? 1 : 0;
-
+    printf("current mark %i\n",gb->currentMark);
     silentBlock** gbData = (silentBlock**)(gb->pointers->voidPtr);
     silentBlock** storageData = memory->storage;
     for(int i = 0; i < memory->storageSize; i++)
@@ -24,10 +26,12 @@ void silentSweep(SilentGB* gb, SilentMemory* memory)
         }
     }
 
-    for(int i = 0; i < gb->pointers->dataCount; i++)
+    for(int i = 0; i < gb->pointers->dataCount -1; i++)
     {
-        if(gbData[i]->marked != gb->currentMark)
+        printf("here\n");
+        if(gbData[i]->marked != gb->currentMark && gbData[i]->marked != NULL)
         {
+            printf("free\n");
             free(gbData[i]->data);
             free(gbData[i]);
         }
