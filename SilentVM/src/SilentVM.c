@@ -110,13 +110,12 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case Return:
-				//printf("return\n");
+				silentSweep(gb,memory);
 				thread->programCounter = (*lastPC) + 4;
 				vectorRemove(memory->storagePointers,0);
 				vectorRemove(memory->programCounters,0);
 				localStoragePointer = storagePointer[0];
 				altStoragePointer = storagePointer[0];
-				silentSweep(gb,memory,localStoragePointer);
 			break;
 
 			//Pushes 1 byte of data to the stack

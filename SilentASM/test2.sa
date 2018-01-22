@@ -1,28 +1,16 @@
 goto main
 
 testTwo:
-//alloc4 i0
-//push4 i7
-//store4 i0
-
-//alloc4 i1
-//push4 i8
-//store4 i1 
-
+alloc4 i0
+push4 i7
+store4 i0
 return 
 
 test:
 alloc4 i0
 push4 i4
 store4 i0
-
-
-alloc4 i1
-push4 i5
-store4 i1 
-
 return
-
 
 main:
 alloc4 i0
@@ -35,9 +23,5 @@ store4 i1
 
 call test
 call testTwo
-
-alloc4 i1
-push4 i21
-store4 i1
 
 halt
