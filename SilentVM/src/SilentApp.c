@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 			SilentMemory* mem = createSilentMemory(100,100);
 			SilentThread* thread = createSilentThread(mem,bytecode);			
 			executeSilentThread(thread);
-			printf("%i\n",*(int*)((silentBlock*)(mem->storage[3]))->data);
+			//printf("%i\n",*(int*)((silentBlock*)(mem->storage[3]))->data);
 			//printf("%s\n",(char*)(mem->stack));
 			//printf("%i\n",mem->stackPointer);
 		}

@@ -11,35 +11,42 @@ SilentGB* createSilentGB(int size)
     return gb;
 }
 
-void silentSweep(SilentGB* gb, SilentMemory* memory)
+void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount)
 {
-    printf("sweeping\n");
-    gb->currentMark = (gb->currentMark == 0) ? 1 : 0;
-    silentBlock** gbData = (silentBlock**)(gb->pointers->voidPtr);
-    silentBlock** storageData = memory->storage;
-    //printf("localSt %i\n",localStorage);
-    for(int i = 0; i < memory->reallocSize; i++)
+    if(*storageCount > memory->reallocSize / 2)
     {
-        if(storageData[i] != NULL)
+        printf("storage %i\n",*storageCount);
+        printf("sweeping\n");
+        gb->currentMark = (gb->currentMark == 0) ? 1 : 0;
+        silentBlock** gbData = (silentBlock**)(gb->pointers->voidPtr);
+        silentBlock** storageData = memory->storage;
+        printf("marking\n");
+        for(int i = 0; i < *storageCount; i++)
         {
-            printf("marked\n");
-            storageData[i]->marked = gb->currentMark;
-        }
-    }
-
-    for(int i = 0; i < gb->pointers->dataCount; i++)
-    {
-        printf("hereStart\n");
-        if(gbData[i] != NULL)
-        {
-            printf("here\n");
-            if(gbData[i]->marked != gb->currentMark)
-            {      
-                free(gbData[i]->data);
-                free(gbData[i]);
-                printf("freed\n");
+            if(storageData[i] != NULL)
+            {
+                storageData[i]->marked = gb->currentMark;
+                //printf("here\n");
+                //printf("%i\n",*storageData[i]->data);
             }
         }
+
+        printf("freeing\n");
+        for(int i = 0; i < gb->pointers->dataCount; i++)
+        {
+            if(gbData[i] != NULL)
+            {
+                if(gbData[i]->marked != gb->currentMark)
+                {                        
+                    //printf("%i\n",*gbData[i]->data);
+                    free(gbData[i]->data);
+                    free(gbData[i]);
+                    //*storageCount -= 1;
+                }
+            }
+        }
+    }else{
+        printf("not worth sweeping\n");
     }
 }
 

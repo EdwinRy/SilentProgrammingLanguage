@@ -7,7 +7,7 @@ typedef struct SilentMemory SilentMemory;
 typedef struct silentBlock
 {
     char marked;
-    char* data;
+    void* data;
 }silentBlock;
 
 typedef struct SilentGB
@@ -18,7 +18,7 @@ typedef struct SilentGB
 }SilentGB;
 
 SilentGB* createSilentGB();
-void silentSweep(SilentGB* gb, SilentMemory* memory);
+void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount);
 void silentSavePointer(SilentGB* gb, void* ptr);
 void silentDeletePointer(SilentGB* gb, void* ptr);
 void silentDeleteGB(SilentGB* gb);

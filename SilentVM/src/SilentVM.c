@@ -12,7 +12,7 @@ SilentMemory* createSilentMemory(int storageSize, int stackSize)
 	memory->programCounters = createVector(sizeof(int));
 	memory->stack = malloc(stackSize);
 	memory->stackPointer = 0;
-	memory->storage = malloc(sizeof(silentBlock*)*storageSize);
+	memory->storage = calloc(storageSize,sizeof(silentBlock*));
 	memory->reallocSize = storageSize;
 	memory->storageSize = storageSize;
 	return memory;
@@ -56,14 +56,18 @@ void executeSilentThread(SilentThread * thread)
 	//Set thread state to running
 	thread->running = 1;
 
-	//Get memory pointer
 	SilentMemory* memory = thread->memory;
-	//Get garbage collecter pointer
 	SilentGB* gb = thread->garbageCollector;
-	int localStoragePointer = 0;
 	int* storagePointer = memory->storagePointers->integers;
+	int localStoragePointer = 0;
 	int altStoragePointer = 0;
+	int *storageCount = malloc(sizeof(int));
+	*storageCount = 0;
 	int* lastPC = memory->programCounters->integers;
+
+	//insert initial storage pointer of 0
+	vectorInsert(memory->storagePointers,&localStoragePointer,0);
+	vectorInsert(memory->programCounters,&thread->programCounter,0);
 
 	while(thread->running)
 	{
@@ -71,13 +75,11 @@ void executeSilentThread(SilentThread * thread)
 		{
 			//Stops the execution of the program
 			case Halt:
-				//printf("halt\n");
 				thread->running = 0;
 			break;
 			
 			//Changes the program pointer based on bytecode
 			case Goto:
-				//printf("goto\n");
 				thread->programCounter++;
 				thread->programCounter = 
 					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
@@ -110,12 +112,12 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case Return:
-				silentSweep(gb,memory);
+				silentSweep(gb,memory,storageCount);
 				thread->programCounter = (*lastPC) + 4;
-				vectorRemove(memory->storagePointers,0);
-				vectorRemove(memory->programCounters,0);
 				localStoragePointer = storagePointer[0];
 				altStoragePointer = storagePointer[0];
+				vectorRemove(memory->storagePointers,0);
+				vectorRemove(memory->programCounters,0);
 			break;
 
 			//Pushes 1 byte of data to the stack
@@ -315,6 +317,7 @@ void executeSilentThread(SilentThread * thread)
 				memory->storage[ireg]->data = malloc(1);
 				memory->storage[ireg]->marked = 0;
 				silentSavePointer(gb,memory->storage[ireg]);
+				*storageCount+=1;
 			break;
 
 			//Allocates 4 bytes of data for the program
@@ -327,15 +330,27 @@ void executeSilentThread(SilentThread * thread)
 					localStoragePointer = ireg + 1;
 				while(ireg >= memory->storageSize)
 				{
-					memory->storageSize += memory->reallocSize;
+					printf("resize to%i\n",memory->storageSize + 
+						memory->reallocSize);
 					memory->storage = 
-						realloc(memory->storage,memory->storageSize);
-					//silentSweep(gb,memory);
+						realloc(memory->storage,memory->storageSize + 
+						memory->reallocSize);
+
+					memset(&memory->storage[memory->storageSize],0,
+						memory->storageSize + memory->reallocSize);
+					memory->storageSize += memory->reallocSize;
 				}
-				memory->storage[ireg] = malloc(sizeof(silentBlock));
+				//printf("ireg %i\n",ireg);
+				if(memory->storage[ireg] != NULL)
+				{
+					printf("not null\n");
+					*storageCount-=1;
+				}
+				memory->storage[ireg] = malloc(sizeof(silentBlock*));
 				memory->storage[ireg]->data = malloc(4);
 				memory->storage[ireg]->marked = 0;
 				silentSavePointer(gb,memory->storage[ireg]);
+				*storageCount+=1;
 			break;
 
 			//Allocates 8 bytes of data for the program
@@ -355,6 +370,7 @@ void executeSilentThread(SilentThread * thread)
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(8);
 				silentSavePointer(gb,memory->storage[ireg]);
+				*storageCount+=1;
 			break;
 
 			//Allocates X bytes of data for the program
@@ -377,6 +393,7 @@ void executeSilentThread(SilentThread * thread)
 				memory->storage[lreg] = malloc(sizeof(silentBlock));
 				memory->storage[lreg]->data = malloc(ireg);
 				silentSavePointer(gb,memory->storage[ireg]);
+				*storageCount+=1;
 			break;
 			
 			case GetPtr:
@@ -968,7 +985,7 @@ void executeSilentThread(SilentThread * thread)
 		//printf("stack 1st element:%u\n",(int)memory->stack[0]);
 		//printf("programCounter:%i\n",(int)thread->programCounter);
 		//printf("Which function:%i\n",(int)memory->storagePointers->dataCount);
-		//getchar();
+		getchar();
 		thread->programCounter++;
 	}
 }

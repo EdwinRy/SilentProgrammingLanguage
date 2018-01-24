@@ -1,12 +1,6 @@
 goto main
 main:
-allocx i16 i0
-pushx i16 "My name if Jeff\0"
-storex i16 i0
-pushx i4 "eine"
-getptr i0
-push8 i1
-addlong
-editptrx i4
-/loadx i6 i0
+alloc4 i0
+push4 i21
+store4 i0
 halt
