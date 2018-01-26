@@ -4,22 +4,25 @@
 
 SilentGB* createSilentGB(int size)
 {
-    SilentGB* gb = malloc(sizeof(SilentGB));
-    gb->pointers = createVector(sizeof(void*));
-    gb->size = size;
+    SilentGB* gb    = malloc(sizeof(SilentGB));
+    gb->pointers    = createVector(sizeof(void*));
+    gb->size        = size;
     gb->currentMark = 0;
     return gb;
 }
 
 void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount)
 {
+    //If more than half the realloc size is used
     if(*storageCount > memory->reallocSize / 2)
     {
         printf("storage %i\n",*storageCount);
         printf("sweeping\n");
-        gb->currentMark = (gb->currentMark == 0) ? 1 : 0;
-        silentBlock** gbData = (silentBlock**)(gb->pointers->voidPtr);
-        silentBlock** storageData = memory->storage;
+
+        gb->currentMark             = (gb->currentMark == 0) ? 1 : 0;
+        silentBlock** gbData        = gb->pointers->voidPtr;
+        silentBlock** storageData   = memory->storage;
+
         printf("marking\n");
         for(int i = 0; i < *storageCount; i++)
         {
@@ -37,7 +40,10 @@ void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount)
             if(gbData[i] != NULL)
             {
                 if(gbData[i]->marked != gb->currentMark)
-                {                        
+                {          
+                    void* dataPtr   = gbData[i]->data;
+                    void* objPtr    = gbData[i]; 
+                    vectorRemove(gb->pointers->voidPtr,i);       
                     //printf("%i\n",*gbData[i]->data);
                     free(gbData[i]->data);
                     free(gbData[i]);
