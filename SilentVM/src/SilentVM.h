@@ -13,8 +13,13 @@ typedef enum SilentBytecode
 	Halt,
 	//Moves the program counter to X
 	Goto, //X - Byte
+	//Load native subroutine
+	LoadSys,
 	//Call native subroutine
 	CallSys,//X - 4 bytes
+
+	//Force the garbage collector to do its job
+	GBSweep,
 
 	//Disable storage pointer
     UseGlobal,
@@ -25,10 +30,7 @@ typedef enum SilentBytecode
 	Call,//X - 4 bytes
 	//Return back from subroutine
 	Return,
-	
-	//ClearMemory,
-	//ClearStack,
-	
+
 	//Pushes values onto the stack (CPU stack)
 	Push1, //X - 1 byte value
 	Push4, //X - 4 byte value
@@ -182,29 +184,29 @@ typedef enum SilentBytecode
 typedef struct SilentMemory
 {
 	//char** storage;
-	silentBlock** storage;
-	vector* storagePointers;
-	vector* programCounters;
-	char* stack;
-	unsigned int storageSize;
+	silentBlock** 	storage;
+	vector* 		storagePointers;
+	vector* 		programCounters;
+	char* 			stack;
+	unsigned int 	storageSize;
+
 	//How much to add to realloc size
-	unsigned int reallocSize;
-	unsigned int stackPointer;
+	unsigned int 	reallocSize;
+	unsigned int 	stackPointer;
 }SilentMemory;
 
 typedef struct SilentThread
 {
-	char* bytecode;
-	char running;
-	unsigned int programCounter;
-	SilentMemory* memory;
-	SilentGB* garbageCollector;
+	char* 			bytecode;
+	char 			running;
+	unsigned int 	programCounter;
+	SilentMemory* 	memory;
+	SilentGB* 		garbageCollector;
 }SilentThread;
 
 //Create structures
 SilentMemory* createSilentMemory(int storageSize, int stackSize);
-SilentThread* createSilentThread(SilentMemory* memory,
-	char* bytecode);
+SilentThread* createSilentThread(SilentMemory* memory, char* bytecode);
 
 //Virtual machine functions
 void deleteSilentMemory(SilentMemory* memory);

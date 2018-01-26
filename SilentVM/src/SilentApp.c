@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "SilentVM.h"
+
+
 int main(int argc, char** argv)
 {
 	if(argc == 2)
@@ -14,7 +16,6 @@ int main(int argc, char** argv)
 
 		else
 		{
-			char* bytecode;
 			FILE *f;
 			if((f = fopen(argv[1],"rb"))==NULL)
 			{
@@ -25,12 +26,12 @@ int main(int argc, char** argv)
 			fseek(f,0,SEEK_END);
 			long fileSize = ftell(f);
 			rewind(f);
-			bytecode = malloc(fileSize);
+			char* bytecode = malloc(fileSize);
 			fread(bytecode,fileSize,1,f);
 			fclose(f);
 
-			SilentMemory* mem = createSilentMemory(100,100);
-			SilentThread* thread = createSilentThread(mem,bytecode);			
+			SilentMemory* mem 		= createSilentMemory(100,100);
+			SilentThread* thread 	= createSilentThread(mem,bytecode);			
 			executeSilentThread(thread);
 			//printf("%i\n",*(int*)((silentBlock*)(mem->storage[3]))->data);
 			//printf("%s\n",(char*)(mem->stack));

@@ -6,20 +6,20 @@ typedef struct SilentMemory SilentMemory;
 
 typedef struct silentBlock
 {
-    char marked;
-    void* data;
+    char    marked;
+    void*   data;
 }silentBlock;
 
 typedef struct SilentGB
 {
     vector* pointers;
-    char currentMark;
-    int size;
+    char    currentMark;
+    int     size;
 }SilentGB;
 
-SilentGB* createSilentGB();
-void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount);
-void silentSavePointer(SilentGB* gb, void* ptr);
-void silentDeletePointer(SilentGB* gb, void* ptr);
-void silentDeleteGB(SilentGB* gb);
+SilentGB*   createSilentGB();
+void        silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount);
+void        silentSavePointer(SilentGB* gb, void* ptr);
+void        silentDeletePointer(SilentGB* gb, void* ptr);
+void        silentDeleteGB(SilentGB* gb);
 #endif

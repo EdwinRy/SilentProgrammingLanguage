@@ -12,9 +12,9 @@ vector* createVector(int dataSize)
         printf("Couldn't allocate memory\n");
         exit(1);
     }
-    vec->integers = malloc(dataSize);
-    vec->dataCount = 0;
-    vec->dataSize = dataSize;
+    vec->integers   = malloc(dataSize);
+    vec->dataCount  = 0;
+    vec->dataSize   = dataSize;
     return vec;
 }
 
@@ -29,10 +29,13 @@ void vectorPushBack(vector* vec, void* data)
         exit(1);
     }
     vec->characters = temp;
+
     memcpy(
         vec->characters + (vec->dataCount*vec->dataSize),
         (int*)data,
-        vec->dataSize);
+        vec->dataSize
+    );
+    
     vec->dataCount+=1;
 }
 

@@ -4,29 +4,40 @@
 #include <memory.h>
 #include <stdio.h>
 
+#ifdef __linux__
+//Linux specific code
+#include <dlfcn.h>
+#elif _WIN32
+//Windows specific code
+
+#else
+//Cross platform workaround
+printf("Your system won't be able to suppord native libraries\n");
+#endif
+
 //Allocate memory for the program
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
 {
-	SilentMemory* memory = malloc(sizeof(SilentMemory));
+	SilentMemory* memory 	= malloc(sizeof(SilentMemory));
+	memory->stack 			= malloc(stackSize);
+	memory->storage 		= calloc(storageSize,sizeof(silentBlock*));
 	memory->storagePointers = createVector(sizeof(int));
 	memory->programCounters = createVector(sizeof(int));
-	memory->stack = malloc(stackSize);
-	memory->stackPointer = 0;
-	memory->storage = calloc(storageSize,sizeof(silentBlock*));
-	memory->reallocSize = storageSize;
-	memory->storageSize = storageSize;
+	memory->reallocSize 	= storageSize;
+	memory->storageSize 	= storageSize;
+	memory->stackPointer 	= 0;
 	return memory;
 }
 
 //Create executing thread
 SilentThread* createSilentThread(SilentMemory* memory, char* bytecode)
 {
-	SilentThread* thread = malloc(sizeof(SilentThread));
-	thread->bytecode = bytecode;
-	thread->running = 0;
-	thread->programCounter = 0;
-	thread->memory = memory;
-	thread->garbageCollector = createSilentGB(memory->reallocSize);
+	SilentThread* thread 		= malloc(sizeof(SilentThread));
+	thread->garbageCollector 	= createSilentGB(memory->reallocSize);
+	thread->memory 				= memory;
+	thread->bytecode 			= bytecode;
+	thread->running 			= 0;
+	thread->programCounter 		= 0;
 	return thread;
 }
 
@@ -47,23 +58,24 @@ void deleteSilentThread(SilentThread * thread)
 void executeSilentThread(SilentThread * thread)
 {
 	//Setup registers
-	char breg = 0;
-	int ireg = 0;
-	float freg = 0;
-	long lreg = 0;
-	double dreg = 0;
+	char 	breg = 0;
+	int 	ireg = 0;
+	float 	freg = 0;
+	long 	lreg = 0;
+	double 	dreg = 0;
 
 	//Set thread state to running
 	thread->running = 1;
 
-	SilentMemory* memory = thread->memory;
-	SilentGB* gb = thread->garbageCollector;
-	int* storagePointer = memory->storagePointers->integers;
-	int localStoragePointer = 0;
-	int altStoragePointer = 0;
-	int *storageCount = malloc(sizeof(int));
+	SilentMemory* 	memory 				= thread->memory;
+	SilentGB* 		gb 					= thread->garbageCollector;
+	int* 			storagePointer 		= memory->storagePointers->integers;
+	int*			storageCount 		= malloc(sizeof(int));
+	int* 			lastPC 				= memory->programCounters->integers;
+	int 			localStoragePointer = 0;
+	int 			altStoragePointer 	= 0;
+	
 	*storageCount = 0;
-	int* lastPC = memory->programCounters->integers;
 
 	//insert initial storage pointer of 0
 	vectorInsert(memory->storagePointers,&localStoragePointer,0);
@@ -86,7 +98,9 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter--;
 			break;
 			
-			//Will be used to call library functions
+			case LoadSys: //Not yet implemented
+			break;
+
 			case CallSys: //Not yet implemented
 			break;
 
@@ -313,9 +327,13 @@ void executeSilentThread(SilentThread * thread)
 						realloc(memory->storage,memory->storageSize);
 					//silentSweep(gb,memory);
 				}
+				if(memory->storage[ireg] != NULL)
+				{
+					printf("not null\n");
+					*storageCount-=1;
+				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(1);
-				memory->storage[ireg]->marked = 0;
 				silentSavePointer(gb,memory->storage[ireg]);
 				*storageCount+=1;
 			break;
@@ -340,15 +358,13 @@ void executeSilentThread(SilentThread * thread)
 						memory->storageSize + memory->reallocSize);
 					memory->storageSize += memory->reallocSize;
 				}
-				//printf("ireg %i\n",ireg);
 				if(memory->storage[ireg] != NULL)
 				{
 					printf("not null\n");
 					*storageCount-=1;
 				}
-				memory->storage[ireg] = malloc(sizeof(silentBlock*));
+				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(4);
-				memory->storage[ireg]->marked = 0;
 				silentSavePointer(gb,memory->storage[ireg]);
 				*storageCount+=1;
 			break;
@@ -366,6 +382,11 @@ void executeSilentThread(SilentThread * thread)
 					memory->storage = 
 						realloc(memory->storage,memory->storageSize);
 					//silentSweep(gb,memory);
+				}
+				if(memory->storage[ireg] != NULL)
+				{
+					printf("not null\n");
+					*storageCount-=1;
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(8);
@@ -389,7 +410,11 @@ void executeSilentThread(SilentThread * thread)
 						realloc(memory->storage,memory->storageSize);
 					//silentSweep(gb,memory);
 				}
-				
+				if(memory->storage[ireg] != NULL)
+				{
+					printf("not null\n");
+					*storageCount-=1;
+				}
 				memory->storage[lreg] = malloc(sizeof(silentBlock));
 				memory->storage[lreg]->data = malloc(ireg);
 				silentSavePointer(gb,memory->storage[ireg]);
@@ -985,7 +1010,7 @@ void executeSilentThread(SilentThread * thread)
 		//printf("stack 1st element:%u\n",(int)memory->stack[0]);
 		//printf("programCounter:%i\n",(int)thread->programCounter);
 		//printf("Which function:%i\n",(int)memory->storagePointers->dataCount);
-		getchar();
+		//getchar();
 		thread->programCounter++;
 	}
 }
