@@ -318,22 +318,29 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Allocates 1 byte of data for the program
-			case Alloc1:
+			case Alloc1://
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
 				ireg += altStoragePointer;
 				if(ireg >= localStoragePointer)
 					localStoragePointer = ireg + 1;
-				while(ireg >= memory->storageSize)
+				if(ireg >= memory->storageSize)
 				{
-					memory->storageSize += memory->reallocSize;
-					memory->storage = 
-						realloc(memory->storage,memory->storageSize);
-					//silentSweep(gb,memory);
+					int toClear = 0;
+					int start = memory->storageSize;
+					while(ireg >= toClear)
+					{
+						toClear += memory->reallocSize;
+					}
+					memory->storageSize += toClear;
+					//Reallocate memory
+					memory->storage = realloc(memory->storage,memory->storageSize);
+
+					//clear memory
+					memset(memory->storage + start, 0,toClear * sizeof(void*));
 				}
 				if(memory->storage[ireg] != NULL)
 				{
-					//printf("not null\n");
 					*storageCount-=1;
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
@@ -343,7 +350,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Allocates 4 bytes of data for the program
-			case Alloc4:
+			case Alloc4://
 				//printf("alloc4\n");
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
@@ -359,19 +366,14 @@ void executeSilentThread(SilentThread * thread)
 						toClear += memory->reallocSize;
 					}
 					memory->storageSize += toClear;
-					//printf("resize to %i\n",memory->storageSize);
-					//printf("how much to clear %i\n",toClear);
 					//Reallocate memory
 					memory->storage = realloc(memory->storage,memory->storageSize);
 
-					printf("to clear from %i\n",start);
-					//printf("how much to clear %i\n",memory->storageSize);
 					//clear memory
 					memset(memory->storage + start, 0,toClear * sizeof(void*));
 				}
 				if(memory->storage[ireg] != NULL)
 				{
-					//printf("not null\n");
 					*storageCount-=1;
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
@@ -381,22 +383,29 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Allocates 8 bytes of data for the program
-			case Alloc8:
+			case Alloc8://
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
 				ireg += altStoragePointer;
 				if(ireg >= localStoragePointer)
 					localStoragePointer = ireg + 1;
-				while(ireg >= memory->storageSize)
+				if(ireg >= memory->storageSize)
 				{
-					memory->storageSize += memory->reallocSize;
-					memory->storage = 
-						realloc(memory->storage,memory->storageSize);
-					//silentSweep(gb,memory);
+					int toClear = 0;
+					int start = memory->storageSize;
+					while(ireg >= toClear)
+					{
+						toClear += memory->reallocSize;
+					}
+					memory->storageSize += toClear;
+					//Reallocate memory
+					memory->storage = realloc(memory->storage,memory->storageSize);
+
+					//clear memory
+					memset(memory->storage + start, 0,toClear * sizeof(void*));
 				}
 				if(memory->storage[ireg] != NULL)
 				{
-					printf("not null\n");
 					*storageCount-=1;
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
@@ -406,7 +415,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Allocates X bytes of data for the program
-			case AllocX:
+			case AllocX://
 				ireg = *(int*)(thread->bytecode + (++thread->programCounter)) + 1;
 				thread->programCounter += 3;
 				lreg = *(int*)(thread->bytecode + (++thread->programCounter));
@@ -414,16 +423,23 @@ void executeSilentThread(SilentThread * thread)
 				lreg += altStoragePointer;
 				if(lreg >= localStoragePointer)
 					localStoragePointer = lreg + 1;
-				while(lreg >= memory->storageSize)
+				if(lreg >= memory->storageSize)
 				{
-					memory->storageSize += memory->reallocSize;
-					memory->storage = 
-						realloc(memory->storage,memory->storageSize);
-					//silentSweep(gb,memory);
+					int toClear = 0;
+					int start = memory->storageSize;
+					while(lreg >= toClear)
+					{
+						toClear += memory->reallocSize;
+					}
+					memory->storageSize += toClear;
+					//Reallocate memory
+					memory->storage = realloc(memory->storage,memory->storageSize);
+
+					//clear memory
+					memset(memory->storage + start, 0,toClear * sizeof(void*));
 				}
 				if(memory->storage[ireg] != NULL)
 				{
-					printf("not null\n");
 					*storageCount-=1;
 				}
 				memory->storage[lreg] = malloc(sizeof(silentBlock));
