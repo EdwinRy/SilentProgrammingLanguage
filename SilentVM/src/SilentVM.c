@@ -21,8 +21,8 @@ SilentMemory* createSilentMemory(int storageSize, int stackSize)
 	SilentMemory* memory 	= malloc(sizeof(SilentMemory));
 	memory->stack 			= malloc(stackSize);
 	memory->storage 		= calloc(storageSize,sizeof(silentBlock*));
-	memory->storagePointers = createVector(sizeof(int));
-	memory->programCounters = createVector(sizeof(int));
+	memory->storagePointers = createVector(sizeof(int*));
+	memory->programCounters = createVector(sizeof(int*));
 	memory->reallocSize 	= storageSize;
 	memory->storageSize 	= storageSize;
 	memory->stackPointer 	= 0;
@@ -333,7 +333,7 @@ void executeSilentThread(SilentThread * thread)
 				}
 				if(memory->storage[ireg] != NULL)
 				{
-					printf("not null\n");
+					//printf("not null\n");
 					*storageCount-=1;
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
@@ -352,8 +352,8 @@ void executeSilentThread(SilentThread * thread)
 					localStoragePointer = ireg + 1;
 				while(ireg >= memory->storageSize)
 				{
-					printf("resize to%i\n",memory->storageSize + 
-						memory->reallocSize);
+					//printf("resize to%i\n",memory->storageSize + 
+					//	memory->reallocSize);
 					memory->storage = 
 						realloc(memory->storage,memory->storageSize + 
 						memory->reallocSize);
@@ -364,12 +364,12 @@ void executeSilentThread(SilentThread * thread)
 				}
 				if(memory->storage[ireg] != NULL)
 				{
-					printf("not null\n");
+					//printf("not null\n");
 					*storageCount-=1;
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(4);
-				silentSavePointer(gb,memory->storage[ireg]);
+				silentSavePointer(gb,&memory->storage[ireg]);
 				*storageCount+=1;
 			break;
 

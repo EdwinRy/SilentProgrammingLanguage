@@ -16,38 +16,45 @@ void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount)
     //If more than half the realloc size is used
     if(*storageCount > memory->reallocSize / 2)
     {
-        printf("storage %i\n",*storageCount);
+        printf("storage count %i\n",*storageCount);
         printf("sweeping\n");
 
         gb->currentMark             = (gb->currentMark == 0) ? 1 : 0;
         silentBlock** gbData        = gb->pointers->voidPtr;
         silentBlock** storageData   = memory->storage;
+        int storageItems = *storageCount + 1;
 
         printf("marking\n");
-        for(int i = 0; i < *storageCount; i++)
+        for(int i = 0; i < storageItems; i++)
         {
-            if(storageData[i] != NULL)
+            printf("%lu\n",storageData[i]);
+            if(storageData[i] != NULL && storageData[i] > 100)
+            //if(storageData[i] < 100 )
             {
                 storageData[i]->marked = gb->currentMark;
-                //printf("here\n");
-                //printf("%i\n",*storageData[i]->data);
+                printf("marked %i\n",*(int*)(storageData[i]->data));
+            }
+            else{
+                printf("here\n");
+                storageItems+=1;
             }
         }
 
-        printf("freeing\n");
+        printf("freeing data\n");
         for(int i = 0; i < gb->pointers->dataCount; i++)
         {
             if(gbData[i] != NULL)
             {
                 if(gbData[i]->marked != gb->currentMark)
                 {          
+                    printf("freeing %i\n",*(int*)(gbData[i]->data));
                     void* dataPtr   = gbData[i]->data;
                     void* objPtr    = gbData[i]; 
-                    vectorRemove(gb->pointers->voidPtr,i);       
-                    //printf("%i\n",*gbData[i]->data);
-                    free(gbData[i]->data);
-                    free(gbData[i]);
-                    //*storageCount -= 1;
+                    vectorRemove(gb->pointers,i);       
+                    free(dataPtr);
+                    free(objPtr);
+                    *storageCount -= 1;
+                    i--;
                 }
             }
         }
@@ -58,7 +65,7 @@ void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount)
 
 void silentSavePointer(SilentGB* gb, void* ptr)
 {
-    vectorPushBack(gb->pointers, &ptr);
+    vectorPushBack(gb->pointers, ptr);
 }
 
 void silentDeletePointer(SilentGB* gb, void* ptr)

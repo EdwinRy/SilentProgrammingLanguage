@@ -5,7 +5,7 @@ bin = bin/*
 
 
 all:
-	$(Compiler) $(src) -Wall -lds -o $(out)
+	$(Compiler) $(src) -Wall -o $(out)
 
 bit32:
 	$(Compiler) -m32 $(src) -Wall -o $(out)
