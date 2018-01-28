@@ -16,38 +16,32 @@ void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount)
     //If more than half the realloc size is used
     if(*storageCount > memory->reallocSize / 2)
     {
-        printf("storage count %i\n",*storageCount);
-        printf("sweeping\n");
-
         gb->currentMark             = (gb->currentMark == 0) ? 1 : 0;
         silentBlock** gbData        = gb->pointers->voidPtr;
         silentBlock** storageData   = memory->storage;
         int storageItems            = *storageCount;
 
-        printf("marking\n");
+        //printf("marking\n");
         for(int i = 0; i < storageItems; i++)
         {
-            //printf("%lu\n",storageData[i]);
             if(storageData[i] != NULL)
-            //if(storageData[i] < 100 )
             {
                 storageData[i]->marked = gb->currentMark;
-                printf("marked %i\n",*(int*)(storageData[i]->data));
+                //printf("marked %i\n",*(int*)(storageData[i]->data));
             }
             else{
-                printf("here\n");
                 storageItems+=1;
             }
         }
 
-        printf("freeing data\n");
+        //printf("freeing data\n");
         for(int i = 0; i < gb->pointers->dataCount; i++)
         {
             if(gbData[i] != NULL)
             {
                 if(gbData[i]->marked != gb->currentMark)
                 {          
-                    printf("freeing %i\n",*(int*)(gbData[i]->data));
+                    //printf("freeing %i\n",*(int*)(gbData[i]->data));
                     void* dataPtr   = gbData[i]->data;
                     void* objPtr    = gbData[i]; 
                     vectorRemove(gb->pointers,i);       

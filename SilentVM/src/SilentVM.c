@@ -359,8 +359,8 @@ void executeSilentThread(SilentThread * thread)
 						toClear += memory->reallocSize;
 					}
 					memory->storageSize += toClear;
-					printf("resize to %i\n",memory->storageSize);
-					printf("how much to clear %i\n",toClear);
+					//printf("resize to %i\n",memory->storageSize);
+					//printf("how much to clear %i\n",toClear);
 					//Reallocate memory
 					memory->storage = realloc(memory->storage,memory->storageSize);
 
