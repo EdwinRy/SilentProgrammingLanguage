@@ -104,6 +104,10 @@ void executeSilentThread(SilentThread * thread)
 			case CallSys: //Not yet implemented
 			break;
 
+			case GBSweep:
+				silentSweep(gb,memory,storageCount);
+			break;
+
 			//Disable storage pointer
 			case UseGlobal:
 				altStoragePointer = 0;

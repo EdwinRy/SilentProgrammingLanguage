@@ -3,4 +3,18 @@ main:
 alloc4 i0
 push4 i21
 store4 i0
+
+alloc4 i1
+push4 i7
+store4 i1
+
+alloc4 i1
+push4 i22
+store4 i1
+
+gbsweep
+
+alloc4 i2
+push4 i27
+store4 i2
 halt

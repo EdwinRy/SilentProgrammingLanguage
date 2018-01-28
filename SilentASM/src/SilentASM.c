@@ -372,6 +372,12 @@ char assemble(char* inFile, char* outFile)
             }
         }
 
+        if(strcmp(instructions[0],"gbsweep") == 0)
+        {
+            program[programCounter] = (char)GBSweep;
+            programCounter+=1;
+        }
+
         if(strcmp(instructions[0],"useglobal") == 0)
         {
             program[programCounter] = (char)UseGlobal;
