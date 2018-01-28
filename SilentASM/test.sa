@@ -16,21 +16,21 @@ alloc4 i1
 push4 i22
 store4 i1
 
-alloc4 i5
+alloc4 i8
 push4 i43
-store4 i5
+store4 i8
 
-alloc4 i5
+alloc4 i8
 push4 i42
-store4 i5
+store4 i8
 
-alloc4 i6
-push4 i1
-store4 i6
+/alloc4 i6
+/push4 i1
+/store4 i6
 
-alloc4 i6
-push4 i2
-store4 i6
+/alloc4 i6
+/push4 i2
+/store4 i6
 
 gbsweep
 

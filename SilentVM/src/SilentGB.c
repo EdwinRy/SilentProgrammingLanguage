@@ -22,13 +22,13 @@ void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount)
         gb->currentMark             = (gb->currentMark == 0) ? 1 : 0;
         silentBlock** gbData        = gb->pointers->voidPtr;
         silentBlock** storageData   = memory->storage;
-        int storageItems = *storageCount + 1;
+        int storageItems            = *storageCount;
 
         printf("marking\n");
         for(int i = 0; i < storageItems; i++)
         {
-            printf("%lu\n",storageData[i]);
-            if(storageData[i] != NULL && storageData[i] > 100)
+            //printf("%lu\n",storageData[i]);
+            if(storageData[i] != NULL)
             //if(storageData[i] < 100 )
             {
                 storageData[i]->marked = gb->currentMark;

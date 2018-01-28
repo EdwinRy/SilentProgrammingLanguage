@@ -349,18 +349,25 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 3;
 				ireg += altStoragePointer;
 				if(ireg >= localStoragePointer)
-					localStoragePointer = ireg + 1;
-				while(ireg >= memory->storageSize)
+					localStoragePointer = ireg + 1;				
+				if(ireg >= memory->storageSize)
 				{
-					//printf("resize to%i\n",memory->storageSize + 
-					//	memory->reallocSize);
-					memory->storage = 
-						realloc(memory->storage,memory->storageSize + 
-						memory->reallocSize);
+					int toClear = 0;
+					int start = memory->storageSize;
+					while(ireg >= toClear)
+					{
+						toClear += memory->reallocSize;
+					}
+					memory->storageSize += toClear;
+					printf("resize to %i\n",memory->storageSize);
+					printf("how much to clear %i\n",toClear);
+					//Reallocate memory
+					memory->storage = realloc(memory->storage,memory->storageSize);
 
-					memset(&memory->storage[memory->storageSize],0,
-						memory->storageSize + memory->reallocSize);
-					memory->storageSize += memory->reallocSize;
+					printf("to clear from %i\n",start);
+					//printf("how much to clear %i\n",memory->storageSize);
+					//clear memory
+					memset(memory->storage + start, 0,toClear * sizeof(void*));
 				}
 				if(memory->storage[ireg] != NULL)
 				{
