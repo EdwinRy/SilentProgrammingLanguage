@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 			fread(bytecode,fileSize,1,f);
 			fclose(f);
 
-			SilentMemory* mem 		= createSilentMemory(500,100);
+			SilentMemory* mem 		= createSilentMemory(1,100);
 			SilentThread* thread 	= createSilentThread(mem,bytecode);			
 			executeSilentThread(thread);
 		}

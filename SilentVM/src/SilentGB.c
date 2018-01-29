@@ -21,27 +21,27 @@ void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount)
         silentBlock** storageData   = memory->storage;
         int storageItems            = *storageCount;
 
-        //printf("marking\n");
+        printf("marking\n");
         for(int i = 0; i < storageItems; i++)
         {
             if(storageData[i] != NULL)
             {
                 storageData[i]->marked = gb->currentMark;
-                //printf("marked %i\n",*(int*)(storageData[i]->data));
+                printf("marked %i\n",*(int*)(storageData[i]->data));
             }
             else{
                 storageItems+=1;
             }
         }
 
-        //printf("freeing data\n");
+        printf("freeing data\n");
         for(int i = 0; i < gb->pointers->dataCount; i++)
         {
             if(gbData[i] != NULL)
             {
                 if(gbData[i]->marked != gb->currentMark)
                 {          
-                    //printf("freeing %i\n",*(int*)(gbData[i]->data));
+                    printf("freeing %i\n",*(int*)(gbData[i]->data));
                     void* dataPtr   = gbData[i]->data;
                     void* objPtr    = gbData[i]; 
                     vectorRemove(gb->pointers,i);       
