@@ -30,6 +30,7 @@ void silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount)
                 printf("marked %i\n",*(int*)(storageData[i]->data));
             }
             else{
+                printf("here\n");
                 storageItems+=1;
             }
         }

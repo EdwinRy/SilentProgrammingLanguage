@@ -33,6 +33,9 @@ int main(int argc, char** argv)
 			SilentMemory* mem 		= createSilentMemory(1,100);
 			SilentThread* thread 	= createSilentThread(mem,bytecode);			
 			executeSilentThread(thread);
+
+			printf("stack pointer %i \n", mem->stackPointer);
+			printf("1st stack item %f \n", *(float*)mem->stack);
 		}
 	}
 

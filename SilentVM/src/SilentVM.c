@@ -140,60 +140,60 @@ void executeSilentThread(SilentThread * thread)
 
 			//Pushes 1 byte of data to the stack
 			case Push1:
-				thread->memory->stack[thread->memory->stackPointer++] = 
+				memory->stack[memory->stackPointer++] = 
 					thread->bytecode[++thread->programCounter];
 			break;
 				
 			//Pushes 4 bytes of data to the stack
 			case Push4:
 				//printf("push4\n");
-				memcpy(thread->memory->stack + thread->memory->stackPointer,
+				memcpy(memory->stack + memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						4);
 				thread->programCounter += 3;
-				thread->memory->stackPointer += 4;
+				memory->stackPointer += 4;
 			break;
 			
 			//Pushes 8 bytes of data to the stack
 			case Push8:
 				//printf("push8\n");
-				memcpy(thread->memory->stack + thread->memory->stackPointer,
+				memcpy(memory->stack + memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						8);
 				thread->programCounter += 7;
-				thread->memory->stackPointer += 8;
+				memory->stackPointer += 8;
 			break;
 
 			//Pushes X (in bytecode) bytes of data to the stack
 			case PushX:
 				//printf("pushx\n");
 				lreg = *((int*)(thread->bytecode + (++thread->programCounter)));
-				memcpy(thread->memory->stack + thread->memory->stackPointer,
+				memcpy(memory->stack + memory->stackPointer,
 						thread->bytecode + 4 + thread->programCounter,
 						lreg);
 				thread->programCounter += (3+lreg);
-				thread->memory->stackPointer += lreg;
+				memory->stackPointer += lreg;
 			break;
 			
 			//Decreases the stack pointer by 1
 			case Pop1:
-				thread->memory->stackPointer--;
+				memory->stackPointer--;
 			break;
 			
 			//Decreases the stack pointer by 4
 			case Pop4:
 				//printf("pop4\n");
-				thread->memory->stackPointer-=4;
+				memory->stackPointer-=4;
 			break;
 					
 			//Decreases the stack pointer by 8
 			case Pop8:
-				thread->memory->stackPointer-=8;
+				memory->stackPointer-=8;
 			break;
 
 			//Decreases the stack pointer by X (in bytecode)
 			case PopX:
-				thread->memory->stackPointer-=
+				memory->stackPointer-=
 					*(int*)(thread->bytecode + (++thread->programCounter));
 				thread->programCounter += 3;
 			break;
@@ -205,7 +205,7 @@ void executeSilentThread(SilentThread * thread)
 						*(int*)(thread->bytecode +(++thread->programCounter)) +
 						altStoragePointer
 					]->data,
-					thread->memory->stack + (--thread->memory->stackPointer),
+					memory->stack + (--memory->stackPointer),
 					1
 				);
 				thread->programCounter += 3;
@@ -214,13 +214,13 @@ void executeSilentThread(SilentThread * thread)
 			//Saves 4 bytes from the stack to allocated space
 			case Store4:
 				//printf("store4\n");
-				thread->memory->stackPointer -= 4;
+				memory->stackPointer -= 4;
 				memcpy(
 					memory->storage[
 						*(int*)(thread->bytecode +(++thread->programCounter)) +
 						altStoragePointer
 					]->data,
-					thread->memory->stack + (thread->memory->stackPointer),
+					memory->stack + (memory->stackPointer),
 					4
 				);
 				thread->programCounter += 3;
@@ -228,13 +228,13 @@ void executeSilentThread(SilentThread * thread)
 
 			//Saves 8 bytes from the stack to allocated space
 			case Store8:
-				thread->memory->stackPointer -= 8;
+				memory->stackPointer -= 8;
 				memcpy(	
 					memory->storage[
 						*(int*)(thread->bytecode +(++thread->programCounter)) +
 						altStoragePointer
 					]->data,
-					thread->memory->stack + (thread->memory->stackPointer),
+					memory->stack + (memory->stackPointer),
 					8
 				);
 				thread->programCounter += 3;		
@@ -246,13 +246,13 @@ void executeSilentThread(SilentThread * thread)
 				//Data size
 				ireg = *((int*)(thread->bytecode + (++thread->programCounter)))+1;
 				thread->programCounter+=4;
-				thread->memory->stackPointer-=ireg;
+				memory->stackPointer-=ireg;
 				memcpy(
 					memory->storage[
 						(*(int*)(thread->bytecode +(thread->programCounter))) +
 						altStoragePointer
 					]->data,
-					thread->memory->stack + (++thread->memory->stackPointer),
+					memory->stack + (++memory->stackPointer),
 					ireg);
 				thread->programCounter += 3;
 			break;
@@ -261,7 +261,7 @@ void executeSilentThread(SilentThread * thread)
 			case Load1:
 				memcpy
 				(
-					thread->memory->stack + (thread->memory->stackPointer++),
+					memory->stack + (memory->stackPointer++),
 					memory->storage[
 						*(int*)(thread->bytecode +(++thread->programCounter)) +
 						altStoragePointer
@@ -276,14 +276,14 @@ void executeSilentThread(SilentThread * thread)
 				//printf("load4\n");
 				memcpy
 				(
-					thread->memory->stack + (thread->memory->stackPointer),
+					memory->stack + (memory->stackPointer),
 					memory->storage[
 						*(int*)(thread->bytecode +(++thread->programCounter)) +
 						altStoragePointer
 					]->data,
 					4
 				);
-				thread->memory->stackPointer += 4;
+				memory->stackPointer += 4;
 				thread->programCounter += 3;
 			break;
 
@@ -291,14 +291,14 @@ void executeSilentThread(SilentThread * thread)
 			case Load8:
 				memcpy
 				(
-					thread->memory->stack + (thread->memory->stackPointer),
+					memory->stack + (memory->stackPointer),
 					memory->storage[
 						*(int*)(thread->bytecode +(++thread->programCounter)) +
 						altStoragePointer
 					]->data,
 					8
 				);
-				thread->memory->stackPointer += 8;
+				memory->stackPointer += 8;
 				thread->programCounter += 3;
 			break;
 
@@ -311,14 +311,14 @@ void executeSilentThread(SilentThread * thread)
 						*(int*)(thread->bytecode +(++thread->programCounter)) +
 						altStoragePointer
 					]->data,
-					thread->memory->stack + (thread->memory->stackPointer),
+					memory->stack + (memory->stackPointer),
 					ireg);
 				thread->programCounter += 3;
 				memory->stackPointer += ireg;
 			break;
 
 			//Allocates 1 byte of data for the program
-			case Alloc1://
+			case Alloc1:
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
 				ireg += altStoragePointer;
@@ -337,7 +337,7 @@ void executeSilentThread(SilentThread * thread)
 					memory->storage = realloc(memory->storage,memory->storageSize);
 
 					//clear memory
-					memset(memory->storage + start, 0,toClear * sizeof(void*));
+					memset(memory->storage + start, 0, toClear * sizeof(void*));
 				}
 				if(memory->storage[ireg] != NULL)
 				{
@@ -345,12 +345,12 @@ void executeSilentThread(SilentThread * thread)
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(1);
-				silentSavePointer(gb,memory->storage[ireg]);
+				silentSavePointer(gb,&memory->storage[ireg]);
 				*storageCount+=1;
 			break;
 
 			//Allocates 4 bytes of data for the program
-			case Alloc4://
+			case Alloc4:
 				//printf("alloc4\n");
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
@@ -383,7 +383,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			//Allocates 8 bytes of data for the program
-			case Alloc8://
+			case Alloc8:
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				thread->programCounter += 3;
 				ireg += altStoragePointer;
@@ -410,12 +410,12 @@ void executeSilentThread(SilentThread * thread)
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
 				memory->storage[ireg]->data = malloc(8);
-				silentSavePointer(gb,memory->storage[ireg]);
+				silentSavePointer(gb,&memory->storage[ireg]);
 				*storageCount+=1;
 			break;
 
 			//Allocates X bytes of data for the program
-			case AllocX://
+			case AllocX:
 				ireg = *(int*)(thread->bytecode + (++thread->programCounter)) + 1;
 				thread->programCounter += 3;
 				lreg = *(int*)(thread->bytecode + (++thread->programCounter));
@@ -444,27 +444,27 @@ void executeSilentThread(SilentThread * thread)
 				}
 				memory->storage[lreg] = malloc(sizeof(silentBlock));
 				memory->storage[lreg]->data = malloc(ireg);
-				silentSavePointer(gb,memory->storage[ireg]);
+				silentSavePointer(gb,&memory->storage[ireg]);
 				*storageCount+=1;
 			break;
 			
 			case GetPtr:
 				//printf("getptr\n");
-				memcpy(thread->memory->stack + thread->memory->stackPointer,
+				memcpy(memory->stack + memory->stackPointer,
 						(int*)&memory->storage[
 							*(int*)(thread->bytecode + (++thread->programCounter)) +
 							altStoragePointer
 						]->data,
 						8);
 				thread->programCounter += 3;
-				thread->memory->stackPointer += 8;
+				memory->stackPointer += 8;
 			break;
 
 
 			case LoadPtr1:
 				memory->stackPointer-=8;
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				memcpy(thread->memory->stack + thread->memory->stackPointer,
+				memcpy(memory->stack + memory->stackPointer,
 					(long*)lreg,1);
 				memory->stackPointer+=1;
 			break;
@@ -472,7 +472,7 @@ void executeSilentThread(SilentThread * thread)
 			case LoadPtr4:
 				memory->stackPointer-=8;
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				memcpy(thread->memory->stack + thread->memory->stackPointer,
+				memcpy(memory->stack + memory->stackPointer,
 					(long*)lreg,4);
 				memory->stackPointer+=4;
 			break;
@@ -480,7 +480,7 @@ void executeSilentThread(SilentThread * thread)
 			case LoadPtr8:
 				memory->stackPointer-=8;
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				memcpy(thread->memory->stack + thread->memory->stackPointer,
+				memcpy(memory->stack + memory->stackPointer,
 					(long*)lreg,8);
 				memory->stackPointer+=8;
 			break;
@@ -489,7 +489,7 @@ void executeSilentThread(SilentThread * thread)
 				memory->stackPointer-=8;
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				ireg = *(int*)(thread->bytecode + (++thread->programCounter));
-				memcpy(thread->memory->stack + thread->memory->stackPointer,
+				memcpy(memory->stack + memory->stackPointer,
 					(long*)lreg,ireg);
 				thread->programCounter += 3;
 				memory->stackPointer += ireg;
@@ -551,461 +551,525 @@ void executeSilentThread(SilentThread * thread)
 
 			//Adds together 2 bytes on the stack
 			case AddByte:
-				thread->memory->stackPointer--;
-				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) += 
-					*(char*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer--;
+				*(char*)(memory->stack + (memory->stackPointer-1)) += 
+					*(char*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Adds together 2 integers on the stack
 			case AddInt:
 				//printf("addint\n");
-				thread->memory->stackPointer-=4;
-				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) += 
-					*(int*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=4;
+				*(int*)(memory->stack + (memory->stackPointer-4)) += 
+					*(int*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Adds together 2 longs on the stack
 			case AddLong:
-				thread->memory->stackPointer-=8;
-				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) += 
-					*(long*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=8;
+				*(long*)(memory->stack + (memory->stackPointer-8)) += 
+					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Adds together 2 floats on the stack
 			case AddFloat:
-				thread->memory->stackPointer-=4;
-				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) += 
-					*(float*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=4;
+				*(float*)(memory->stack + (memory->stackPointer-4)) += 
+					*(float*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Adds together 2 doubles on the stack
 			case AddDouble:
-				thread->memory->stackPointer-=8;
-				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) += 
-					*(double*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=8;
+				*(double*)(memory->stack + (memory->stackPointer-8)) += 
+					*(double*)(memory->stack + memory->stackPointer);
 
 			break;
 
 			//Subtracts the last number from the second last number on the stack
 			case SubByte:
-				thread->memory->stackPointer--;
-				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) -= 
-					*(char*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer--;
+				*(char*)(memory->stack + (memory->stackPointer-1)) -= 
+					*(char*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Subtracts the last number from the second last number on the stack
 			case SubInt:
-				thread->memory->stackPointer-=4;
-				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) -= 
-					*(int*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=4;
+				*(int*)(memory->stack + (memory->stackPointer-4)) -= 
+					*(int*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Subtracts the last number from the second last number on the stack
 			case SubLong:
-				thread->memory->stackPointer-=8;
-				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) -= 
-					*(long*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=8;
+				*(long*)(memory->stack + (memory->stackPointer-8)) -= 
+					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Subtracts the last number from the second last number on the stack
 			case SubFloat:
-				thread->memory->stackPointer-=4;
-				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) -= 
-					*(float*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=4;
+				*(float*)(memory->stack + (memory->stackPointer-4)) -= 
+					*(float*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Subtracts the last number from the second last number on the stack
 			case SubDouble:
-				thread->memory->stackPointer-=8;
-				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) -= 
-					*(double*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=8;
+				*(double*)(memory->stack + (memory->stackPointer-8)) -= 
+					*(double*)(memory->stack + memory->stackPointer);
 
 			break;
 			
 			//Multiplies 2 bytes together
 			case MulByte:
-				thread->memory->stackPointer--;
-				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) *= 
-					*(char*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer--;
+				*(char*)(memory->stack + (memory->stackPointer-1)) *= 
+					*(char*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Multiplies 2 integers together
 			case MulInt:
 				//printf("mulint\n");
-				thread->memory->stackPointer-=4;
-				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) *= 
-					*(int*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=4;
+				*(int*)(memory->stack + (memory->stackPointer-4)) *= 
+					*(int*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Multiplies 2 longs together
 			case MulLong:
-				thread->memory->stackPointer-=8;
-				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) *= 
-					*(long*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=8;
+				*(long*)(memory->stack + (memory->stackPointer-8)) *= 
+					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Multiplies 2 floats together
 			case MulFloat:
-				thread->memory->stackPointer-=4;
-				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) *= 
-					*(float*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=4;
+				*(float*)(memory->stack + (memory->stackPointer-4)) *= 
+					*(float*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Multiplies 2 doubles together
 			case MulDouble:
-				thread->memory->stackPointer-=8;
-				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) *= 
-					*(double*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=8;
+				*(double*)(memory->stack + (memory->stackPointer-8)) *= 
+					*(double*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Divides 2 bytes
 			case DivByte:
-				thread->memory->stackPointer--;
-				*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) /= 
-					*(char*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer--;
+				*(char*)(memory->stack + (memory->stackPointer-1)) /= 
+					*(char*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Divides 2 integers
 			case DivInt:
-				thread->memory->stackPointer-=4;
-				*(int*)(thread->memory->stack + (thread->memory->stackPointer-4)) /= 
-					*(int*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=4;
+				*(int*)(memory->stack + (memory->stackPointer-4)) /= 
+					*(int*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Divides 2 longs
 			case DivLong:
-				thread->memory->stackPointer-=8;
-				*(long*)(thread->memory->stack + (thread->memory->stackPointer-8)) /= 
-					*(long*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=8;
+				*(long*)(memory->stack + (memory->stackPointer-8)) /= 
+					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Divides 2 floats
 			case DivFloat:
-				thread->memory->stackPointer-=4;
-				*(float*)(thread->memory->stack + (thread->memory->stackPointer-4)) /= 
-					*(float*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=4;
+				*(float*)(memory->stack + (memory->stackPointer-4)) /= 
+					*(float*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Divides 2 doubles
 			case DivDouble:
-				thread->memory->stackPointer-=8;
-				*(double*)(thread->memory->stack + (thread->memory->stackPointer-8)) /= 
-					*(double*)(thread->memory->stack + thread->memory->stackPointer);
+				memory->stackPointer-=8;
+				*(double*)(memory->stack + (memory->stackPointer-8)) /= 
+					*(double*)(memory->stack + memory->stackPointer);
 			break;
 
 			//Byte to integer conversion
-			case ByteToInt://untested
-				breg = *(char*)(thread->memory->stack + (thread->memory->stackPointer--));
-				ireg = (int)breg;
-				memcpy(
-					thread->memory->stack + thread->memory->stackPointer,
-					&ireg, 
-					4);
-				thread->memory->stackPointer+=4;
+			case ByteToInt:
+				memset(memory->stack + memory->stackPointer, 0, 3);
+				memory->stackPointer += 3;
 			break;
 
 			//Byte to long conversion
-			case ByteToLong://untested
-				breg =  *(char*)(thread->memory->stack + (thread->memory->stackPointer--));
-				lreg = (long)breg;
-				memcpy(
-					thread->memory->stack + thread->memory->stackPointer,
-					&lreg,
-					8);
-				thread->memory->stackPointer+=8;
+			case ByteToLong:
+				memset(memory->stack + memory->stackPointer, 0, 7);
+				memory->stackPointer += 7;
 			break;
 
 			//Byte to float conversion
-			case ByteToFloat://untested
-				breg =  *(char*)(thread->memory->stack + (thread->memory->stackPointer--));
-				freg = (float)breg;
-				memcpy(
-					thread->memory->stack + thread->memory->stackPointer,
-					&freg,
-					4);
-				thread->memory->stackPointer+=4;
+			case ByteToFloat:
+				memory->stackPointer -= 1;
+				breg =  *(char*)(memory->stack + (memory->stackPointer));
+				freg = breg;
+				memcpy(memory->stack + memory->stackPointer, &freg, 4);
+				memory->stackPointer += 4;
 			break;
 
 			//Byte to double conversion
 			case ByteToDouble://untested
-				breg =  *(char*)(thread->memory->stack + (thread->memory->stackPointer--));
-				dreg = (double)breg;
-				memcpy(
-					thread->memory->stack + thread->memory->stackPointer,
-					&dreg,
-					8);
-				thread->memory->stackPointer+=8;
+				memory->stackPointer -= 1;
+				breg =  *(char*)(memory->stack + (memory->stackPointer));
+				dreg = breg;
+				memcpy(memory->stack + memory->stackPointer, &dreg, 8);
+				memory->stackPointer += 8;
 			break;
 
 			//Integer to byte conversion
-			case IntToByte://untested
-				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-=4));
-				breg = (char)ireg;
-				memcpy(
-					thread->memory->stack + thread->memory->stackPointer,
-					&breg,
-					1);
-				thread->memory->stackPointer++;
-
+			case IntToByte:
+				memory->stackPointer-=3;
 			break;
 
 			//Integer to long conversion
-			case IntToLong://untested
-				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-=4));
-				lreg = (long)ireg;
-				memcpy(
-					thread->memory->stack + thread->memory->stackPointer,
-					&lreg,
-					8);
-				thread->memory->stackPointer+=8;
+			case IntToLong:
+				memset(memory->stack + memory->stackPointer,0,4);
+				memory->stackPointer+=4;
 			break;
 			
 			//Integer to float conversion
-			case IntToFloat://untested
-				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-4));
+			case IntToFloat:
+				memory->stackPointer-=4;
+				ireg =  *(int*)(memory->stack + (memory->stackPointer));
 				freg = (float)ireg;
 				memcpy(
-					thread->memory->stack + (thread->memory->stackPointer-4),
+					memory->stack + (memory->stackPointer),
 					&freg,
 					4);
+				memory->stackPointer+=4;
 			break;
 
 			//Integer to double conversion
-			case IntToDouble://untested
-				ireg =  *(int*)(thread->memory->stack + (thread->memory->stackPointer-4));
+			case IntToDouble:
+				memory->stackPointer-=4;
+				ireg =  *(int*)(memory->stack + (memory->stackPointer));
 				dreg = (double)ireg;
 				memcpy(
-					thread->memory->stack + thread->memory->stackPointer-4,
-					&freg,
+					memory->stack + memory->stackPointer,
+					&dreg,
 					8);
-				thread->memory->stackPointer+=4;
+				memory->stackPointer+=8;
+			break;
+
+
+			case FloatToByte:
+				memory->stackPointer-=4;
+				freg =  *(float*)(memory->stack + (memory->stackPointer));
+				breg = (char)freg;
+				memcpy(memory->stack + (memory->stackPointer), &breg, 1);
+				memory->stackPointer+=1;
 			break;
 
 			//Float to integer conversion
-			case FloatToInt://untested
+			case FloatToInt:
+				memory->stackPointer-=4;
+				freg =  *(float*)(memory->stack + (memory->stackPointer));
+				ireg = (int)freg;
+				memcpy(memory->stack + (memory->stackPointer), &ireg, 4);
+				memory->stackPointer+=4;
+			break;
 
-				break;
+			case FloatToLong:
+				memory->stackPointer-=4;
+				freg =  *(float*)(memory->stack + (memory->stackPointer));
+				lreg = (long)freg;
+				memcpy(memory->stack + (memory->stackPointer), &lreg, 8);
+				memory->stackPointer+=8;
+			break;
 
 			//Float to double conversion
-			case FloatToDouble://untested
-				thread->memory->stackPointer+=4;				
+			case FloatToDouble:
+				memory->stackPointer-=4;
+				freg =  *(float*)(memory->stack + (memory->stackPointer));
+				dreg = (double)freg;
+				memcpy(memory->stack + (memory->stackPointer), &dreg, 8);
+				memory->stackPointer+=8;			
+			break;
+
+			case DoubleToByte:
+				memory->stackPointer-=8;
+				dreg =  *(double*)(memory->stack + (memory->stackPointer));
+				breg = (char)dreg;
+				memcpy(memory->stack + (memory->stackPointer), &breg, 1);
+				memory->stackPointer+=1;
+			break;
+
+			case DoubleToInt:
+				memory->stackPointer-=8;
+				dreg =  *(double*)(memory->stack + (memory->stackPointer));
+				ireg = (int)dreg;
+				memcpy(memory->stack + (memory->stackPointer), &ireg, 4);
+				memory->stackPointer+=4;
+			break;
+
+			case DoubleToLong:
+				memory->stackPointer-=8;
+				dreg =  *(double*)(memory->stack + (memory->stackPointer));
+				lreg = (long)dreg;
+				memcpy(memory->stack + (memory->stackPointer), &lreg, 8);
+				memory->stackPointer+=8;
+			break;
+
+			case DoubleToFloat:
+				memory->stackPointer-=8;
+				dreg =  *(double*)(memory->stack + (memory->stackPointer));
+				freg = (float)dreg;
+				memcpy(memory->stack + (memory->stackPointer), &freg, 4);
+				memory->stackPointer+=4;
+			break;
+
+			case LongToByte:
+				memory->stackPointer -= 7;
+			break;
+
+			case LongToInt:
+				memory->stackPointer -= 4;
+			break;
+
+			case LongToFloat:
+				memory->stackPointer-=8;
+				ireg =  *(long*)(memory->stack + (memory->stackPointer));
+				freg = (float)ireg;
+				memcpy(
+					memory->stack + (memory->stackPointer),
+					&freg,
+					4);
+				memory->stackPointer+=4;
+			break;
+
+			case LongToDouble:
+				memory->stackPointer-=8;
+				ireg =  *(long*)(memory->stack + (memory->stackPointer));
+				dreg = (double)ireg;
+				memcpy(
+					memory->stack + (memory->stackPointer),
+					&dreg,
+					8);
+				memory->stackPointer+=8;
 			break;
 			
 			//Compare value of 2 bytes
 			case SmallerThanByte:
-				thread->memory->stackPointer--;
-				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) <
-					*(char*)(thread->memory->stack + thread->memory->stackPointer))
+				memory->stackPointer--;
+				if(*(char*)(memory->stack + (memory->stackPointer-1)) <
+					*(char*)(memory->stack + memory->stackPointer))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 4 bytes
 			case SmallerThanInt:
 				//printf("smallerint\n");
-				thread->memory->stackPointer-=7;
-				if(*(int*)(thread->memory->stack + thread->memory->stackPointer-1) < 
-					*(int*)(thread->memory->stack + thread->memory->stackPointer+3))
+				memory->stackPointer-=7;
+				if(*(int*)(memory->stack + memory->stackPointer-1) < 
+					*(int*)(memory->stack + memory->stackPointer+3))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}			
 			break;
 
 			//Compare value of 2 8 bytes
 			case SmallerThanLong:
-				thread->memory->stackPointer-=15;
-				if(*(long*)(thread->memory->stack + (thread->memory->stackPointer-1)) < 
-					*(long*)(thread->memory->stack + thread->memory->stackPointer+7))
+				memory->stackPointer-=15;
+				if(*(long*)(memory->stack + (memory->stackPointer-1)) < 
+					*(long*)(memory->stack + memory->stackPointer+7))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 4 bytes
 			case SmallerThanFloat:
-				thread->memory->stackPointer-=7;
-				if(*(float*)(thread->memory->stack + (thread->memory->stackPointer-1)) < 
-					*(float*)(thread->memory->stack + thread->memory->stackPointer+3))
+				memory->stackPointer-=7;
+				if(*(float*)(memory->stack + (memory->stackPointer-1)) < 
+					*(float*)(memory->stack + memory->stackPointer+3))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 8 bytes
 			case SmallerThanDouble:
-				thread->memory->stackPointer-=15;
-				if(*(double*)(thread->memory->stack + (thread->memory->stackPointer-1)) < 
-					*(double*)(thread->memory->stack + thread->memory->stackPointer+7))
+				memory->stackPointer-=15;
+				if(*(double*)(memory->stack + (memory->stackPointer-1)) < 
+					*(double*)(memory->stack + memory->stackPointer+7))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 bytes
 			case BiggerThanByte:
-				thread->memory->stackPointer--;
-				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) > 
-					*(char*)(thread->memory->stack + thread->memory->stackPointer))
+				memory->stackPointer--;
+				if(*(char*)(memory->stack + (memory->stackPointer-1)) > 
+					*(char*)(memory->stack + memory->stackPointer))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 4 bytes
 			case BiggerThanInt:
-				thread->memory->stackPointer-=7;
-				if(*(int*)(thread->memory->stack + (thread->memory->stackPointer-1)) > 
-					*(int*)(thread->memory->stack + thread->memory->stackPointer+3))
+				memory->stackPointer-=7;
+				if(*(int*)(memory->stack + (memory->stackPointer-1)) > 
+					*(int*)(memory->stack + memory->stackPointer+3))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 8 bytes
 			case BiggerThanLong:
-				thread->memory->stackPointer-=15;
-				if(*(long*)(thread->memory->stack + (thread->memory->stackPointer-1)) > 
-					*(long*)(thread->memory->stack + thread->memory->stackPointer+7))
+				memory->stackPointer-=15;
+				if(*(long*)(memory->stack + (memory->stackPointer-1)) > 
+					*(long*)(memory->stack + memory->stackPointer+7))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 4 bytes
 			case BiggerThanFloat:
-				thread->memory->stackPointer-=7;
-				if(*(float*)(thread->memory->stack + (thread->memory->stackPointer-1)) > 
-					*(float*)(thread->memory->stack + thread->memory->stackPointer+3))
+				memory->stackPointer-=7;
+				if(*(float*)(memory->stack + (memory->stackPointer-1)) > 
+					*(float*)(memory->stack + memory->stackPointer+3))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 8 bytes
 			case BiggerThanDouble:
-				thread->memory->stackPointer-=15;
-				if(*(double*)(thread->memory->stack + (thread->memory->stackPointer-1)) > 
-					*(double*)(thread->memory->stack + thread->memory->stackPointer+7))
+				memory->stackPointer-=15;
+				if(*(double*)(memory->stack + (memory->stackPointer-1)) > 
+					*(double*)(memory->stack + memory->stackPointer+7))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 bytes
 			case EqualByte:
-				thread->memory->stackPointer--;
-				if(*(char*)(thread->memory->stack + (thread->memory->stackPointer-1)) == 
-					*(char*)(thread->memory->stack + thread->memory->stackPointer))
+				memory->stackPointer--;
+				if(*(char*)(memory->stack + (memory->stackPointer-1)) == 
+					*(char*)(memory->stack + memory->stackPointer))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 4 bytes
 			case EqualInt:
-				thread->memory->stackPointer-=7;
-				if(*(int*)(thread->memory->stack + (thread->memory->stackPointer-1)) == 
-					*(int*)(thread->memory->stack + thread->memory->stackPointer+3))
+				memory->stackPointer-=7;
+				if(*(int*)(memory->stack + (memory->stackPointer-1)) == 
+					*(int*)(memory->stack + memory->stackPointer+3))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 8 bytes
 			case EqualLong:
-				thread->memory->stackPointer-=15;
-				if(*(long*)(thread->memory->stack + (thread->memory->stackPointer-1)) == 
-					*(long*)(thread->memory->stack + thread->memory->stackPointer+7))
+				memory->stackPointer-=15;
+				if(*(long*)(memory->stack + (memory->stackPointer-1)) == 
+					*(long*)(memory->stack + memory->stackPointer+7))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 4 bytes
 			case EqualFloat:
-				thread->memory->stackPointer-=7;
-				if((*(float*)(thread->memory->stack + (thread->memory->stackPointer-1))) == 
-					(*(float*)(thread->memory->stack + thread->memory->stackPointer+3)))
+				memory->stackPointer-=7;
+				if((*(float*)(memory->stack + (memory->stackPointer-1))) == 
+					(*(float*)(memory->stack + memory->stackPointer+3)))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 			//Compare value of 2 8 bytes
 			case EqualDouble:
-				thread->memory->stackPointer-=15;
-				if(*(double*)(thread->memory->stack + (thread->memory->stackPointer-1)) ==
-					*(double*)(thread->memory->stack + thread->memory->stackPointer+7))
+				memory->stackPointer-=15;
+				if(*(double*)(memory->stack + (memory->stackPointer-1)) ==
+					*(double*)(memory->stack + memory->stackPointer+7))
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 1;
+					memory->stack[memory->stackPointer-1] = 1;
 				}
 				else
 				{
-					thread->memory->stack[thread->memory->stackPointer-1] = 0;
+					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
 
 
 			case If:
 				//printf("if\n");
-				if(*(char*)(thread->memory->stack + --thread->memory->stackPointer))
+				if(*(char*)(memory->stack + --memory->stackPointer))
 				{
 					thread->programCounter++;
 					thread->programCounter = 
@@ -1021,7 +1085,7 @@ void executeSilentThread(SilentThread * thread)
 
 			case IfNot:
 				//printf("ifn\n");
-				if(!(*(char*)(thread->memory->stack + (--thread->memory->stackPointer))))
+				if(!(*(char*)(memory->stack + (--memory->stackPointer))))
 				{
 					thread->programCounter++;
 					thread->programCounter = 
@@ -1034,10 +1098,6 @@ void executeSilentThread(SilentThread * thread)
 				}
 			break;	
 		}
-		//printf("stack 1st element:%u\n",(int)memory->stack[0]);
-		//printf("programCounter:%i\n",(int)thread->programCounter);
-		//printf("Which function:%i\n",(int)memory->storagePointers->dataCount);
-		//getchar();
 		thread->programCounter++;
 	}
 }
