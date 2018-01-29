@@ -35,7 +35,12 @@ int main(int argc, char** argv)
 			executeSilentThread(thread);
 
 			printf("stack pointer %i \n", mem->stackPointer);
-			printf("1st stack item %f \n", *(float*)mem->stack);
+			printf("1st storage item %i \n", *(int*)mem->storage[1]->data);
+
+			deleteSilentMemory(mem);
+			deleteSilentThread(thread);
+			silentDeleteGB(thread->garbageCollector);
+
 		}
 	}
 

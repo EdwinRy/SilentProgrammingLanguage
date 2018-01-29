@@ -1,7 +1,16 @@
 goto main
+
 main:
 
-push8 d21.5
-doubletofloat
+alloc4 i0
+push4 i21
+store4 i0
 
+alloc4 i1
+push4 i22
+store4 i1
+
+
+getptr i0
+free
 halt

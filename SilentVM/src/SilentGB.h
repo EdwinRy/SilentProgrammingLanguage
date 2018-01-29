@@ -20,6 +20,6 @@ typedef struct SilentGB
 SilentGB*   createSilentGB();
 void        silentSweep(SilentGB* gb, SilentMemory* memory, int* storageCount);
 void        silentSavePointer(SilentGB* gb, void* ptr);
-void        silentDeletePointer(SilentGB* gb, void* ptr);
+void        silentDeletePointer(SilentMemory* memory, int* storageCount, void* ptr);
 void        silentDeleteGB(SilentGB* gb);
 #endif

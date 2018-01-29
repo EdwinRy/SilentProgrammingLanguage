@@ -450,9 +450,10 @@ void executeSilentThread(SilentThread * thread)
 			
 			case GetPtr:
 				//printf("getptr\n");
+				thread->programCounter+=1;
 				memcpy(memory->stack + memory->stackPointer,
 						(int*)&memory->storage[
-							*(int*)(thread->bytecode + (++thread->programCounter)) +
+							*(int*)(thread->bytecode + (thread->programCounter)) +
 							altStoragePointer
 						]->data,
 						8);
@@ -542,11 +543,10 @@ void executeSilentThread(SilentThread * thread)
 				thread->programCounter += 3;
 			break;
 
-			case FREE://
-				lreg = *(long*)(thread->bytecode +(++thread->programCounter)) +
-					altStoragePointer;
-				silentDeletePointer(gb,(void*)lreg);
-				thread->programCounter += 7;
+			case FREE://not implemented
+				memory->stackPointer -= 8;
+				lreg = *(long*)(memory->stack + (memory->stackPointer));
+				silentDeletePointer(memory,storageCount,(void*)lreg);
 			break;
 
 			//Adds together 2 bytes on the stack
