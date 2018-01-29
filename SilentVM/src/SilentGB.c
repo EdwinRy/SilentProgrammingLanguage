@@ -74,6 +74,7 @@ void silentDeletePointer(SilentMemory* memory, int* storageCount, void* ptr)
             if(ptr == storageData[i]->data)
             {
                 free(ptr);
+                free(storageData[i]->data);
                 free(storageData[i]);
                 storageData[i] = NULL;
                 break;
