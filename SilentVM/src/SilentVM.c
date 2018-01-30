@@ -19,7 +19,7 @@ printf("Your system won't be able to suppord native libraries\n");
 SilentMemory* createSilentMemory(int storageSize, int stackSize)
 {
 	SilentMemory* memory 	= malloc(sizeof(SilentMemory));
-	memory->stack 			= malloc(stackSize);
+	memory->stack 			= calloc(stackSize,sizeof(char));
 	memory->storage 		= calloc(storageSize,sizeof(silentBlock*));
 	memory->storagePointers = createVector(sizeof(int*));
 	memory->programCounters = createVector(sizeof(int*));
@@ -159,9 +159,9 @@ void executeSilentThread(SilentThread * thread)
 				//printf("push8\n");
 				memcpy(memory->stack + memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
-						8);
-				thread->programCounter += 7;
-				memory->stackPointer += 8;
+						sizeof(long));
+				thread->programCounter += sizeof(long)-1;
+				memory->stackPointer += sizeof(long);
 			break;
 
 			//Pushes X (in bytecode) bytes of data to the stack
@@ -188,7 +188,7 @@ void executeSilentThread(SilentThread * thread)
 					
 			//Decreases the stack pointer by 8
 			case Pop8:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(long);
 			break;
 
 			//Decreases the stack pointer by X (in bytecode)
@@ -228,14 +228,14 @@ void executeSilentThread(SilentThread * thread)
 
 			//Saves 8 bytes from the stack to allocated space
 			case Store8:
-				memory->stackPointer -= 8;
+				memory->stackPointer -= sizeof(long);
 				memcpy(	
 					memory->storage[
 						*(int*)(thread->bytecode +(++thread->programCounter)) +
 						altStoragePointer
 					]->data,
 					memory->stack + (memory->stackPointer),
-					8
+					sizeof(long)
 				);
 				thread->programCounter += 3;		
 			break;
@@ -296,9 +296,9 @@ void executeSilentThread(SilentThread * thread)
 						*(int*)(thread->bytecode +(++thread->programCounter)) +
 						altStoragePointer
 					]->data,
-					8
+					sizeof(long)
 				);
-				memory->stackPointer += 8;
+				memory->stackPointer += sizeof(long);
 				thread->programCounter += 3;
 			break;
 
@@ -409,7 +409,7 @@ void executeSilentThread(SilentThread * thread)
 					*storageCount-=1;
 				}
 				memory->storage[ireg] = malloc(sizeof(silentBlock));
-				memory->storage[ireg]->data = malloc(8);
+				memory->storage[ireg]->data = malloc(sizeof(long));
 				silentSavePointer(gb,&memory->storage[ireg]);
 				*storageCount+=1;
 			break;
@@ -456,14 +456,14 @@ void executeSilentThread(SilentThread * thread)
 							*(int*)(thread->bytecode + (thread->programCounter)) +
 							altStoragePointer
 						]->data,
-						8);
+						sizeof(long));
 				thread->programCounter += 3;
-				memory->stackPointer += 8;
+				memory->stackPointer += sizeof(long);
 			break;
 
 
 			case LoadPtr1:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(long);
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				memcpy(memory->stack + memory->stackPointer,
 					(long*)lreg,1);
@@ -471,7 +471,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case LoadPtr4:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(long);
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				memcpy(memory->stack + memory->stackPointer,
 					(long*)lreg,4);
@@ -479,15 +479,15 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case LoadPtr8:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(long);
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				memcpy(memory->stack + memory->stackPointer,
-					(long*)lreg,8);
-				memory->stackPointer+=8;
+					(long*)lreg,sizeof(long));
+				memory->stackPointer+=sizeof(long);
 			break;
 
 			case LoadPtrX:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(long);
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				ireg = *(int*)(thread->bytecode + (++thread->programCounter));
 				memcpy(memory->stack + memory->stackPointer,
@@ -498,7 +498,7 @@ void executeSilentThread(SilentThread * thread)
 
 			case EditPtr1:
 				//printf("editptr1\n");
-				memory->stackPointer -= 8;
+				memory->stackPointer -= sizeof(long);
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				memory->stackPointer -= 1;
 				memcpy(
@@ -509,7 +509,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case EditPtr4:
-				memory->stackPointer -= 8;
+				memory->stackPointer -= sizeof(long);
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				memory->stackPointer -= 4;
 				memcpy(
@@ -520,9 +520,9 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case EditPtr8:
-				memory->stackPointer -= 8;
+				memory->stackPointer -= sizeof(long);
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				memory->stackPointer -= 8;
+				memory->stackPointer -= sizeof(long);
 				memcpy(
 					(void*)lreg,
 					memory->stack + (memory->stackPointer),
@@ -531,7 +531,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case EditPtrX:
-				memory->stackPointer -= 8;
+				memory->stackPointer -= sizeof(long);
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
 				memory->stackPointer -= ireg;
@@ -544,7 +544,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case FREE://not implemented
-				memory->stackPointer -= 8;
+				memory->stackPointer -= sizeof(long);
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
 				silentDeletePointer(memory,storageCount,(void*)lreg);
 			break;
