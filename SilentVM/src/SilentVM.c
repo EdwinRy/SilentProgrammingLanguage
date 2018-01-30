@@ -566,8 +566,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Adds together 2 longs on the stack
 			case AddLong:
-				memory->stackPointer-=8;
-				*(long*)(memory->stack + (memory->stackPointer-8)) += 
+				memory->stackPointer-=sizeof(long);
+				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) += 
 					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
@@ -580,8 +580,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Adds together 2 doubles on the stack
 			case AddDouble:
-				memory->stackPointer-=8;
-				*(double*)(memory->stack + (memory->stackPointer-8)) += 
+				memory->stackPointer-=sizeof(double);
+				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) += 
 					*(double*)(memory->stack + memory->stackPointer);
 
 			break;
@@ -602,8 +602,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Subtracts the last number from the second last number on the stack
 			case SubLong:
-				memory->stackPointer-=8;
-				*(long*)(memory->stack + (memory->stackPointer-8)) -= 
+				memory->stackPointer-=sizeof(long);
+				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) -= 
 					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
@@ -616,8 +616,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Subtracts the last number from the second last number on the stack
 			case SubDouble:
-				memory->stackPointer-=8;
-				*(double*)(memory->stack + (memory->stackPointer-8)) -= 
+				memory->stackPointer-=sizeof(double);
+				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) -= 
 					*(double*)(memory->stack + memory->stackPointer);
 
 			break;
@@ -639,8 +639,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Multiplies 2 longs together
 			case MulLong:
-				memory->stackPointer-=8;
-				*(long*)(memory->stack + (memory->stackPointer-8)) *= 
+				memory->stackPointer-=sizeof(long);
+				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) *= 
 					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
@@ -653,8 +653,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Multiplies 2 doubles together
 			case MulDouble:
-				memory->stackPointer-=8;
-				*(double*)(memory->stack + (memory->stackPointer-8)) *= 
+				memory->stackPointer-=sizeof(double);
+				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) *= 
 					*(double*)(memory->stack + memory->stackPointer);
 			break;
 
@@ -674,8 +674,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Divides 2 longs
 			case DivLong:
-				memory->stackPointer-=8;
-				*(long*)(memory->stack + (memory->stackPointer-8)) /= 
+				memory->stackPointer-=sizeof(long);
+				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) /= 
 					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
@@ -688,8 +688,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Divides 2 doubles
 			case DivDouble:
-				memory->stackPointer-=8;
-				*(double*)(memory->stack + (memory->stackPointer-8)) /= 
+				memory->stackPointer-=sizeof(double);
+				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) /= 
 					*(double*)(memory->stack + memory->stackPointer);
 			break;
 
@@ -701,8 +701,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Byte to long conversion
 			case ByteToLong:
-				memset(memory->stack + memory->stackPointer, 0, 7);
-				memory->stackPointer += 7;
+				memset(memory->stack + memory->stackPointer, 0, sizeof(long)-1);
+				memory->stackPointer += sizeof(long)-1;
 			break;
 
 			//Byte to float conversion
@@ -719,8 +719,8 @@ void executeSilentThread(SilentThread * thread)
 				memory->stackPointer -= 1;
 				breg =  *(char*)(memory->stack + (memory->stackPointer));
 				dreg = breg;
-				memcpy(memory->stack + memory->stackPointer, &dreg, 8);
-				memory->stackPointer += 8;
+				memcpy(memory->stack + memory->stackPointer, &dreg, sizeof(double));
+				memory->stackPointer += sizeof(double);
 			break;
 
 			//Integer to byte conversion
@@ -730,8 +730,8 @@ void executeSilentThread(SilentThread * thread)
 
 			//Integer to long conversion
 			case IntToLong:
-				memset(memory->stack + memory->stackPointer,0,4);
-				memory->stackPointer+=4;
+				memset(memory->stack + memory->stackPointer,0,sizeof(long)-sizeof(int));
+				memory->stackPointer+=sizeof(long)-sizeof(int);
 			break;
 			
 			//Integer to float conversion
@@ -754,8 +754,8 @@ void executeSilentThread(SilentThread * thread)
 				memcpy(
 					memory->stack + memory->stackPointer,
 					&dreg,
-					8);
-				memory->stackPointer+=8;
+					sizeof(long));
+				memory->stackPointer+=sizeof(double)-sizeof(int);
 			break;
 
 
@@ -780,8 +780,8 @@ void executeSilentThread(SilentThread * thread)
 				memory->stackPointer-=4;
 				freg =  *(float*)(memory->stack + (memory->stackPointer));
 				lreg = (long)freg;
-				memcpy(memory->stack + (memory->stackPointer), &lreg, 8);
-				memory->stackPointer+=8;
+				memcpy(memory->stack + (memory->stackPointer), &lreg, sizeof(long));
+				memory->stackPointer+=sizeof(long);
 			break;
 
 			//Float to double conversion
@@ -789,12 +789,12 @@ void executeSilentThread(SilentThread * thread)
 				memory->stackPointer-=4;
 				freg =  *(float*)(memory->stack + (memory->stackPointer));
 				dreg = (double)freg;
-				memcpy(memory->stack + (memory->stackPointer), &dreg, 8);
-				memory->stackPointer+=8;			
+				memcpy(memory->stack + (memory->stackPointer), &dreg, sizeof(double));
+				memory->stackPointer+=sizeof(double);			
 			break;
 
 			case DoubleToByte:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(long);
 				dreg =  *(double*)(memory->stack + (memory->stackPointer));
 				breg = (char)dreg;
 				memcpy(memory->stack + (memory->stackPointer), &breg, 1);
@@ -802,7 +802,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case DoubleToInt:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(long);
 				dreg =  *(double*)(memory->stack + (memory->stackPointer));
 				ireg = (int)dreg;
 				memcpy(memory->stack + (memory->stackPointer), &ireg, 4);
@@ -810,15 +810,15 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case DoubleToLong:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(double);
 				dreg =  *(double*)(memory->stack + (memory->stackPointer));
 				lreg = (long)dreg;
-				memcpy(memory->stack + (memory->stackPointer), &lreg, 8);
-				memory->stackPointer+=8;
+				memcpy(memory->stack + (memory->stackPointer), &lreg, sizeof(long));
+				memory->stackPointer+=sizeof(long);
 			break;
 
 			case DoubleToFloat:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(double);
 				dreg =  *(double*)(memory->stack + (memory->stackPointer));
 				freg = (float)dreg;
 				memcpy(memory->stack + (memory->stackPointer), &freg, 4);
@@ -826,15 +826,15 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case LongToByte:
-				memory->stackPointer -= 7;
+				memory->stackPointer -= sizeof(long)-1;
 			break;
 
 			case LongToInt:
-				memory->stackPointer -= 4;
+				memory->stackPointer -= sizeof(long)-sizeof(int);
 			break;
 
 			case LongToFloat:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(long);
 				ireg =  *(long*)(memory->stack + (memory->stackPointer));
 				freg = (float)ireg;
 				memcpy(
@@ -845,14 +845,14 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case LongToDouble:
-				memory->stackPointer-=8;
+				memory->stackPointer-=sizeof(long);
 				ireg =  *(long*)(memory->stack + (memory->stackPointer));
 				dreg = (double)ireg;
 				memcpy(
 					memory->stack + (memory->stackPointer),
 					&dreg,
-					8);
-				memory->stackPointer+=8;
+					sizeof(double));
+				memory->stackPointer+=sizeof(double);
 			break;
 			
 			//Compare value of 2 bytes
@@ -886,9 +886,10 @@ void executeSilentThread(SilentThread * thread)
 
 			//Compare value of 2 8 bytes
 			case SmallerThanLong:
-				memory->stackPointer-=15;
+				//memory->stackPointer-=15;
+				memory->stackPointer-=(sizeof(long)*2)-1;
 				if(*(long*)(memory->stack + (memory->stackPointer-1)) < 
-					*(long*)(memory->stack + memory->stackPointer+7))
+					*(long*)(memory->stack + memory->stackPointer+(sizeof(long)-1)))
 				{
 					memory->stack[memory->stackPointer-1] = 1;
 				}
@@ -914,9 +915,9 @@ void executeSilentThread(SilentThread * thread)
 
 			//Compare value of 2 8 bytes
 			case SmallerThanDouble:
-				memory->stackPointer-=15;
+				memory->stackPointer-=(sizeof(double)*2)-1;
 				if(*(double*)(memory->stack + (memory->stackPointer-1)) < 
-					*(double*)(memory->stack + memory->stackPointer+7))
+					*(double*)(memory->stack + memory->stackPointer+(sizeof(double)-1)))
 				{
 					memory->stack[memory->stackPointer-1] = 1;
 				}
@@ -956,9 +957,9 @@ void executeSilentThread(SilentThread * thread)
 
 			//Compare value of 2 8 bytes
 			case BiggerThanLong:
-				memory->stackPointer-=15;
+				memory->stackPointer-=(sizeof(long)*2)-1;
 				if(*(long*)(memory->stack + (memory->stackPointer-1)) > 
-					*(long*)(memory->stack + memory->stackPointer+7))
+					*(long*)(memory->stack + memory->stackPointer+(sizeof(long)-1)))
 				{
 					memory->stack[memory->stackPointer-1] = 1;
 				}
@@ -984,9 +985,9 @@ void executeSilentThread(SilentThread * thread)
 
 			//Compare value of 2 8 bytes
 			case BiggerThanDouble:
-				memory->stackPointer-=15;
+				memory->stackPointer-=(sizeof(double)*2)-1;
 				if(*(double*)(memory->stack + (memory->stackPointer-1)) > 
-					*(double*)(memory->stack + memory->stackPointer+7))
+					*(double*)(memory->stack + memory->stackPointer+(sizeof(double)-1)))
 				{
 					memory->stack[memory->stackPointer-1] = 1;
 				}
@@ -1026,9 +1027,9 @@ void executeSilentThread(SilentThread * thread)
 
 			//Compare value of 2 8 bytes
 			case EqualLong:
-				memory->stackPointer-=15;
+				memory->stackPointer-=(sizeof(long)*2)-1;
 				if(*(long*)(memory->stack + (memory->stackPointer-1)) == 
-					*(long*)(memory->stack + memory->stackPointer+7))
+					*(long*)(memory->stack + memory->stackPointer+(sizeof(long)-1)))
 				{
 					memory->stack[memory->stackPointer-1] = 1;
 				}
