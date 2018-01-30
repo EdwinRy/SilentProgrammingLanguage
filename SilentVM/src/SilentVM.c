@@ -160,7 +160,7 @@ void executeSilentThread(SilentThread * thread)
 				memcpy(memory->stack + memory->stackPointer,
 						thread->bytecode + (++thread->programCounter),
 						sizeof(long));
-				thread->programCounter += sizeof(long)-1;
+				thread->programCounter += 7;
 				memory->stackPointer += sizeof(long);
 			break;
 
