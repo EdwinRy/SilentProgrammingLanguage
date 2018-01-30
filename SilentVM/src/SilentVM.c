@@ -130,7 +130,7 @@ void executeSilentThread(SilentThread * thread)
 			break;
 
 			case Return:
-				silentSweep(gb,memory,storageCount);
+				//silentSweep(gb,memory,storageCount);
 				thread->programCounter = (*lastPC) + 4;
 				localStoragePointer = storagePointer[0];
 				altStoragePointer = storagePointer[0];
