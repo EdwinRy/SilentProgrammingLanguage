@@ -2,6 +2,8 @@
 namespace SilentParser
 {
 
+    
+
     silentProgram* silentParseProgram(std::vector<silentToken> tokens)
     {
         silentProgram* program = new silentProgram();
