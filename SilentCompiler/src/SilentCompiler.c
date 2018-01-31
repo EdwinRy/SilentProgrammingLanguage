@@ -7,11 +7,12 @@
 //Compile silent program
 char* silentCompile(char* path, char* output, char compileOption)
 {
-	char* rawSource = readAllText(path);//no AST
-	int tokenCount = 0;
-	silentToken* tokens = silentTokenize(rawSource,&tokenCount);
-	silentProgram* program = silentParseProgram(tokens,tokenCount);
-	vector* outputCode;
+	int 			tokenCount 	= 0;
+	char* 			rawSource 	= readAllText(path);//no AST
+	silentToken* 	tokens 		= silentTokenize(rawSource,&tokenCount);
+	silentProgram* 	program 	= silentParseProgram(tokens,tokenCount);
+	vector* 		outputCode;
+
 	switch(compileOption)
 	{
 		case 0:
@@ -38,9 +39,9 @@ char* silentCompile(char* path, char* output, char compileOption)
 //Handle Compilation input/outputs
 int main()
 {
-	char* source = "test.silent";
-	char* out = "output.test";
-	char compileOption = 1;
+	char* 	source 			= "test.silent";
+	char* 	out 			= "output.test";
+	char 	compileOption 	= 1;
 	silentCompile(source,out,compileOption);
 	return 0;
 }

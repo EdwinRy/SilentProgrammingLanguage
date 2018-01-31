@@ -10,6 +10,7 @@ vector* structs;
 vector* silentGenerateBytecode(silentProgram* program)
 {
     vector* output = createVector(sizeof(char*));
+
     return output;
 }
 

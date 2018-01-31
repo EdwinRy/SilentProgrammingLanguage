@@ -13,8 +13,14 @@ typedef enum SilentBytecode
 	Halt,
 	//Moves the program counter to X
 	Goto, //X - Byte
+	//Prepare native libraries
+	PrepareSysLib,
+	//Load native library
+	LoadSysLib,
+	//Prepare native subroutine
+	PrepareSysFunc,
 	//Load native subroutine
-	LoadSys,
+	LoadSysFunc,
 	//Call native subroutine
 	CallSys,//X - 4 bytes
 

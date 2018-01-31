@@ -71,9 +71,7 @@ char checkExistingGlobal(char* value)
 {
 	for(int i = 0; i < globalVariables->dataCount; i++)
 	{
-		if(strcmp(
-			value, ((silentVariable*)vectorGet(globalVariables,i))->name
-			)==0)		
+		if(strcmp(value, ((silentVariable*)vectorGet(globalVariables,i))->name)==0)		
 		{
 			return 1;
 		}
