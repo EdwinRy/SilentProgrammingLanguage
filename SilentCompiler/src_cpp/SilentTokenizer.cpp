@@ -4,7 +4,7 @@ namespace SilentTokenizer
     std::vector<silentToken>* silentTokenize(std::string source)
     {
         std::vector<silentToken>* tokens = new std::vector<silentToken>();
-        unsigned int currentLine = 0;
+        unsigned int currentLine = 1;
         for(unsigned int i = 0; i < source.length(); i++)
         {
             if(source[i] == '\n')
@@ -13,10 +13,24 @@ namespace SilentTokenizer
                 continue;
             }
 
-            if(source[i] == '\\' && source[i+1] == '\\')
+            if(source[i] == '/' && source[i+1] == '/')
             {
                 while(source[i] != '\n')
                 {
+                    i++;
+                }
+                i--;
+                continue;
+            }
+
+            if(source[i] == '/' && source[i+1] == '*')
+            {
+                while(!(source[i] == '*' && source[i+1] == '/' ))
+                {
+                    if(source[i] == '\n')
+                    {
+                        currentLine+=1;
+                    }
                     i++;
                 }
                 i--;

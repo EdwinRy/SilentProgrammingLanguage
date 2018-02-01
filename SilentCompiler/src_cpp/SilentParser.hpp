@@ -15,7 +15,9 @@ namespace SilentParser
         silentLongType,
         silentFloatType,
         silentDoubleType,
-        silentStringType
+        silentStringType,
+        silentStructType,
+        silentNullType
     };
     //using namespace SilentTokenizer;
 
@@ -56,6 +58,7 @@ namespace SilentParser
     {
         std::vector<silentFunction> functions;
         std::vector<silentStructure> structures;
+        std::vector<silentVariable> globals;
     };
 
     silentProgram *silentParseProgram(

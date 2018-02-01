@@ -4,14 +4,19 @@ struct sampleStruct
 {
     var int kek;
     var string name;
-    var long numberOfKek;
+    var long numbeOfKek;
 }
 struct sampleStruct2
 {
     var int kek;
-    var string name;
+    var string name; //comment test 
 }
+/*
 
+multi-line comment
+
+*/
+//comment test
 var sampleStruct sampleGlobalVariable3;
 
 func int add(int x, int y)

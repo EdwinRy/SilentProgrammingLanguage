@@ -14,8 +14,8 @@ namespace SilentTokenizer
         silentComparisonToken,      //>, <, <= etc
         silentStructureToken,       //For structure declarations
         silentAccessToken,          //private, public etc
-        silentNumberToken,            //for the actual data like 2.5
-        silentStringToken,
+        silentNumberToken,          //for the actual numerical data like 2.5
+        silentStringToken,          //for the actual text data
         silentTypeToken,            //for types such as int
         silentOtherToken            //mostly ".", "," etc
 
