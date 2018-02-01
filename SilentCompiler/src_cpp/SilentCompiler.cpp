@@ -1,46 +1,54 @@
-#include <iostream>
-#include <vector>
-#include "SilentReader.hpp"
-#include "SilentTokenizer.hpp"
-
-using namespace SilentTokenizer;
-char* silentCompile(char* sourcePath, char* outputPath, char compileOption)
+#include "SilentCompiler.hpp"
+SilentCompiler::SilentCompiler()
 {
-	char* rawSource = FileReader::readAllText(sourcePath);
-	std::vector<silentToken> *tokens = silentTokenize(rawSource);
-	//silentProgram* 	program 	= silentParseProgram(tokens,tokenCount);
-	//vector* 		outputCode;
-
-    /*
-	switch(compileOption)
-	{
-		case 0:
-			outputCode = silentGenerateBytecode(program);
-		break;
-
-		case 1:
-			outputCode = silentGenerateAssembly(program);
-			silentWriteAssembly(output, outputCode);
-		break;
-
-		case 2:
-			outputCode = silentGenerateLibrary(program);
-		break;
-
-		case 3:
-			outputCode = silentGenerateBytecode(program);
-			return outputCode->characters;
-		break;
-	}
-    */
-	printf("Done!\n");
+	this->success = 0;
+	this->outputAssembly = 0;
+	this->outputBytecode = 0;
+	this->usingInFile = 0;
+	this->usingOutFile = 0;
+	this->inFilePath = "";
+	this->outFilePath = "";
+	this->source = "";
+	this->bytecodeOutput = "";
+	this->assemblyOutput = "";
 }
 
-int main()
+void SilentCompiler::compile()
 {
-    char* 	source 			= (char*)"test.silent";
-	char* 	out 			= (char*)"output.test";
-	char 	compileOption 	= 1;
-	silentCompile(source,out,compileOption);
-    return 0;
+
+}
+
+void SilentCompiler::setInFile(std::string path)
+{
+	this->inFilePath = path;
+}
+
+void SilentCompiler::setOutFile(std::string path)
+{
+	this->outFilePath = path;
+}
+
+void SilentCompiler::setInSource(std::string source)
+{
+	this->source = source;
+}
+
+void SilentCompiler::setOutputAssembly(bool flag)
+{
+	this->outputAssembly = flag;
+}
+
+void SilentCompiler::setOutputBytecode(bool flag)
+{
+	this->outputBytecode = flag;
+}
+
+std::string SilentCompiler::getOutput()
+{
+	return this->output;
+}
+
+bool SilentCompiler::getSuccessfull()
+{
+	return this->success;
 }

@@ -31,10 +31,12 @@ namespace SilentParser
         silentDataType dataType;
         std::string name;
     };
+
     struct silentExpression
     {
 
     };
+
     struct silentStructure
     {
         std::string name;
@@ -42,18 +44,20 @@ namespace SilentParser
         unsigned int size;
         unsigned int items;
     };
+
     struct silentFunction
     {
         std::vector<silentExpression> expressions;
         std::string name;
         silentValue returnType;
     };
+    
     struct silentProgram
     {
         std::vector<silentFunction> functions;
         std::vector<silentStructure> structures;
     };
 
-    silentProgram* silentParseProgram(
+    silentProgram silentParseProgram(
         std::vector<SilentTokenizer::silentToken> tokens);
 }

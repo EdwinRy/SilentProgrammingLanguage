@@ -25,7 +25,7 @@ namespace SilentTokenizer
     {
         silentTokenType type;
         std::string value;
-        int currentLine;
+        unsigned int currentLine;
     }silentToken;
 
     std::vector<silentToken>* silentTokenize(std::string source);

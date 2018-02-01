@@ -2,28 +2,39 @@
 using namespace SilentTokenizer; 
 namespace SilentParser
 {
-    silentStructure silentParseStructure()
+    silentStructure silentParseStructure(std::vector<silentToken> tokens, int *index)
     {
-        
+        silentStructure structure;
+
+        //get name
+        *index+=1;
+        if(tokens[*index].type != silentIdentifierToken)
+        {
+            printf("incorrect token %s on line %u",
+                tokens[*index].value,tokens[*index].currentLine);
+        }
+
+        return structure;
     }
-    silentFunction silentParseFunction()
+
+    silentFunction silentParseFunction(std::vector<silentToken> tokens, int *index)
     {
         silentFunction function;
 
         return function;
     }
 
-    silentProgram* silentParseProgram(std::vector<silentToken> tokens)
+    silentProgram silentParseProgram(std::vector<silentToken> tokens)
     {
-        silentProgram* program = new silentProgram();
+        silentProgram program;
 
-        for(unsigned int i = 0; i < tokens.size();i++)
+        for(int i = 0; i < tokens.size();i++)
         {
             switch(tokens[i].type)
             {
                 case silentStructureToken:
-                    program->functions.push_back(
-                        silentParseFunction()
+                    program.functions.push_back(
+                        silentParseFunction(tokens,&i)
                     );
                 break;
                 default:
