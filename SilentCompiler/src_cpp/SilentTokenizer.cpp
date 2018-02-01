@@ -5,7 +5,6 @@ namespace SilentTokenizer
     {
         std::vector<silentToken> *tokens = new std::vector<silentToken>();
         unsigned int currentLine = 0;
-
         for(unsigned int i = 0; i < source.length(); i++)
         {
             if(source[i] == '\n')
@@ -194,7 +193,6 @@ namespace SilentTokenizer
             tokens->push_back(token);
             std::cout << token.value << std::endl; 
         }
-
         return tokens;
     }
 }

@@ -3,31 +3,57 @@
 #include "SilentTokenizer.hpp"
 namespace SilentParser
 {
-    using namespace SilentTokenizer;
-    typedef struct silentValue
+    enum silentValueType
+    {
+        silentNumericalValue,
+        silentTextValue
+    };
+
+    enum silentDataType
+    {
+        silentIntType,
+        silentLongType,
+        silentFloatType,
+        silentDoubleType,
+        silentStringType
+    };
+    //using namespace SilentTokenizer;
+
+    struct silentValue
+    {
+        silentValueType valueType; 
+        std::string value;
+    };
+
+    struct silentVariable
+    {
+        silentValue value;
+        silentDataType dataType;
+        std::string name;
+    };
+    struct silentExpression
     {
 
-    }silentValue;
-    typedef struct silentVariable
+    };
+    struct silentStructure
     {
-
-    }silentVariable;
-    typedef struct silentExpression
+        std::string name;
+        std::vector<silentVariable> variables;
+        unsigned int size;
+        unsigned int items;
+    };
+    struct silentFunction
     {
-
-    }silentExpression;
-    typedef struct silentStructure
+        std::vector<silentExpression> expressions;
+        std::string name;
+        silentValue returnType;
+    };
+    struct silentProgram
     {
+        std::vector<silentFunction> functions;
+        std::vector<silentStructure> structures;
+    };
 
-    }silentStructure;
-    typedef struct silentFunction
-    {
-
-    }silentFunction;
-    typedef struct silentProgram
-    {
-
-    }silentProgram;
-
-    silentProgram* silentParseProgram(std::vector<silentToken> tokens);
+    silentProgram* silentParseProgram(
+        std::vector<SilentTokenizer::silentToken> tokens);
 }
