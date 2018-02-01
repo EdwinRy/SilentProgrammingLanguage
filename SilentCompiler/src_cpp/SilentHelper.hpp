@@ -1,5 +1,5 @@
 #pragma once
-namespace FileReader
+namespace FileHelper
 {
     char* readAllText(char* path);
 }

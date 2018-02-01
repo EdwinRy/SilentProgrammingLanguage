@@ -1,5 +1,6 @@
 #include "SilentParser.hpp"
 using namespace SilentTokenizer; 
+using namespace SilentParser;
 namespace SilentParser
 {
     silentStructure silentParseStructure(std::vector<silentToken> tokens, int *index)
@@ -11,7 +12,7 @@ namespace SilentParser
         if(tokens[*index].type != silentIdentifierToken)
         {
             printf("incorrect token %s on line %u",
-                tokens[*index].value,tokens[*index].currentLine);
+                tokens[*index].value.data(),tokens[*index].currentLine);
         }
 
         return structure;
@@ -24,22 +25,23 @@ namespace SilentParser
         return function;
     }
 
-    silentProgram silentParseProgram(std::vector<silentToken> tokens)
+    silentProgram *silentParseProgram(std::vector<silentToken> tokens)
     {
-        silentProgram program;
+        silentProgram* program = new silentProgram();
 
-        for(int i = 0; i < tokens.size();i++)
+        for(int i = 0; i < (int)tokens.size();i++)
         {
             switch(tokens[i].type)
             {
                 case silentStructureToken:
-                    program.functions.push_back(
+                    program->functions.push_back(
                         silentParseFunction(tokens,&i)
                     );
                 break;
                 default:
-                    printf("Invalid token in the global scope ");
-                    printf("on line %i\n",tokens[i].currentLine);
+                    printf("Invalid token in the global scope \"%s\" on line %i\n",
+                        tokens[i].value.data(), tokens[i].currentLine);
+    
                 break;
             }
         }

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <iostream>
-namespace FileReader
+namespace FileHelper
 {
     char* readAllText(char* path)
     {

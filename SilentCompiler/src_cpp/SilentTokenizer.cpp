@@ -3,7 +3,7 @@ namespace SilentTokenizer
 {
     std::vector<silentToken>* silentTokenize(std::string source)
     {
-        std::vector<silentToken> *tokens = new std::vector<silentToken>();
+        std::vector<silentToken>* tokens = new std::vector<silentToken>();
         unsigned int currentLine = 0;
         for(unsigned int i = 0; i < source.length(); i++)
         {
@@ -191,7 +191,7 @@ namespace SilentTokenizer
                 continue;
             }
             tokens->push_back(token);
-            std::cout << token.value << std::endl; 
+            //std::cout << token.value << std::endl; 
         }
         return tokens;
     }

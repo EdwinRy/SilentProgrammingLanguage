@@ -58,6 +58,6 @@ namespace SilentParser
         std::vector<silentStructure> structures;
     };
 
-    silentProgram silentParseProgram(
+    silentProgram *silentParseProgram(
         std::vector<SilentTokenizer::silentToken> tokens);
 }

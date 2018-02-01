@@ -1,11 +1,17 @@
+#include <iostream>
+#include <vector>
 #include "SilentCompiler.hpp"
+#include "SilentHelper.hpp"
+#include "SilentTokenizer.hpp"
+#include "SilentParser.hpp"
+using namespace FileHelper;
+using namespace SilentTokenizer;
+using namespace SilentParser;
 SilentCompiler::SilentCompiler()
 {
 	this->success = 0;
-	this->outputAssembly = 0;
-	this->outputBytecode = 0;
-	this->usingInFile = 0;
-	this->usingOutFile = 0;
+	this->outputAssembly = false;
+	this->outputBytecode = false;
 	this->inFilePath = "";
 	this->outFilePath = "";
 	this->source = "";
@@ -15,6 +21,24 @@ SilentCompiler::SilentCompiler()
 
 void SilentCompiler::compile()
 {
+	if(!this->outputAssembly || !this->outputBytecode)
+	{
+		this->success = false;
+		this->errorMessage = "No output method set";
+	}
+
+	std::vector<silentToken> tokens;
+	if(inFilePath != "")
+	{
+		char* source = readAllText((char*)this->inFilePath.data());
+		tokens = *silentTokenize(source);
+	}
+	else{
+		tokens = *silentTokenize(this->source);
+	}
+	silentProgram program = *silentParseProgram(tokens);
+
+	printf("Done!\n");
 
 }
 
@@ -41,11 +65,6 @@ void SilentCompiler::setOutputAssembly(bool flag)
 void SilentCompiler::setOutputBytecode(bool flag)
 {
 	this->outputBytecode = flag;
-}
-
-std::string SilentCompiler::getOutput()
-{
-	return this->output;
 }
 
 bool SilentCompiler::getSuccessfull()
