@@ -19,16 +19,18 @@ multi-line comment
 //comment test
 var sampleStruct sampleGlobalVariable3;
 
+/*
 func int add(int x, int y)
 {
     return x+y;
 }
+*/
 
 func int main()
 {
-    var int testVariable = 360;
-    var int test2 = 21;
-    var string testString = "Sample Text \"here\"";
-    print(test.value);
-    return 0;
+    var int testVariable = (360 + 5) * (9+10) * 2;
+    //var int test2 = 21;
+    //var string testString = "Sample Text \"here\"";
+    //print(test.value);
+    //return 0;
 }

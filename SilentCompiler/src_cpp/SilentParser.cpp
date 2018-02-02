@@ -15,6 +15,41 @@ namespace SilentParser
         }
         return false;
     }
+
+    unsigned int getTypeSize(std::string type)
+    {
+        if(type == "int")
+        {
+            return 4;
+        }
+        else if(type == "long")
+        {
+            return 8;
+        }
+        else if(type == "float")
+        {
+            return 4;
+        }
+        else if(type == "double")
+        {
+            return 8;
+        }
+        else if(type == "string")
+        {
+            return 8;
+        }
+        else{
+            for(unsigned int i = 0; i < globalScope->structures.size();i++)
+            {
+                if(type == globalScope->structures[i].name)
+                {
+                    return globalScope->structures[i].size;
+                }
+            }
+        }
+        return 0;
+    }
+
     silentDataType getBuiltinDataType(std::string type)
     {
         if(type == "int")
@@ -44,8 +79,9 @@ namespace SilentParser
     silentVariable parseGlobalVar(std::vector<silentToken> tokens, int *index)
     {
         silentVariable variable;
+
+        //Get variable type
         *index+=1;
-        //Check for valid type
         if(tokens[*index].type == silentTypeToken)
         {
             variable.dataType = getBuiltinDataType(tokens[*index].value);
@@ -62,27 +98,332 @@ namespace SilentParser
                 exit(1);
             }
         }
+        variable.size = getTypeSize(tokens[*index].value);
 
+        //Get variable name
+        *index+=1;
+        if(tokens[*index].type == silentIdentifierToken)
+        {
+            variable.name = tokens[*index].value;
+        }
+        else
+        {
+            printf("Expected variable name in place of \"%s\" on line %i\n",
+                    tokens[*index].value.data(),tokens[*index].currentLine);
+            exit(1);
+        }
+        //Check whether it's been initialised
+        *index+=1;
+        if(tokens[*index].value != ";")
+        {
+            printf("Expected a \";\" at the end of line %i (no declaraction allowed),\n",
+                        tokens[*index].currentLine);
+            exit(1);
+        }
         return variable;
+
     }
+
     silentStructure parseStruct(std::vector<silentToken> tokens, int *index)
     {
         silentStructure structure;
+        structure.size = 0;
 
-        //get name
+        //Get structure name
         *index+=1;
         if(tokens[*index].type != silentIdentifierToken)
         {
-            printf("incorrect token %s on line %u",
+            printf("incorrect token %s on line %u (expected struct name)\n",
                 tokens[*index].value.data(),tokens[*index].currentLine);
+            exit(1);
         }
+        else
+        {
+            structure.name = tokens[*index].value;
+        }
+        *index+=1;
+        if(tokens[*index].value != "{")
+        {
+            printf("expected struct declaration on line %u\n",
+                tokens[*index].currentLine);
+            exit(1);
+        }
+        *index+=1;
+        while(tokens[*index].value != "}")
+        {
+            silentVariable variable;
 
+            //Get variable type
+            *index+=1;
+            if(tokens[*index].type == silentTypeToken)
+            {
+                variable.dataType = getBuiltinDataType(tokens[*index].value);
+            }
+            else{
+                if(checkExistingType(tokens[*index].value))
+                {
+                    variable.dataType = silentStructType;
+                }
+                else if(tokens[*index].value == structure.name)
+                {
+                    printf("Variable can't have the same type as the struct that it's in\n");
+                    printf("error on line %i\n",tokens[*index].currentLine);
+                    exit(1);
+                }
+                else
+                {
+                    printf("Use of incorrect type \"%s\" on line %i\n",
+                        tokens[*index].value.data(),tokens[*index].currentLine);
+                    exit(1);
+                }
+            }
+
+            variable.size = getTypeSize(tokens[*index].value);
+
+            //Get variable name
+            *index+=1;
+            if(tokens[*index].type == silentIdentifierToken)
+            {
+                variable.name = tokens[*index].value;
+            }
+            else
+            {
+                printf("Expected variable name in place of \"%s\" on line %i\n",
+                        tokens[*index].value.data(),tokens[*index].currentLine);
+                exit(1);
+            }
+            //Check whether it's been initialised
+            *index+=1;
+            if(tokens[*index].value != ";")
+            {
+                printf("Expected a \";\" at the end of line %i (no declaraction allowed)\n",
+                            tokens[*index].currentLine);
+                exit(1);
+            }
+
+            structure.variables.push_back(variable);
+            structure.size += variable.size;
+            *index+=1;
+        }
         return structure;
+    }
+
+    std::vector<silentToken> prepareExpression(std::vector<silentToken> tokens, int *index)
+    {
+        std::vector<silentToken> expression;
+        silentToken openParenthese;
+        openParenthese.type = silentOpenBracketToken;
+        openParenthese.value = "(";
+        silentToken closeParenthese;
+        closeParenthese.type = silentClosingBracketToken;
+        closeParenthese.value = ")";
+
+        while(tokens[*index].value != ";")
+        {
+            expression.push_back(tokens[*index]);
+            *index+=1;
+        }
+        //while(tokens[*index].value != ";")
+        for(unsigned int i = 0; i < expression.size();i++)
+        {   
+            if(expression[i].type = silentMathsOperatorToken)
+            {
+                if(expression[i].value == "*" || expression[i].value == "/")
+                {            
+                    //Simplify left side
+                    if(expression[i-1].value != ")")
+                    {
+                        expression.insert(expression.begin()+i-1,openParenthese);
+                        //
+                        i+=1;
+                    }
+                    else
+                    {
+                        unsigned int j;
+                        unsigned int bracketDegree = 1;
+                        for(j = i-2; bracketDegree != 0; j--)
+                        {
+                            if(expression[j].value == ")")
+                            {
+                                bracketDegree += 1;
+                            }
+                            else if(expression[j].value == "(")
+                            {
+                                bracketDegree -= 1;
+                            }
+                        }
+                        expression.insert(expression.begin()+j+1,openParenthese);
+                        i++;
+                    }
+                    //Simplify right side
+                    if(expression[i+1].value != "(")
+                    {
+                        expression.insert(expression.begin()+i+2,closeParenthese);
+                        i+=1;
+                    }
+                    else
+                    {
+                        unsigned int j;
+                        unsigned int bracketDegree = 1;
+                        for(j = i+2; bracketDegree != 0; j++)
+                        {
+                            if(expression[j].value == ")")
+                            {
+                                bracketDegree -= 1;
+                            }
+                            else if(expression[j].value == "(")
+                            {
+                                bracketDegree += 1;
+                            }
+                        }
+                        expression.insert(expression.begin()+j-1,closeParenthese);
+                        i++;
+                    }
+                }
+            }
+        }
+        return expression;
+    }
+
+    silentExpression parseExpression(std::vector<silentToken> expression)
+    {
+        for(unsigned int i = 0; i < expression.size(); i++)
+        {
+            printf("%s",expression[i].value.data());
+        }
+        printf("\n");
     }
 
     silentFunction parseFunction(std::vector<silentToken> tokens, int *index)
     {
         silentFunction function;
+
+        //Get function return type
+        *index+=1;
+        if(tokens[*index].type == silentTypeToken)
+        {
+            function.returnType = getBuiltinDataType(tokens[*index].value);
+        }
+        else{
+            if(checkExistingType(tokens[*index].value))
+            {
+                function.returnType = silentStructType;
+            }
+            else
+            {
+                printf("Use of incorrect type \"%s\" on line %i\n",
+                    tokens[*index].value.data(),tokens[*index].currentLine);
+                exit(1);
+            }
+        }
+
+        //Get function name
+        *index+=1;
+        if(tokens[*index].type == silentIdentifierToken)
+        {
+            function.name = tokens[*index].value;
+        }
+        else
+        {
+            printf("Expected function name in place of \"%s\" on line %i\n",
+                    tokens[*index].value.data(),tokens[*index].currentLine);
+            exit(1);
+        }
+
+        //Parse parameters
+        *index+=1;
+        if(tokens[*index].value != "(")
+        {
+            printf("Expected arguments for function \"%s\" on line %i\n",
+                    function.name.data(),tokens[*index].currentLine);
+            exit(1);
+        }
+
+        if(tokens[*index+1].value != ")")
+        {
+
+            //Parse arguments
+            while(tokens[*index].value != ")")
+            {
+                silentVariable argument;
+
+                //Get argument type
+                *index+=1;
+                if(tokens[*index].type == silentTypeToken)
+                {
+                    argument.dataType = getBuiltinDataType(tokens[*index].value);
+                }
+                else{
+                    if(checkExistingType(tokens[*index].value))
+                    {
+                        argument.dataType = silentStructType;
+                    }
+                    else
+                    {
+                        printf("Use of incorrect type \"%s\" on line %i\n",
+                            tokens[*index].value.data(),tokens[*index].currentLine);
+                        printf("within declaration of function \"%s\"\n",function.name.data());
+                        exit(1);
+                    }
+                }
+                argument.size = getTypeSize(tokens[*index].value);
+
+                //Get argument name
+                *index+=1;
+                if(tokens[*index].type == silentIdentifierToken)
+                {
+                    argument.name = tokens[*index].value;
+                }
+                else
+                {
+                    printf("Expected argument name in place of \"%s\" on line %i\n",
+                            tokens[*index].value.data(),tokens[*index].currentLine);
+                    exit(1);
+                }
+
+                *index+=1;
+                if(tokens[*index].value != "," && tokens[*index].value != ")")
+                {
+                    printf("Expected a \",\" or \")\" on line %i (no declaraction allowed)\n",
+                                tokens[*index].currentLine);
+                    exit(1);
+                }
+
+                function.arguments.push_back(argument);
+            }
+
+        }
+        else
+        {
+            *index+=1;
+        }
+        //Check whether the scope has been initialised
+        *index+=1;
+        if(tokens[*index].value != "{")
+        {
+            printf("Expected scope declaration for function \"%s\" on line %i\n",
+                    function.name.data(),tokens[*index].currentLine);
+            exit(1);
+        }
+
+        //Parse scope
+        *index+=1;
+        while(tokens[*index].value != "}")
+        {
+            if(tokens[*index].type == silentStructureToken && tokens[*index].value != "var")
+            {
+                printf("Can't declare structures within function scope,\n");
+                printf("Perhaps you forgot a \"}\" around line %i?\n",tokens[*index].currentLine);
+                exit(1);
+            }
+
+            function.expressions.push_back(
+                parseExpression(
+                    prepareExpression(tokens,index)
+                )
+            );
+            *index+=1;
+        }
 
         return function;
     }
@@ -113,6 +454,7 @@ namespace SilentParser
                 default:
                     printf("Invalid token in the global scope \"%s\" on line %i\n",
                         tokens[i].value.data(), tokens[i].currentLine);
+                    exit(1);
     
                 break;
             }

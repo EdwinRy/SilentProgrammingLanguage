@@ -33,7 +33,7 @@ namespace SilentTokenizer
                     }
                     i++;
                 }
-                i--;
+                i++;
                 continue;
             }
 
@@ -64,6 +64,30 @@ namespace SilentTokenizer
             {
                 token.type = silentExpressionToken;
                 token.value = "=";
+            }
+
+            else if(source[i] == '+')
+            {
+                token.type = silentMathsOperatorToken;
+                token.value = "+";
+            }
+
+            else if(source[i] == '-')
+            {
+                token.type = silentMathsOperatorToken;
+                token.value = "-";
+            }
+
+            else if(source[i] == '/')
+            {
+                token.type = silentMathsOperatorToken;
+                token.value = "/";
+            }
+
+            else if(source[i] == '*')
+            {
+                token.type = silentMathsOperatorToken;
+                token.value = "*";
             }
 
             else if(source[i] == '(')
