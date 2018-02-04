@@ -19,7 +19,17 @@ namespace SilentParser
         silentStructType,
         silentNullType
     };
-    //using namespace SilentTokenizer;
+    
+    enum silentExpressionType
+    {
+        silentAddition,
+        silentSubtraction,
+        silentMultiplication,
+        silentDivision,
+        silentAssignment,
+        silentValueHolder,
+        silentValueReference
+    };
 
     struct silentValue
     {
@@ -37,7 +47,9 @@ namespace SilentParser
 
     struct silentExpression
     {
-
+        silentExpressionType expressionType;
+        std::vector<silentExpression> parameters;
+        silentVariable value;
     };
 
     struct silentStructure

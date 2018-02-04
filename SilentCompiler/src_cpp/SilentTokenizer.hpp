@@ -8,7 +8,6 @@ namespace SilentTokenizer
         silentUnrecognisedToken,    //For unknown values
         silentIdentifierToken,      //For function names etc
         silentMathsOperatorToken,   //+, -, * etc...
-        silentExpressionToken,      // =, += etc
         silentOpenBracketToken,     //All opening brackets
         silentClosingBracketToken,  //All closing brackets
         silentComparisonToken,      //>, <, <= etc

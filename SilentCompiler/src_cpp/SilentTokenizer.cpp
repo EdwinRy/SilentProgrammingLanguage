@@ -62,7 +62,7 @@ namespace SilentTokenizer
 
             else if(source[i] == '=')
             {
-                token.type = silentExpressionToken;
+                token.type = silentMathsOperatorToken;
                 token.value = "=";
             }
 
