@@ -28,7 +28,7 @@ func int add(int x, int y)
 
 func int main()
 {
-    var int testVariable = var(360 + 5) * (9+10) * 2;
+    testVariable = (360 + 5) * (9+10) * 2;
     //var int test2 = 21;
     //var string testString = "Sample Text \"here\"";
     //print(test.value);

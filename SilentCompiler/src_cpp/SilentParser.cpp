@@ -285,61 +285,64 @@ namespace SilentParser
         return expression;
     }
 
-    silentExpression parseExpression(std::vector<silentToken> expressionString, int index)
+    silentExpression parseExpression(std::vector<silentToken> expressionString, int *index)
     {
+        printf("parsing expression\n");
+        printf("1st item:%s\n",expressionString[*index].value.data());
         silentExpression expression;
-        for(unsigned int i = index; i < expressionString.size(); i++)
+        for(unsigned int i = *index; i < expressionString.size(); i++)
         {
             printf("%s",expressionString[i].value.data());
+            printf("\n");
 
-            if(expressionString[index].type == silentMathsOperatorToken)
+            if(expressionString[*index].type == silentMathsOperatorToken)
             {
-                if(expressionString[index].value == "=")
+                if(expressionString[*index].value == "=")
                 {
-                    if(expressionString[index-1].type == silentIdentifierToken)
+                    if(expressionString[*index-1].type == silentIdentifierToken)
                     {
-                        if(expressionString[index-3].value == "var")
+                        if(expressionString[*index-3].value == "var")
                         {
                             if(index != 0)
                             {
                                 printf("Variable declaration not allowed within an expression,\n");
-                                printf("Error on line %i\n",expressionString[index].currentLine);
+                                printf("Error on line %i\n",expressionString[*index].currentLine);
                                 exit(1);
                             }
                             silentVariable variable;
 
                             //Get variable type
                             index+=1;
-                            if(expressionString[index].type == silentTypeToken)
+                            if(expressionString[*index].type == silentTypeToken)
                             {
-                                variable.dataType = getBuiltinDataType(expressionString[index].value);
+                                variable.dataType = getBuiltinDataType(expressionString[*index].value);
                             }
                             else{
-                                if(checkExistingType(expressionString[index].value))
+                                if(checkExistingType(expressionString[*index].value))
                                 {
                                     variable.dataType = silentStructType;
                                 }
                                 else
                                 {
                                     printf("Use of incorrect type \"%s\" on line %i\n",
-                                        expressionString[index].value.data(),
-                                        expressionString[index].currentLine);
+                                        expressionString[*index].value.data(),
+                                        expressionString[*index].currentLine);
                                     exit(1);
                                 }
                             }
-                            variable.size = getTypeSize(expressionString[index].value);
+                            variable.size = getTypeSize(expressionString[*index].value);
 
                             //Get variable name
                             index+=1;
-                            if(expressionString[index].type == silentIdentifierToken)
+                            if(expressionString[*index].type == silentIdentifierToken)
                             {
-                                variable.name = expressionString[index].value;
+                                variable.name = expressionString[*index].value;
                             }
                             else
                             {
                                 printf("Expected variable name in place of \"%s\" on line %i\n",
-                                        expressionString[index].value.data(),
-                                        expressionString[index].currentLine);
+                                        expressionString[*index].value.data(),
+                                        expressionString[*index].currentLine);
                                 exit(1);
                             }
 
@@ -351,13 +354,32 @@ namespace SilentParser
                         {
                             silentExpression leftSide;
                             leftSide.expressionType = silentValueReference;
-                            leftSide.value.name = expressionString[index-1].value;
+                            leftSide.value.name = expressionString[*index-1].value;
                         }
+                    }
+                    else
+                    {
+                        printf("Can't assign a value to anything but an identifier\n");
+                        printf("Error on line %i\n", expressionString[i-1].currentLine);
+                        exit(1);
                     }
                 }
             }
+            else if(expressionString[i].value == "(")
+            {
+                printf("here\n");
+                *index = i + 1;
+                parseExpression(expressionString, index);
+                i = *index;
+            }
+            else if(expressionString[i].value == ")")
+            {
+                printf("here2\n");
+                *index = i + 1;
+                return expression;
+            }
         }
-        printf("\n");
+        
 
         return expression;
     }
@@ -485,8 +507,10 @@ namespace SilentParser
                 exit(1);
             }
 
+            int temp = 0;
+
             function.expressions.push_back(
-                parseExpression(prepareExpression(tokens,index), 0)
+                parseExpression(prepareExpression(tokens,index), &temp)
             );
             *index+=1;
         }
