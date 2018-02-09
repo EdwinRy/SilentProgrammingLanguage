@@ -47,9 +47,7 @@ namespace SilentParser
 
     struct silentExpression
     {
-        silentExpressionType expressionType;
-        std::vector<silentExpression> parameters;
-        silentVariable value;
+        std::vector<std::string> expression;
     };
 
     struct silentStructure
