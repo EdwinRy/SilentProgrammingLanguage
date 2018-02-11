@@ -223,6 +223,8 @@ namespace SilentParser
             expression.push_back(tokens[*index]);
             *index+=1;
         }
+        expression.push_back(tokens[*index]);
+        *index+=1;
         //while(tokens[*index].value != ";")
         for(unsigned int i = 0; i < expression.size();i++)
         {   
@@ -280,6 +282,11 @@ namespace SilentParser
                         i++;
                     }
                 }
+                else if (expression[i].value == "=")
+                {
+                    expression.insert(expression.end()-1, closeParenthese);
+                    expression.insert(expression.begin()+i+1, openParenthese);
+                }
             }
         }
         return expression;
@@ -290,17 +297,20 @@ namespace SilentParser
         silentExpression expression;
         for(unsigned int i = 0; i < expressionString.size(); i++)
         {
+            printf("%s\n",expressionString[i].value.data());
+        }
+        for(unsigned int i = 0; i < expressionString.size(); i++)
+        {
             if(expressionString[i].value == ")")
             {
+                //look for the left bracket
+                int leftI = i;
+                for(int leftI; expressionString[leftI].value == "("; leftI--);
 
             }
             else if(expressionString[i].value == ";")
             {
-
-            }
-            else if(expressionString[i].value == "return")
-            {
-                
+                return expression;
             }
         }
         return expression;
