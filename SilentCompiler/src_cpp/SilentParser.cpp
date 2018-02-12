@@ -294,6 +294,9 @@ namespace SilentParser
 
     silentExpression parseExpression(std::vector<silentToken> expressionString)
     {
+        silentToken hashTag;
+        hashTag.value = "#";
+        hashTag.type = silentIdentifierToken;
         silentExpression expression;
         for(unsigned int i = 0; i < expressionString.size(); i++)
         {
@@ -305,11 +308,104 @@ namespace SilentParser
             {
                 //look for the left bracket
                 int leftI = i;
-                for(int leftI; expressionString[leftI].value == "("; leftI--);
+                for(; expressionString[leftI].value != "("; leftI-=1)
+                {
+                    printf("val %s\n", expressionString[leftI].value.data());
+                }
+                //Parse using proper order of operation
+                if(expressionString[leftI-1].type == silentMathsOperatorToken ||
+                   expressionString[leftI-1].value != "=")
+                {
+                    //Push outside value early
+                    expression.expression.push_back(
+                        "push "+expressionString[leftI-2].value
+                    );
 
+                    int origin = leftI;
+                    //Parse inside bracket
+                    for(
+                        int temp = 0;
+                        expressionString[leftI+temp].value != ")";
+                        temp++
+                    )
+                    {
+                        //If it's a value then push it
+                        if(expressionString[leftI+temp].type == silentNumberToken)
+                        {
+                            expression.expression.push_back(
+                                "push " + expressionString[leftI+temp].value
+                            );
+                        }
+                        //If it's an operator
+                        else if(expressionString[leftI+temp].type ==
+                            silentMathsOperatorToken)
+                        {
+                            //push value after operator
+                            expression.expression.push_back(
+                                "push " + expressionString[leftI+temp+1].value
+                            );
+                            //push operator
+                            expression.expression.push_back(
+                                expressionString[leftI+temp].value
+                            );
+                            leftI += 1;
+                        }
+                    }
+                    //Add earlier operation
+                    expression.expression.push_back(
+                        expressionString[origin-1].value
+                    );
+                    //Cleanup
+                    while(expressionString[origin].value!=")")
+                    {
+                        printf("test %s\n",expressionString[origin].value.data());
+                        expressionString.erase(expressionString.begin()+origin);
+                    }
+                    expressionString.erase(expressionString.begin()+origin);
+                    expressionString.insert(expressionString.begin()+origin, hashTag);
+                    i = 0;
+                    continue;
+                }
+                //Parse function call
+                else if(expressionString[leftI-1].type == silentIdentifierToken)
+                {
+                    //If it doesn't have arguments
+                    if(leftI + 1 == i)
+                    {
+                        printf("calling\n");
+                        expression.expression.push_back(
+                            "call "+expressionString[leftI-1].value
+                        );
+                    }
+                    //If it does, parse arguments
+                    else{
+
+                    }
+                }
+                //parse expression inside
+                else if(expressionString[leftI].type == silentIdentifierToken ||
+                        expressionString[leftI].type == silentNumberToken)
+                {
+
+                }
+                //Eliminate empty brackets
+                else if(leftI + 1 == i)
+                {
+                    expressionString.erase(expressionString.begin()+leftI);
+                    expressionString.erase(expressionString.begin()+leftI);
+                    i = 0;
+                    continue;
+                }
             }
             else if(expressionString[i].value == ";")
             {
+                printf("done here\n");
+                printf("length %i\n",expression.expression.size());
+                printf("output:\n");
+                for(unsigned int i = 0; i < expression.expression.size(); i++)
+                {
+                    printf("%s\n",expression.expression[i].data());
+                }               
                 return expression;
             }
         }
