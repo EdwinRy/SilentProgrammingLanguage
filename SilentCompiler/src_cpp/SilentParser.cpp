@@ -210,14 +210,20 @@ namespace SilentParser
 
     std::vector<silentToken> prepareExpression(std::vector<silentToken> tokens, int *index)
     {
+        //Output expression
         std::vector<silentToken> expression;
+        //Declare sample tokens
         silentToken openParenthese;
         openParenthese.type = silentOpenBracketToken;
         openParenthese.value = "(";
         silentToken closeParenthese;
         closeParenthese.type = silentClosingBracketToken;
         closeParenthese.value = ")";
+        silentToken plus;
+        plus.type = silentMathsOperatorToken;
+        plus.value = "+";
 
+        //Copy the raw expression string
         while(tokens[*index].value != ";")
         {
             expression.push_back(tokens[*index]);
@@ -225,67 +231,154 @@ namespace SilentParser
         }
         expression.push_back(tokens[*index]);
         *index+=1;
-        //while(tokens[*index].value != ";")
+
+        //Simplify expressions
+        for(unsigned int i = 0; i < expression.size();i++)
+        {
+            if(expression[i].value == "-")
+            {
+                if(expression[i+1].value == "-")
+                {
+                    expression.erase(expression.begin()+i);
+                    expression.erase(expression.begin()+i);
+                    expression.insert(expression.begin()+i, plus);
+                    i = 0; continue;
+                }
+                else if(expression[i+1].value == "+")
+                {
+                    expression.erase(expression.begin()+i+1);
+                    i = 0; continue;
+                }
+            }
+            else if(expression[i].value == "+")
+            {
+                if(expression[i+1].value == "+" || expression[i+1].value == "-")
+                {
+                    expression.erase(expression.begin()+i);
+                    i = 0; continue;
+                }
+            }
+        }
+
+        //Separate out most important operations first
         for(unsigned int i = 0; i < expression.size();i++)
         {   
-            if(expression[i].type == silentMathsOperatorToken)
-            {
-                if(expression[i].value == "*" || expression[i].value == "/")
-                {            
-                    //Simplify left side
-                    if(expression[i-1].value != ")")
-                    {
-                        expression.insert(expression.begin()+i-1,openParenthese);
-                        //
-                        i+=1;
-                    }
-                    else
-                    {
-                        unsigned int j;
-                        unsigned int bracketDegree = 1;
-                        for(j = i-2; bracketDegree != 0; j--)
-                        {
-                            if(expression[j].value == ")")
-                            {
-                                bracketDegree += 1;
-                            }
-                            else if(expression[j].value == "(")
-                            {
-                                bracketDegree -= 1;
-                            }
-                        }
-                        expression.insert(expression.begin()+j+1,openParenthese);
-                        i++;
-                    }
-                    //Simplify right side
-                    if(expression[i+1].value != "(")
-                    {
-                        expression.insert(expression.begin()+i+2,closeParenthese);
-                        i+=1;
-                    }
-                    else
-                    {
-                        unsigned int j;
-                        unsigned int bracketDegree = 1;
-                        for(j = i+2; bracketDegree != 0; j++)
-                        {
-                            if(expression[j].value == ")")
-                            {
-                                bracketDegree -= 1;
-                            }
-                            else if(expression[j].value == "(")
-                            {
-                                bracketDegree += 1;
-                            }
-                        }
-                        expression.insert(expression.begin()+j-1,closeParenthese);
-                        i++;
-                    }
-                }
-                else if (expression[i].value == "=")
+            if(expression[i].value == "*" || expression[i].value == "/")
+            {            
+                //Simplify left side
+                if(expression[i-1].value != ")")
                 {
-                    expression.insert(expression.end()-1, closeParenthese);
-                    expression.insert(expression.begin()+i+1, openParenthese);
+                    expression.insert(expression.begin()+i-1,openParenthese);
+                    i+=1;
+                }
+                else
+                {
+                    unsigned int j;
+                    unsigned int bracketDegree = 1;
+                    for(j = i-2; bracketDegree != 0; j--)
+                    {
+                        if(expression[j].value == ")")
+                        {
+                            bracketDegree += 1;
+                        }
+                        else if(expression[j].value == "(")
+                        {
+                            bracketDegree -= 1;
+                        }
+                    }
+                    expression.insert(expression.begin()+j+1,openParenthese);
+                    i++;
+                }
+                //Simplify right side
+                if(expression[i+1].value != "(")
+                {
+                    expression.insert(expression.begin()+i+2,closeParenthese);
+                    i+=1;
+                }
+                else
+                {
+                    unsigned int j;
+                    unsigned int bracketDegree = 1;
+                    for(j = i+2; bracketDegree != 0; j++)
+                    {
+                        if(expression[j].value == ")")
+                        {
+                            bracketDegree -= 1;
+                        }
+                        else if(expression[j].value == "(")
+                        {
+                            bracketDegree += 1;
+                        }
+                    }
+                    expression.insert(expression.begin()+j-1,closeParenthese);
+                    i++;
+                }
+            }
+            else if (expression[i].value == "=")
+            {
+                expression.insert(expression.end()-1, closeParenthese);
+                expression.insert(expression.begin()+i+1, openParenthese);
+            }
+        }
+
+        for(unsigned int i = 0; i < expression.size();i++)
+        {
+            printf("%s\n",expression[i].value.data());
+        }
+
+        //Separate out less important maths operations
+        for(unsigned int i = 0; i < expression.size();i++)
+        {   
+            if(expression[i].value == "+" || expression[i].value == "-")
+            {            
+                //Simplify left side
+                if(expression[i-1].value != ")")
+                {
+                    expression.insert(expression.begin()+i-1,openParenthese);
+                    //
+                    i+=1;
+                }
+                else
+                {
+                    unsigned int j;
+                    unsigned int bracketDegree = 1;
+                    for(j = i-2; bracketDegree != 0; j--)
+                    {
+                        if(expression[j].value == ")")
+                        {
+                            bracketDegree += 1;
+                        }
+                        else if(expression[j].value == "(")
+                        {
+                            bracketDegree -= 1;
+                        }
+                    }
+                    expression.insert(expression.begin()+j+1,openParenthese);
+                    i++;
+                }
+                //Simplify right side
+                if(expression[i+1].value != "(")
+                {
+                    expression.insert(expression.begin()+i+2,closeParenthese);
+                    i+=1;
+                }
+                else
+                {
+                    unsigned int j;
+                    unsigned int bracketDegree = 1;
+                    for(j = i+2; bracketDegree != 0; j++)
+                    {
+                        if(expression[j].value == ")")
+                        {
+                            bracketDegree -= 1;
+                        }
+                        else if(expression[j].value == "(")
+                        {
+                            bracketDegree += 1;
+                        }
+                    }
+                    expression.insert(expression.begin()+j-1,closeParenthese);
+                    i++;
                 }
             }
         }
@@ -302,6 +395,7 @@ namespace SilentParser
         {
             printf("%s\n",expressionString[i].value.data());
         }
+        
         for(unsigned int i = 0; i < expressionString.size(); i++)
         {
             if(expressionString[i].value == ")")
