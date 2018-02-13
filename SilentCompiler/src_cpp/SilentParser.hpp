@@ -70,7 +70,7 @@ namespace SilentParser
         std::vector<silentVariable> arguments;
         std::vector<silentVariable> variables;
         std::string name;
-        silentValue returnValue;
+        std::vector<silentValue> returnValues;
         silentDataType returnType;
     };
     

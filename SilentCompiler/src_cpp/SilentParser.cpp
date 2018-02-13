@@ -650,23 +650,19 @@ namespace SilentParser
                             parseFunctionVar(function, tokens, index)
                         );
                         *index -= 1;
-                        function.expressions.push_back("dec var");
+                        function.expressions.push_back("var");
                     }
                     else if(tokens[*index].value == "return")
                     {
+                        function.expressions.push_back("ret");
                         int eIndex = 2;
                         silentExpression expression;
                         std::vector<silentToken> expressionStr =
                             prepareExpression(tokens,index);
                         parseExpression(expressionStr, &eIndex, &expression);
-                        for(unsigned int i = 0; i < expression.expression.size(); i++)
-                        {
-                            function.expressions.push_back
-                            (
-                                expression.expression[i]
-                            );
-                        }
-                        function.expressions.push_back("ret");
+                        silentValue val;
+                        val.value = expression;
+                        function.returnValues.push_back(val);
                         *index -= 1;
                     }
                     else

@@ -10,6 +10,14 @@ namespace SilentCodeGenerator
         return output;
     }
 
+    void writeAssemblyExpression(
+        std::vector<std::string> *output,
+        silentExpression expression
+    )
+    {
+
+    }
+
     std::vector<std::string> compileAssembly(SilentParser::silentProgram program)
     {
         std::vector<std::string> output;
@@ -42,6 +50,8 @@ namespace SilentCodeGenerator
         for(unsigned int i = 0; i < program.functions.size(); i++)
         {
             silentFunction function = program.functions[i];
+            unsigned int varStack = 0;
+            unsigned int returnStack = 0;
             unsigned int localIndex = 0;
             //write down name
             output.push_back(function.name + ":");
@@ -83,10 +93,29 @@ namespace SilentCodeGenerator
                     exit(1);
                 }
             }
+
             //Write down function's expression
-            for(unsigned int j = 0; j < program.functions[i].expressions.size(); j++)
+            for(unsigned int j = 0; j < function.expressions.size(); j++)
             {
-                
+                //If declaring a variable
+                if(function.expressions[j] == "var")
+                {
+                    writeAssemblyExpression(
+                        &output,
+                        function.variables[varStack].value.value
+                    );
+                    varStack += 1;
+                }
+
+                //If returning a value
+                else if(function.expressions[j] == "ret")
+                {
+                    writeAssemblyExpression(
+                        &output,
+                        function.returnValues[returnStack].value
+                    );
+                    returnStack += 1;
+                }
             }
         }
 
