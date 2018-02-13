@@ -48,11 +48,11 @@ namespace SilentTokenizer
                 token.value = ";";
             }
 
-            else if(source[i] == '.')
-            {
-                token.type = silentOtherToken;
-                token.value = ".";
-            }
+            //else if(source[i] == '.')
+            //{
+            //    token.type = silentOtherToken;
+            //    token.value = ".";
+            //}
 
             else if(source[i] == ',')
             {
@@ -170,7 +170,7 @@ namespace SilentTokenizer
 
             else if(isalpha(source[i]))
             {
-                while(isalpha(source[i]) || isdigit(source[i]))
+                while(isalpha(source[i]) || isdigit(source[i]) || source[i] == '.')
                 {
                     token.value += source[i];
                     i++;
@@ -185,6 +185,10 @@ namespace SilentTokenizer
                     token.type = silentStructureToken;
                 }
                 else if(token.value == "var")
+                {
+                    token.type = silentStructureToken;
+                }
+                else if(token.value == "return")
                 {
                     token.type = silentStructureToken;
                 }

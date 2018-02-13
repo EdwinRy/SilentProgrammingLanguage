@@ -329,7 +329,7 @@ namespace SilentParser
                     i++;
                 }
             }
-            else if (expression[i].value == "=")
+            else if (expression[i].value == "=" || expression[i].value == "return")
             {
                 expression.insert(expression.end()-1, closeParenthese);
                 expression.insert(expression.begin()+i+1, openParenthese);
@@ -650,6 +650,24 @@ namespace SilentParser
                             parseFunctionVar(function, tokens, index)
                         );
                         *index -= 1;
+                        function.expressions.push_back("dec var");
+                    }
+                    else if(tokens[*index].value == "return")
+                    {
+                        int eIndex = 2;
+                        silentExpression expression;
+                        std::vector<silentToken> expressionStr =
+                            prepareExpression(tokens,index);
+                        parseExpression(expressionStr, &eIndex, &expression);
+                        for(unsigned int i = 0; i < expression.expression.size(); i++)
+                        {
+                            function.expressions.push_back
+                            (
+                                expression.expression[i]
+                            );
+                        }
+                        function.expressions.push_back("ret");
+                        *index -= 1;
                     }
                     else
                     {
@@ -657,8 +675,7 @@ namespace SilentParser
                         printf("Perhaps you forgot a \"}\" around line %i?\n",
                             tokens[*index].currentLine);
                         exit(1);
-                    }
-                    function.expressions.push_back("dec var");
+                    }                   
                 break;
                 //Parse function variable assignment
                 case silentIdentifierToken:

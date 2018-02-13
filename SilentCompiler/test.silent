@@ -1,5 +1,8 @@
+//Sample globals
 var int sampleGlobalVariable;
 var long sampleGlobalVariable2;
+
+//Sample structures
 struct sampleStruct
 {
     var int kek;
@@ -9,14 +12,10 @@ struct sampleStruct
 struct sampleStruct2
 {
     var int kek;
-    var string name; //comment test 
+    var string name;
 }
-/*
 
-multi-line comment
-
-*/
-//comment test
+//Sample custom type globals
 var sampleStruct sampleGlobalVariable3;
 
 /*
@@ -29,10 +28,5 @@ func int add(int x, int y)
 func int main()
 {
     var int testVariable = 21 + (3 * 6) - (2 + 2);
-    //testVar = 3 - (2 + 1) - (2 + 2) - 3 - 4;
-    //testVar = add();
-    //var int test2 = 21;
-    //var string testString = "Sample Text \"here\"";
-    //print(test.value);
-    //return 0;
+    return 0;
 }
