@@ -6,7 +6,8 @@ namespace SilentParser
     enum silentValueType
     {
         silentNumericalValue,
-        silentTextValue
+        silentTextValue,
+        silentNullValue
     };
 
     enum silentDataType
@@ -31,10 +32,15 @@ namespace SilentParser
         silentValueReference
     };
 
+    struct silentExpression
+    {
+        std::vector<std::string> expression;
+    };
+
     struct silentValue
     {
         silentValueType valueType; 
-        std::string value;
+        silentExpression value;
     };
 
     struct silentVariable
@@ -45,11 +51,6 @@ namespace SilentParser
         unsigned int size;
     };
 
-    struct silentExpression
-    {
-        std::vector<std::string> expression;
-    };
-
     struct silentStructure
     {
         std::string name;
@@ -58,10 +59,16 @@ namespace SilentParser
         unsigned int items;
     };
 
+    struct silentWhileLoop
+    {
+
+    };
+
     struct silentFunction
     {
-        std::vector<silentExpression> expressions;
+        std::vector<std::string> expressions;
         std::vector<silentVariable> arguments;
+        std::vector<silentVariable> variables;
         std::string name;
         silentValue returnValue;
         silentDataType returnType;

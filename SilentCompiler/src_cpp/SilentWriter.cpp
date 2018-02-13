@@ -8,7 +8,7 @@ namespace SilentCodeGenerator
         return output;
     }
 
-    std::vector<std::string> compileAssembly(SilentParser::silentProgram* program)
+    std::vector<std::string> compileAssembly(SilentParser::silentProgram program)
     {
         std::vector<std::string> output;
 

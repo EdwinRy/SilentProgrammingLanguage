@@ -2,11 +2,12 @@
 #include <vector>
 #include "SilentCompiler.hpp"
 #include "SilentHelper.hpp"
+#include "SilentWriter.hpp"
 #include "SilentTokenizer.hpp"
-#include "SilentParser.hpp"
 using namespace FileHelper;
 using namespace SilentTokenizer;
 using namespace SilentParser;
+using namespace SilentCodeGenerator;
 SilentCompiler::SilentCompiler()
 {
 	this->success = 0;
@@ -16,27 +17,51 @@ SilentCompiler::SilentCompiler()
 	this->outFilePath = "";
 	this->source = "";
 	this->bytecodeOutput = "";
-	this->assemblyOutput = "";
 }
 
 void SilentCompiler::compile()
 {
-	if(!this->outputAssembly || !this->outputBytecode)
+	if(!this->outputAssembly && !this->outputBytecode)
 	{
 		this->success = false;
 		this->errorMessage = "No output method set";
 	}
 
-	std::vector<silentToken> tokens;
-	if(inFilePath != "")
+	if(this->outputAssembly && this->outputBytecode)
 	{
-		char* source = readAllText((char*)this->inFilePath.data());
-		tokens = *silentTokenize(source);
+		this->success = false;
+		this->errorMessage = "Only one output allowed at a time";
 	}
-	else{
-		tokens = *silentTokenize(this->source);
+
+	std::vector<silentToken> tokens;
+	
+
+	if(this->outputAssembly)
+	{
+		if(this->inFilePath != "")
+		{
+			char* source = readAllText((char*)this->inFilePath.data());
+			tokens = *silentTokenize(source);
+		
+		}
+		else{
+			tokens = *silentTokenize(this->source);
+		}
+		silentProgram program = *silentParseProgram(tokens);
+
+		if(this->outFilePath != "")
+		{
+
+		}
+		else
+		{
+			compileAssembly(&program);
+		}
 	}
-	silentProgram program = *silentParseProgram(tokens);
+	else if(this->outputBytecode)
+	{
+		
+	}
 
 	printf("Done!\n");
 

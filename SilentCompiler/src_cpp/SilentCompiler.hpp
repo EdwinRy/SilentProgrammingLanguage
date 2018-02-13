@@ -1,9 +1,11 @@
+#pragma once
 #include <iostream>
+#include <vector>
 class SilentCompiler
 {
     public:
     std::string bytecodeOutput;
-    std::string assemblyOutput;
+    std::vector<std::string> assemblyOutput;
     
     private:
     bool success;
