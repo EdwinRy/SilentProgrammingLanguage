@@ -649,6 +649,7 @@ namespace SilentParser
                         function.variables.push_back(
                             parseFunctionVar(function, tokens, index)
                         );
+                        *index -= 1;
                     }
                     else
                     {
@@ -692,7 +693,7 @@ namespace SilentParser
                     }
                     if(tokens[i].value == "func")
                     {
-                        program->functions.push_back(parseFunction(tokens,&i));
+                        program->functions.push_back(parseFunction(tokens,&i));                       
                     }
                 break;
                 default:

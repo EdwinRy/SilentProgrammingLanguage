@@ -35,14 +35,12 @@ void SilentCompiler::compile()
 
 	std::vector<silentToken> tokens;
 	
-
 	if(this->outputAssembly)
 	{
 		if(this->inFilePath != "")
 		{
 			char* source = readAllText((char*)this->inFilePath.data());
 			tokens = *silentTokenize(source);
-		
 		}
 		else{
 			tokens = *silentTokenize(this->source);
@@ -55,7 +53,12 @@ void SilentCompiler::compile()
 		}
 		else
 		{
-			compileAssembly(&program);
+			this->assemblyOutput = compileAssembly(program);
+			printf("assembly output:\n");
+			for(unsigned int i = 0; i < this->assemblyOutput.size();i++)
+			{
+				printf("%s\n",this->assemblyOutput[i].data());
+			}
 		}
 	}
 	else if(this->outputBytecode)
