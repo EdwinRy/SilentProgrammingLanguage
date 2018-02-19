@@ -33,6 +33,7 @@ namespace FileHelper
             //Add the character
             text[count++] = (char)c;
         }
+        text[count] = '\0';
         //Close the file
         fclose(f);
         //Return the source
