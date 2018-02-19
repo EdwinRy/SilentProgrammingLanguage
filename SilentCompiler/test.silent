@@ -27,6 +27,7 @@ func int add(int x, int y)
 
 func int main()
 {
+    //var int testVar = 2 + 3;
     var int testVariable = 21 + (3 * 6) - (2 + 2);
-    return 0;
+    return 1;
 }

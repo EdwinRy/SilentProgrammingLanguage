@@ -15,7 +15,25 @@ namespace SilentCodeGenerator
         silentExpression expression
     )
     {
-
+        silentValueType lastValueType;
+        std::vector<std::string> expressionStr = expression.expression;
+        for(unsigned int i = 0; i < expressionStr.size(); i++)
+        {
+            if(expressionStr[i].substr(0,7) == "pushNum")
+            {
+                output->push_back(
+                    "push4 i"+expressionStr[i].substr(8)
+                );
+                lastValueType = silentNumericalValue;
+            }
+            else if(expressionStr[i] == "+")
+            {
+                if(lastValueType == silentNumericalValue)
+                {
+                    output->push_back("addint");
+                }
+            }
+        }
     }
 
     std::vector<std::string> compileAssembly(SilentParser::silentProgram program)
@@ -114,6 +132,7 @@ namespace SilentCodeGenerator
                         &output,
                         function.returnValues[returnStack].value
                     );
+                    output.push_back("return");
                     returnStack += 1;
                 }
             }

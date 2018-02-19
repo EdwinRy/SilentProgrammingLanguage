@@ -48,12 +48,6 @@ namespace SilentTokenizer
                 token.value = ";";
             }
 
-            //else if(source[i] == '.')
-            //{
-            //    token.type = silentOtherToken;
-            //    token.value = ".";
-            //}
-
             else if(source[i] == ',')
             {
                 token.type = silentOtherToken;

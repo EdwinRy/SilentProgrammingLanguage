@@ -395,11 +395,11 @@ namespace SilentParser
         return expression;
     }
 
-
     void parseExpression(
         std::vector<silentToken> expressionStr,
         int *index,
-        silentExpression *expression
+        silentExpression *expression,
+        silentDataType expectedType
     )
     {
         for(;expressionStr[*index].value != ")"; *index+=1)
@@ -410,7 +410,7 @@ namespace SilentParser
                 //printf("expression\n");
                 *index += 1;
                 int saveIndex = *index - 2;
-                parseExpression(expressionStr,index,expression);
+                parseExpression(expressionStr,index,expression,expectedType);
                 if(expressionStr[saveIndex].type == silentMathsOperatorToken)
                 {
                     //printf("math operator %s\n",expressionStr[saveIndex].value.data());
@@ -424,7 +424,7 @@ namespace SilentParser
             {
                 //printf("token %s\n",expressionStr[*index].value.data());
                 expression->expression.push_back(
-                    "push " + expressionStr[*index].value
+                    "pushNum " + expressionStr[*index].value
                 );
                 if(expressionStr[*index -1].type == silentMathsOperatorToken)
                 {
@@ -445,7 +445,7 @@ namespace SilentParser
                 //If the identifier is a variable
                 //printf("token %s\n",expressionStr[*index].value.data());
                 expression->expression.push_back(
-                    "push " + expressionStr[*index].value
+                    "pushVar " + expressionStr[*index].value
                 );
                 if(expressionStr[*index -1].type == silentMathsOperatorToken)
                 {
@@ -462,8 +462,8 @@ namespace SilentParser
     silentVariable parseFunctionVar(
         silentFunction function,
         std::vector<silentToken> tokens,
-        int *index)
-
+        int *index
+    )
     {
         silentVariable variable;
 
@@ -514,7 +514,8 @@ namespace SilentParser
             int eIndex = 2;
             silentExpression expression;
             std::vector<silentToken> expressionStr = prepareExpression(tokens,index);
-            parseExpression(expressionStr, &eIndex, &expression);
+            parseExpression(expressionStr, &eIndex, &expression, variable.dataType);
+            variable.value.value = expression;
         }
         else
         {
@@ -659,7 +660,8 @@ namespace SilentParser
                         silentExpression expression;
                         std::vector<silentToken> expressionStr =
                             prepareExpression(tokens,index);
-                        parseExpression(expressionStr, &eIndex, &expression);
+                        parseExpression(expressionStr, &eIndex, &expression,
+                            function.returnType);
                         silentValue val;
                         val.value = expression;
                         function.returnValues.push_back(val);

@@ -6,6 +6,7 @@ namespace SilentParser
     enum silentValueType
     {
         silentNumericalValue,
+        silentDecimalValue,
         silentTextValue,
         silentNullValue
     };
