@@ -22,12 +22,12 @@ var sampleStruct sampleGlobalVariable3;
 func int add(int x, int y)
 {
     return x+y;
-}
+} 
 */
 
 func int main()
 {
     //var int testVar = 2 + 3;
-    var int testVariable = 21 + (3 * 6) - (2 + 2);
+    var int testVariable2 = 9 + 10;
     return 1;
 }
