@@ -462,11 +462,12 @@ namespace SilentParser
     silentVariable parseFunctionVar(
         silentFunction function,
         std::vector<silentToken> tokens,
-        int *index
+        int *index,
+        unsigned int varIndex
     )
     {
         silentVariable variable;
-
+        variable.scopeIndex = varIndex;
         //Get variable type
         *index+=1;
         if(tokens[*index].type == silentTypeToken)
@@ -637,6 +638,7 @@ namespace SilentParser
         }
 
         //Parse scope
+        unsigned int varIndex = 0;
         *index+=1;
         for(;tokens[*index].value != "}"; *index+=1)
         {
@@ -648,10 +650,11 @@ namespace SilentParser
                     if(tokens[*index].value == "var")
                     {
                         function.variables.push_back(
-                            parseFunctionVar(function, tokens, index)
+                            parseFunctionVar(function, tokens, index,varIndex)
                         );
                         *index -= 1;
                         function.expressions.push_back("var");
+                        varIndex += 1;
                     }
                     else if(tokens[*index].value == "return")
                     {

@@ -26,6 +26,15 @@ namespace SilentCodeGenerator
                 );
                 lastValueType = silentNumericalValue;
             }
+
+            if(expressionStr[i].substr(0,7) == "pushVal")
+            {
+                //output->push_back(
+                //    "push4 i"+expressionStr[i].substr(8)
+                //);
+                //lastValueType = silentNumericalValue;
+            }
+
             else if(expressionStr[i] == "+")
             {
                 if(lastValueType == silentNumericalValue)
@@ -55,6 +64,35 @@ namespace SilentCodeGenerator
                 }
             }
         }
+    }
+
+    void writeAssemblyDeclaration(
+        std::vector<std::string> *output,
+        silentVariable variable,
+        silentFunction parent
+    )
+    {
+        writeAssemblyExpression(output, variable.value.value);
+        if(variable.dataType != silentStructType)
+        {
+            output->push_back("alloc"+std::to_string(variable.size)+
+                " i"+std::to_string(variable.scopeIndex)
+            );
+
+            output->push_back("store"+std::to_string(variable.size)+
+                " i"+std::to_string(variable.scopeIndex)
+            );
+        }
+    }
+
+    void writeAssemblyAssignment(
+        std::vector<std::string> *output,
+        silentExpression expression,
+        silentVariable variable,
+        silentFunction parent
+    )
+    {
+        
     }
 
     std::vector<std::string> compileAssembly(SilentParser::silentProgram program)
@@ -139,9 +177,15 @@ namespace SilentCodeGenerator
                 //If declaring a variable
                 if(function.expressions[j] == "var")
                 {
+                    /*
                     writeAssemblyExpression(
                         &output,
                         function.variables[varStack].value.value
+                    );*/
+                    writeAssemblyDeclaration(
+                        &output,
+                        function.variables[varStack],
+                        function
                     );
                     varStack += 1;
                 }

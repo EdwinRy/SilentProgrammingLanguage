@@ -49,6 +49,7 @@ namespace SilentParser
         silentValue value;
         silentDataType dataType;
         std::string name;
+        unsigned int scopeIndex;
         unsigned int size;
     };
 
