@@ -33,6 +33,27 @@ namespace SilentCodeGenerator
                     output->push_back("addint");
                 }
             }
+            else if(expressionStr[i] == "-")
+            {
+                if(lastValueType == silentNumericalValue)
+                {
+                    output->push_back("subint");
+                }
+            }
+            else if(expressionStr[i] == "*")
+            {
+                if(lastValueType == silentNumericalValue)
+                {
+                    output->push_back("mulint");
+                }
+            }
+            else if(expressionStr[i] == "/")
+            {
+                if(lastValueType == silentNumericalValue)
+                {
+                    output->push_back("divint");
+                }
+            }
         }
     }
 
