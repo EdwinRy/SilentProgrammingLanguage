@@ -25,9 +25,10 @@ func int add(int x, int y)
 } 
 */
 
+var int con;
+
 func int main()
 {
-    //var int testVar = 2 + 3;
-    var int testVariable2 = 9 + 10;
+    var int testVar = 2 + con;
     return 1;
 }

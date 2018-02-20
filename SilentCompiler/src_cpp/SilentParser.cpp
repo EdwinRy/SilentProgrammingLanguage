@@ -89,9 +89,11 @@ namespace SilentParser
         }
     }
 
-    silentVariable parseGlobalVar(std::vector<silentToken> tokens, int *index)
+    silentVariable parseGlobalVar(std::vector<silentToken> tokens, int *index, 
+        unsigned int varIndex)
     {
         silentVariable variable;
+        variable.scopeIndex = varIndex;
 
         //Get variable type
         *index+=1;
@@ -220,7 +222,6 @@ namespace SilentParser
         }
         return structure;
     }
-
 
     std::vector<silentToken> prepareExpression(
         std::vector<silentToken> tokens, int *index)
@@ -413,7 +414,8 @@ namespace SilentParser
                 parseExpression(expressionStr,index,expression,expectedType);
                 if(expressionStr[saveIndex].type == silentMathsOperatorToken)
                 {
-                    //printf("math operator %s\n",expressionStr[saveIndex].value.data());
+                    //printf("math operator %s\n",
+                    //expressionStr[saveIndex].value.data());
                     expression->expression.push_back(
                         expressionStr[saveIndex].value
                     );
@@ -428,7 +430,8 @@ namespace SilentParser
                 );
                 if(expressionStr[*index -1].type == silentMathsOperatorToken)
                 {
-                    //printf("math operator %s\n",expressionStr[*index -1].value.data());
+                    //printf("math operator %s\n",
+                    //expressionStr[*index -1].value.data());
                     expression->expression.push_back(
                         expressionStr[*index -1].value
                     );
@@ -449,7 +452,6 @@ namespace SilentParser
                 );
                 if(expressionStr[*index -1].type == silentMathsOperatorToken)
                 {
-                    //printf("math operator %s\n",expressionStr[*index -1].value.data());
                     expression->expression.push_back(
                         expressionStr[*index -1].value
                     );
@@ -696,6 +698,8 @@ namespace SilentParser
         silentProgram* program = new silentProgram();
         globalScope = program;
 
+        unsigned int globalIndex = 0;
+
         for(int i = 0; i < (int)tokens.size();i++)
         {
             switch(tokens[i].type)
@@ -703,7 +707,10 @@ namespace SilentParser
                 case silentStructureToken:
                     if(tokens[i].value == "var")
                     {
-                        program->globals.push_back(parseGlobalVar(tokens, &i));
+                        program->globals.push_back(
+                            parseGlobalVar(tokens, &i, globalIndex)
+                        );
+                        globalIndex += 1;
                     }
                     if(tokens[i].value == "struct")
                     {
