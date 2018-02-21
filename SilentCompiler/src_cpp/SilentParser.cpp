@@ -442,33 +442,34 @@ namespace SilentParser
         silentDataType expectedType
     )
     {
-        for(;expressionStr[*index].value != ")"; *index+=1)
+        for(;expressionStr[*index].value != ")" && 
+            expressionStr[*index].value != ","; *index+=1)
         {
             //Parse priority operation
             if(expressionStr[*index].value == "(")
             {
-                printf("expression\n");
+                //printf("expression\n");
                 *index += 1;
                 int saveIndex = *index - 2;
                 parseExpression(expressionStr,index,expression,expectedType);
                 if(expressionStr[saveIndex].type == silentMathsOperatorToken)
                 {
-                    printf("math operator %s\n",
-                    expressionStr[saveIndex].value.data());
+                    //printf("math operator %s\n",
+                    //expressionStr[saveIndex].value.data());
                     expression->push_back(expressionStr[saveIndex].value);
                 }
             }
             //Parse number
             else if(expressionStr[*index].type == silentNumberToken)
             {
-                printf("token %s\n",expressionStr[*index].value.data());
+                //printf("token %s\n",expressionStr[*index].value.data());
                 expression->push_back(
                     "pushNum " + expressionStr[*index].value
                 );
                 if(expressionStr[*index -1].type == silentMathsOperatorToken)
                 {
-                    printf("math operator %s\n",
-                    expressionStr[*index -1].value.data());
+                    //printf("math operator %s\n",
+                    //expressionStr[*index -1].value.data());
                     expression->push_back(
                         expressionStr[*index -1].value
                     );
@@ -483,7 +484,7 @@ namespace SilentParser
 
                 }
                 //If the identifier is a variable
-                printf("token %s\n",expressionStr[*index].value.data());
+                //printf("token %s\n",expressionStr[*index].value.data());
                 expression->push_back(
                     "pushVar " + expressionStr[*index].value
                 );
@@ -495,7 +496,31 @@ namespace SilentParser
                 }
             }
         }
-        printf("End operation\n");
+        //printf("End operation\n");
+    }
+
+    void parseArguments(std::vector<silentToken> tokens, int *index,
+        std::vector<std::string> *output, std::string functionName)
+    {
+        unsigned int i = 0;
+        for(; globalScope->functions[i].name != functionName;i++);
+        silentFunction function = globalScope->functions[i];
+        for(i = 0; tokens[i].value != ")"; i++)
+        {
+            int eIndex = 2;
+            std::vector<silentToken> expression;
+            expression = prepareExpression(tokens,index);
+            parseExpression(expression,&eIndex,output,
+                function.arguments[i].dataType);
+            printf("here\n");
+
+            std::vector<std::string> ou = *output;
+            for(int j = 0; j < ou.size(); j++)
+            {
+                
+                printf("k %s\n",ou[j].data());
+            }
+        }
     }
 
     silentVariable parseFunctionVar(
@@ -739,10 +764,6 @@ namespace SilentParser
                             std::vector<silentToken> expressionStr = 
                                 prepareExpression(tokens,index);
 
-                            for(int x = 0; x < expressionStr.size(); x++)
-                            {
-                                printf("%s\n",expressionStr[x].value.data());
-                            }
                             parseExpression(expressionStr,&eIndex,
                                 &function.expressions,foundVar.dataType);
 
@@ -767,7 +788,12 @@ namespace SilentParser
                     //Parse function call
                     else if(tokens[*index + 1].value == "(")
                     {
-
+                        int x = *index;
+                        //parse arguments
+                        parseArguments(tokens,index,&function.expressions,
+                            tokens[*index].value);
+                        function.expressions.push_back("call" + tokens[x].value);
+                        
                     }
                     else
                     {
@@ -776,8 +802,10 @@ namespace SilentParser
                     }
                 break;
                 default:
-                    printf("Invalid token in the function scope \"%s\" on line %i\n",
-                        function.name.data(), tokens[*index].currentLine);
+                    printf("Invalid token in the function scope of \"%s\" on line %i,\n"
+                        "Invalid token: \"%s\"\n",
+                        function.name.data(), tokens[*index].currentLine,
+                        tokens[*index].value.data());
                     exit(1);
                 break;
             }
