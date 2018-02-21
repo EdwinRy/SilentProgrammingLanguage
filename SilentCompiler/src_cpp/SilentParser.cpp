@@ -42,6 +42,7 @@ namespace SilentParser
         }
         return 0;
     }
+
     bool checkExistingType(std::string type)
     {
         for(unsigned int i = 0; i < globalScope->structures.size();i++)
@@ -132,7 +133,7 @@ namespace SilentParser
     {
         silentVariable variable;
         variable.scopeIndex = varIndex;
-
+                            silentExpression outputExpression;
         //Get variable type
         *index+=1;
         if(tokens[*index].type == silentTypeToken)
@@ -437,7 +438,7 @@ namespace SilentParser
     void parseExpression(
         std::vector<silentToken> expressionStr,
         int *index,
-        silentExpression *expression,
+        std::vector<std::string> *expression,
         silentDataType expectedType
     )
     {
@@ -446,31 +447,29 @@ namespace SilentParser
             //Parse priority operation
             if(expressionStr[*index].value == "(")
             {
-                //printf("expression\n");
+                printf("expression\n");
                 *index += 1;
                 int saveIndex = *index - 2;
                 parseExpression(expressionStr,index,expression,expectedType);
                 if(expressionStr[saveIndex].type == silentMathsOperatorToken)
                 {
-                    //printf("math operator %s\n",
-                    //expressionStr[saveIndex].value.data());
-                    expression->expression.push_back(
-                        expressionStr[saveIndex].value
-                    );
+                    printf("math operator %s\n",
+                    expressionStr[saveIndex].value.data());
+                    expression->push_back(expressionStr[saveIndex].value);
                 }
             }
             //Parse number
             else if(expressionStr[*index].type == silentNumberToken)
             {
-                //printf("token %s\n",expressionStr[*index].value.data());
-                expression->expression.push_back(
+                printf("token %s\n",expressionStr[*index].value.data());
+                expression->push_back(
                     "pushNum " + expressionStr[*index].value
                 );
                 if(expressionStr[*index -1].type == silentMathsOperatorToken)
                 {
-                    //printf("math operator %s\n",
-                    //expressionStr[*index -1].value.data());
-                    expression->expression.push_back(
+                    printf("math operator %s\n",
+                    expressionStr[*index -1].value.data());
+                    expression->push_back(
                         expressionStr[*index -1].value
                     );
                 }
@@ -484,23 +483,23 @@ namespace SilentParser
 
                 }
                 //If the identifier is a variable
-                //printf("token %s\n",expressionStr[*index].value.data());
-                expression->expression.push_back(
+                printf("token %s\n",expressionStr[*index].value.data());
+                expression->push_back(
                     "pushVar " + expressionStr[*index].value
                 );
                 if(expressionStr[*index -1].type == silentMathsOperatorToken)
                 {
-                    expression->expression.push_back(
+                    expression->push_back(
                         expressionStr[*index -1].value
                     );
                 }
             }
         }
-        //printf("End operation\n");
+        printf("End operation\n");
     }
 
     silentVariable parseFunctionVar(
-        silentFunction function,
+        silentFunction *function,
         std::vector<silentToken> tokens,
         int *index,
         unsigned int varIndex
@@ -547,16 +546,15 @@ namespace SilentParser
         *index+=1;
         if(tokens[*index].value == ";")
         {
-            variable.value.valueType = silentNullValue;
+            //variable.value.valueType = silentNullValue;
         }
         //Parse expression if it has been initialised
         else if(tokens[*index].value == "=")
         {
             int eIndex = 2;
-            silentExpression expression;
             std::vector<silentToken> expressionStr = prepareExpression(tokens,index);
-            parseExpression(expressionStr, &eIndex, &expression, variable.dataType);
-            variable.value.value = expression;
+            parseExpression(expressionStr, &eIndex, &function->expressions,
+                variable.dataType);
         }
         else
         {
@@ -689,25 +687,30 @@ namespace SilentParser
                     //Parse variable declaration
                     if(tokens[*index].value == "var")
                     {
-                        function.variables.push_back(
-                            parseFunctionVar(function, tokens, index,varIndex)
-                        );
+                        silentVariable newVar = 
+                            parseFunctionVar(&function, tokens, index,varIndex);
+                        function.variables.push_back(newVar);
                         *index -= 1;
-                        function.expressions.push_back("var");
+                        //function.expressions.push_back("var");
+                        function.expressions.push_back(
+                            "alloc"+std::to_string(newVar.size)+
+                            " i"+std::to_string(newVar.scopeIndex)
+                        );
+
+                        function.expressions.push_back(
+                            "store"+std::to_string(newVar.size)+
+                            " i"+std::to_string(newVar.scopeIndex)
+                        );
                         varIndex += 1;
                     }
                     else if(tokens[*index].value == "return")
                     {
-                        function.expressions.push_back("ret");
                         int eIndex = 2;
-                        silentExpression expression;
                         std::vector<silentToken> expressionStr =
                             prepareExpression(tokens,index);
-                        parseExpression(expressionStr, &eIndex, &expression,
+                        parseExpression(expressionStr, &eIndex, &function.expressions,
                             function.returnType);
-                        silentValue val;
-                        val.value = expression;
-                        function.returnValues.push_back(val);
+                        function.expressions.push_back("ret");
                         *index -= 1;
                     }
                     else
@@ -732,24 +735,27 @@ namespace SilentParser
                             {
                                 function.expressions.push_back("ug");
                             }
-                            int expressionIndex = 0;
-                            silentExpression outputExpression;
+                            int eIndex = 3;
                             std::vector<silentToken> expressionStr = 
                                 prepareExpression(tokens,index);
 
-                            parseExpression(expressionStr,&expressionIndex,
-                            &outputExpression,foundVar.dataType);
-
-                            for(int j = 0; j < outputExpression.expression.size();
-                                j++)
+                            for(int x = 0; x < expressionStr.size(); x++)
                             {
-                                
+                                printf("%s\n",expressionStr[x].value.data());
                             }
+                            parseExpression(expressionStr,&eIndex,
+                                &function.expressions,foundVar.dataType);
+
+                            function.expressions.push_back(
+                                "store"+std::to_string(foundVar.size)+
+                                " i"+std::to_string(foundVar.scopeIndex)
+                            );                            
 
                             if(varSearch == 2)
                             {
                                 function.expressions.push_back("eg");
                             }
+                            *index-=1;
                         }
                         else
                         {

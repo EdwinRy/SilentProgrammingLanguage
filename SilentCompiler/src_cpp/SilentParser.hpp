@@ -41,12 +41,12 @@ namespace SilentParser
     struct silentValue
     {
         silentValueType valueType; 
-        silentExpression value;
+        //silentExpression value;
     };
 
     struct silentVariable
     {
-        silentValue value;
+        //silentValue value;
         silentDataType dataType;
         std::string name;
         unsigned int scopeIndex;
@@ -69,7 +69,6 @@ namespace SilentParser
     struct silentFunction
     {
         std::vector<std::string> expressions;
-        std::vector<silentExpression> assignments;
         std::vector<silentVariable> arguments;
         std::vector<silentVariable> variables;
         std::string name;

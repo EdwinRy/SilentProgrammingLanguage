@@ -53,24 +53,23 @@ namespace SilentCodeGenerator
 
     void writeAssemblyExpression(
         std::vector<std::string> *output,
-        silentExpression expression
+        std::vector<std::string> expression
     )
     {
-        silentValueType lastValueType;
-        std::vector<std::string> expressionStr = expression.expression;
-        for(unsigned int i = 0; i < expressionStr.size(); i++)
+        silentValueType lastValueType;;
+        for(unsigned int i = 0; i < expression.size(); i++)
         {
-            if(expressionStr[i].substr(0,7) == "pushNum")
+            if(expression[i].substr(0,7) == "pushNum")
             {
                 output->push_back(
-                    "push4 i"+expressionStr[i].substr(8)
+                    "push4 i"+expression[i].substr(8)
                 );
                 lastValueType = silentNumericalValue;
             }
 
-            else if(expressionStr[i].substr(0,7) == "pushVar")
+            else if(expression[i].substr(0,7) == "pushVar")
             {
-                std::string name = expressionStr[i].substr(8);
+                std::string name = expression[i].substr(8);
                 char varType = getVariable(name);
                 if(varType > 0)
                 {
@@ -105,12 +104,12 @@ namespace SilentCodeGenerator
                 else
                 {
                     printf("Error: invalid token used in expression: %s\n",
-                        expressionStr[i].substr(8).data());
+                        expression[i].substr(8).data());
                     exit(1);
                 }
             }
 
-            else if(expressionStr[i] == "+")
+            else if(expression[i] == "+")
             {
                 printf("here\n");
                 if(lastValueType == silentNumericalValue)
@@ -118,59 +117,35 @@ namespace SilentCodeGenerator
                     output->push_back("addint");
                 }
             }
-            else if(expressionStr[i] == "-")
+            else if(expression[i] == "-")
             {
                 output->push_back("subint"); 
             }
-            else if(expressionStr[i] == "*")
+            else if(expression[i] == "*")
             {
                 output->push_back("mulint");
             }
-            else if(expressionStr[i] == "/")
+            else if(expression[i] == "/")
             {
                 output->push_back("divint");
             }
-            else if(expressionStr[i] == "ug")
+            else if(expression[i] == "ug")
             {
                 output->push_back("useglobal");
             }
-            else if(expressionStr[i] == "eg")
+            else if(expression[i] == "eg")
             {
                 output->push_back("endglobal");
             }
+            else if(expression[i] == "ret")
+            {
+                output->push_back("return");
+            }
+            else
+            {
+                output->push_back(expression[i]);
+            }
         }
-    }
-
-    void writeAssemblyDeclaration(
-        std::vector<std::string> *output,
-        silentVariable variable,
-        silentFunction parent
-    )
-    {
-        currentFunction = parent;
-        useCurrentFunction = true;
-        writeAssemblyExpression(output, variable.value.value);
-        useCurrentFunction = false;
-        if(variable.dataType != silentStructType)
-        {
-            output->push_back("alloc"+std::to_string(variable.size)+
-                " i"+std::to_string(variable.scopeIndex)
-            );
-
-            output->push_back("store"+std::to_string(variable.size)+
-                " i"+std::to_string(variable.scopeIndex)
-            );
-        }
-    }
-
-    void writeAssemblyAssignment(
-        std::vector<std::string> *output,
-        silentExpression expression,
-        silentVariable variable,
-        silentFunction parent
-    )
-    {
-        
     }
 
     std::vector<std::string> compileAssembly(SilentParser::silentProgram program)
@@ -206,8 +181,6 @@ namespace SilentCodeGenerator
         for(unsigned int i = 0; i < program.functions.size(); i++)
         {
             silentFunction function = program.functions[i];
-            unsigned int varStack = 0;
-            unsigned int returnStack = 0;
             unsigned int localIndex = 0;
             //write down name
             output.push_back(function.name + ":");
@@ -251,33 +224,8 @@ namespace SilentCodeGenerator
             }
 
             //Write down function's expression
-            for(unsigned int j = 0; j < function.expressions.size(); j++)
-            {
-                //If declaring a variable
-                if(function.expressions[j] == "var")
-                {
-                    writeAssemblyDeclaration(
-                        &output,
-                        function.variables[varStack],
-                        function
-                    );
-                    varStack += 1;
-                }
-
-                //If returning a value
-                else if(function.expressions[j] == "ret")
-                {
-                    writeAssemblyExpression(
-                        &output,
-                        function.returnValues[returnStack].value
-                    );
-                    output.push_back("return");
-                    returnStack += 1;
-                }
-            }
+            writeAssemblyExpression(&output,function.expressions);
         }
-
-
         return output;
     }
 
