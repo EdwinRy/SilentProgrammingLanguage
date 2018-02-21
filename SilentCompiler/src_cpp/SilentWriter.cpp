@@ -3,9 +3,10 @@
 using namespace SilentParser;
 namespace SilentCodeGenerator
 {
+    
     silentVariable foundVar;
     silentFunction currentFunction;
-    silentProgram globalScope;
+    silentProgram *globalScope;
     bool useCurrentFunction;
 
     char getVariable(std::string name)
@@ -20,23 +21,22 @@ namespace SilentCodeGenerator
                     return 1;
                 }
             }
-            for(unsigned int i = 0; i < globalScope.globals.size(); i++)
+            for(unsigned int i = 0; i < globalScope->globals.size(); i++)
             {
-                printf("here\n");
-                if( globalScope.globals[i].name == name)
+                if( globalScope->globals[i].name == name)
                 {
-                    foundVar = globalScope.globals[i];
+                    foundVar = globalScope->globals[i];
                     return 2;
                 }
             }
         }
         else
         {
-            for(unsigned int i = 0; i < globalScope.globals.size(); i++)
+            for(unsigned int i = 0; i < globalScope->globals.size(); i++)
             {
-                if( globalScope.globals[i].name == name)
+                if( globalScope->globals[i].name == name)
                 {
-                    foundVar = globalScope.globals[i];
+                    foundVar = globalScope->globals[i];
                     return 2;
                 }
             }
@@ -130,6 +130,14 @@ namespace SilentCodeGenerator
             {
                 output->push_back("divint");
             }
+            else if(expressionStr[i] == "ug")
+            {
+                output->push_back("useglobal");
+            }
+            else if(expressionStr[i] == "eg")
+            {
+                output->push_back("endglobal");
+            }
         }
     }
 
@@ -169,7 +177,7 @@ namespace SilentCodeGenerator
     {
         std::vector<std::string> output;
         useCurrentFunction = false;
-        globalScope = program;
+        globalScope = &program;
         //Write down globals
         for(unsigned int i = 0; i < program.globals.size(); i++)
         {

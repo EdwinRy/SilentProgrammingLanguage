@@ -1,9 +1,47 @@
 #include "SilentParser.hpp"
 using namespace SilentTokenizer; 
-using namespace SilentParser;
+//using namespace SilentParser;
 namespace SilentParser
 {
-    silentProgram* globalScope;
+    silentProgram *globalScope;
+    silentVariable foundVar;
+    silentFunction currentFunction;
+    bool useCurrentFunction;
+
+    char getVariable(std::string name)
+    {
+        if(useCurrentFunction)
+        {
+            for(unsigned int i = 0; i < currentFunction.variables.size(); i++)
+            {
+                if(currentFunction.variables[i].name == name)
+                {
+                    foundVar = currentFunction.variables[i];
+                    return 1;
+                }
+            }
+            for(unsigned int i = 0; i < globalScope->globals.size(); i++)
+            {
+                if( globalScope->globals[i].name == name)
+                {
+                    foundVar = globalScope->globals[i];
+                    return 2;
+                }
+            }
+        }
+        else
+        {
+            for(unsigned int i = 0; i < globalScope->globals.size(); i++)
+            {
+                if( globalScope->globals[i].name == name)
+                {
+                    foundVar = globalScope->globals[i];
+                    return 2;
+                }
+            }
+        }
+        return 0;
+    }
     bool checkExistingType(std::string type)
     {
         for(unsigned int i = 0; i < globalScope->structures.size();i++)
@@ -560,7 +598,7 @@ namespace SilentParser
         else
         {
             printf("Expected function name in place of \"%s\" on line %i\n",
-                    tokens[*index].value.data(),tokens[*index].currentLine);
+                tokens[*index].value.data(),tokens[*index].currentLine);
             exit(1);
         }
 
@@ -680,8 +718,56 @@ namespace SilentParser
                         exit(1);
                     }                   
                 break;
-                //Parse function variable assignment
+                //Parse function identifier
                 case silentIdentifierToken:
+                    //Parse assignment
+                    if(tokens[*index + 1].value == "=")
+                    {
+                        useCurrentFunction = true;
+                        currentFunction = function;
+                        char varSearch = getVariable(tokens[*index].value);
+                        if(varSearch > 0)
+                        {
+                            if(varSearch == 2)
+                            {
+                                function.expressions.push_back("ug");
+                            }
+                            int expressionIndex = 0;
+                            silentExpression outputExpression;
+                            std::vector<silentToken> expressionStr = 
+                                prepareExpression(tokens,index);
+
+                            parseExpression(expressionStr,&expressionIndex,
+                            &outputExpression,foundVar.dataType);
+
+                            for(int j = 0; j < outputExpression.expression.size();
+                                j++)
+                            {
+                                
+                            }
+
+                            if(varSearch == 2)
+                            {
+                                function.expressions.push_back("eg");
+                            }
+                        }
+                        else
+                        {
+                            printf("token \"%s\" found to not be a function or"
+                                "a variable",tokens[*index].value.data());
+                        }
+                        useCurrentFunction = false;
+                    }
+                    //Parse function call
+                    else if(tokens[*index + 1].value == "(")
+                    {
+
+                    }
+                    else
+                    {
+                        printf("Invalid identifier operation on line %i\n",
+                            tokens[*index].currentLine);
+                    }
                 break;
                 default:
                     printf("Invalid token in the function scope \"%s\" on line %i\n",

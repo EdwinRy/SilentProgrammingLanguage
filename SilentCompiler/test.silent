@@ -29,6 +29,7 @@ var int con;
 
 func int main()
 {
+    con = 5;
     var int testVar = 2 + con;
     return 1;
 }

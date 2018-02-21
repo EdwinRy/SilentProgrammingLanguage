@@ -69,6 +69,7 @@ namespace SilentParser
     struct silentFunction
     {
         std::vector<std::string> expressions;
+        std::vector<silentExpression> assignments;
         std::vector<silentVariable> arguments;
         std::vector<silentVariable> variables;
         std::string name;
