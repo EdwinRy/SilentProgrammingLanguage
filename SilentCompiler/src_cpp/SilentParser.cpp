@@ -502,9 +502,26 @@ namespace SilentParser
     void parseArguments(std::vector<silentToken> tokens, int *index,
         std::vector<std::string> *output, std::string functionName)
     {
-        unsigned int i = 0;
-        for(; globalScope->functions[i].name != functionName;i++);
+        printf("func %s\n",functionName.data());
+        unsigned int i;
+        bool found = false;
+        for(i = 0; i < globalScope->functions.size();i++)
+        {
+            if(globalScope->functions[i].name == functionName)
+            {
+                found = true;
+                break;
+            }
+        }
+        if(!found)
+        {
+            printf("Function %s doesn't exist yet it was called on line %i\n",
+                functionName.data(),tokens[*index].currentLine
+            );
+            exit(1);
+        }
         silentFunction function = globalScope->functions[i];
+        printf("here\n");
         for(i = 0; tokens[i].value != ")"; i++)
         {
             int eIndex = 2;
@@ -517,7 +534,6 @@ namespace SilentParser
             std::vector<std::string> ou = *output;
             for(int j = 0; j < ou.size(); j++)
             {
-                
                 printf("k %s\n",ou[j].data());
             }
         }
@@ -592,7 +608,7 @@ namespace SilentParser
     silentFunction parseFunction(std::vector<silentToken> tokens, int *index)
     {
         silentFunction function;
-
+        unsigned int varIndex = 0;
         //Get function return type
         *index+=1;
         if(tokens[*index].type == silentTypeToken)
@@ -637,11 +653,10 @@ namespace SilentParser
         if(tokens[*index+1].value != ")")
         {
 
-            //Parse arguments
+            //Parse parameters
             while(tokens[*index].value != ")")
             {
                 silentVariable argument;
-
                 //Get argument type
                 *index+=1;
                 if(tokens[*index].type == silentTypeToken)
@@ -685,6 +700,7 @@ namespace SilentParser
                 }
 
                 function.arguments.push_back(argument);
+                varIndex += 1;
             }
         }
         else
@@ -701,7 +717,6 @@ namespace SilentParser
         }
 
         //Parse scope
-        unsigned int varIndex = 0;
         *index+=1;
         for(;tokens[*index].value != "}"; *index+=1)
         {

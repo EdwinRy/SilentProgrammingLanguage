@@ -18,12 +18,12 @@ struct sampleStruct2
 //Sample custom type globals
 var sampleStruct sampleGlobalVariable3;
 
-
+/*
 func int add(int x, int y)
 {
     return 2+2;
 } 
-
+*/
 
 var int con;
 
@@ -32,5 +32,5 @@ func int main()
     add(4,3);
     //con = 5;
     //var int testVar = 2 + con;
-    return 1;
+    //return 1;
 }
