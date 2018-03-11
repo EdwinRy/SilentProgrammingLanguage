@@ -8,6 +8,8 @@ using namespace FileHelper;
 using namespace SilentTokenizer;
 using namespace SilentParser;
 using namespace SilentCodeGenerator;
+
+//Set defaults
 SilentCompiler::SilentCompiler()
 {
 	this->success = 0;
@@ -19,6 +21,7 @@ SilentCompiler::SilentCompiler()
 	this->bytecodeOutput = "";
 }
 
+//Compile using set flags
 void SilentCompiler::compile()
 {
 	if(!this->outputAssembly && !this->outputBytecode)

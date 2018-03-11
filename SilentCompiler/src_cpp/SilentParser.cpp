@@ -448,28 +448,28 @@ namespace SilentParser
             //Parse priority operation
             if(expressionStr[*index].value == "(")
             {
-                //printf("expression\n");
+                printf("expression\n");
                 *index += 1;
                 int saveIndex = *index - 2;
                 parseExpression(expressionStr,index,expression,expectedType);
                 if(expressionStr[saveIndex].type == silentMathsOperatorToken)
                 {
-                    //printf("math operator %s\n",
-                    //expressionStr[saveIndex].value.data());
+                    printf("math operator %s\n",
+                        expressionStr[saveIndex].value.data());
                     expression->push_back(expressionStr[saveIndex].value);
                 }
             }
             //Parse number
             else if(expressionStr[*index].type == silentNumberToken)
             {
-                //printf("token %s\n",expressionStr[*index].value.data());
+                printf("token %s\n",expressionStr[*index].value.data());
                 expression->push_back(
                     "pushNum " + expressionStr[*index].value
                 );
                 if(expressionStr[*index -1].type == silentMathsOperatorToken)
                 {
-                    //printf("math operator %s\n",
-                    //expressionStr[*index -1].value.data());
+                    printf("math operator %s\n",
+                        expressionStr[*index -1].value.data());
                     expression->push_back(
                         expressionStr[*index -1].value
                     );
@@ -484,7 +484,7 @@ namespace SilentParser
 
                 }
                 //If the identifier is a variable
-                //printf("token %s\n",expressionStr[*index].value.data());
+                printf("token %s\n",expressionStr[*index].value.data());
                 expression->push_back(
                     "pushVar " + expressionStr[*index].value
                 );
@@ -496,7 +496,7 @@ namespace SilentParser
                 }
             }
         }
-        //printf("End operation\n");
+        printf("End operation\n");
     }
 
     void parseArguments(std::vector<silentToken> tokens, int *index,
@@ -672,7 +672,8 @@ namespace SilentParser
                     {
                         printf("Use of incorrect type \"%s\" on line %i\n",
                             tokens[*index].value.data(),tokens[*index].currentLine);
-                        printf("within declaration of function \"%s\"\n",function.name.data());
+                        printf("within declaration of function \"%s\"\n",
+                            function.name.data());
                         exit(1);
                     }
                 }
@@ -694,8 +695,8 @@ namespace SilentParser
                 *index+=1;
                 if(tokens[*index].value != "," && tokens[*index].value != ")")
                 {
-                    printf("Expected a \",\" or \")\" on line %i (no declaraction allowed)\n",
-                                tokens[*index].currentLine);
+                    printf("Expected a \",\" or \")\" on line %i" 
+                        "(no declaraction allowed)\n", tokens[*index].currentLine);
                     exit(1);
                 }
 
