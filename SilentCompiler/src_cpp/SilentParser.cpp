@@ -3,38 +3,51 @@ using namespace SilentTokenizer;
 //using namespace SilentParser;
 namespace SilentParser
 {
+    //Allow access to those variables throughout the namespace
     silentProgram *globalScope;
     silentVariable foundVar;
     silentFunction currentFunction;
     bool useCurrentFunction;
 
+    //Find the variable in the closest scope
     char getVariable(std::string name)
     {
+        //If it's referenced from a function
         if(useCurrentFunction)
         {
+            //Scan through the function scope
             for(unsigned int i = 0; i < currentFunction.variables.size(); i++)
             {
+                //If the variable is found
                 if(currentFunction.variables[i].name == name)
                 {
+                    //Assign the found variable and return
                     foundVar = currentFunction.variables[i];
                     return 1;
                 }
             }
+            //Scan through the global scope
             for(unsigned int i = 0; i < globalScope->globals.size(); i++)
             {
+                //If it was found
                 if( globalScope->globals[i].name == name)
                 {
+                    //Assign to found variable and return
                     foundVar = globalScope->globals[i];
                     return 2;
                 }
             }
         }
+        //If it shouldn't be searched in the global scope
         else
         {
+            //Scan through the global scope
             for(unsigned int i = 0; i < globalScope->globals.size(); i++)
             {
+                //If it was found
                 if( globalScope->globals[i].name == name)
                 {
+                    //Assign to found variable and return
                     foundVar = globalScope->globals[i];
                     return 2;
                 }
@@ -43,8 +56,10 @@ namespace SilentParser
         return 0;
     }
 
+    //Check whether the custom type exists
     bool checkExistingType(std::string type)
     {
+        //Iterate through global scope structures
         for(unsigned int i = 0; i < globalScope->structures.size();i++)
         {
             if(type == globalScope->structures[i].name)
@@ -55,6 +70,7 @@ namespace SilentParser
         return false;
     }
 
+    //Check whether a function exists
     bool checkExistingFunction(std::string name)
     {
         for(unsigned int i = 0; i < globalScope->functions.size();i++)
@@ -67,6 +83,7 @@ namespace SilentParser
         return false;
     }
 
+    //Get size (in bytes) of a type
     unsigned int getTypeSize(std::string type)
     {
         if(type == "int")
@@ -101,6 +118,7 @@ namespace SilentParser
         return 0;
     }
 
+    //Get data type based on string
     silentDataType getBuiltinDataType(std::string type)
     {
         if(type == "int")
@@ -128,6 +146,7 @@ namespace SilentParser
         }
     }
 
+    //Parse global variable declaration
     silentVariable parseGlobalVar(std::vector<silentToken> tokens, int *index, 
         unsigned int varIndex)
     {
@@ -178,6 +197,7 @@ namespace SilentParser
 
     }
 
+    //Parse structure declaration
     silentStructure parseStruct(std::vector<silentToken> tokens, int *index)
     {
         silentStructure structure;
@@ -262,6 +282,7 @@ namespace SilentParser
         return structure;
     }
 
+    //Prepare expression to be parsed more easily
     std::vector<silentToken> prepareExpression(
         std::vector<silentToken> tokens, int *index)
     {
@@ -435,6 +456,7 @@ namespace SilentParser
         return expression;
     }
 
+    //Parse expression recursively and output intermediate code
     void parseExpression(
         std::vector<silentToken> expressionStr,
         int *index,
@@ -774,6 +796,7 @@ namespace SilentParser
                         {
                             if(varSearch == 2)
                             {
+                                //Use global
                                 function.expressions.push_back("ug");
                             }
                             int eIndex = 3;
@@ -790,6 +813,7 @@ namespace SilentParser
 
                             if(varSearch == 2)
                             {
+                                //End global
                                 function.expressions.push_back("eg");
                             }
                             *index-=1;
