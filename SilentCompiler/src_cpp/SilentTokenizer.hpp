@@ -3,6 +3,7 @@
 #include <vector>
 namespace SilentTokenizer
 {
+    //Type of the token
     typedef enum silentTokenType
     {
         silentUnrecognisedToken,    //For unknown values
