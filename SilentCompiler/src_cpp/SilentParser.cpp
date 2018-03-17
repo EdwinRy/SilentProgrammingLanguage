@@ -543,22 +543,25 @@ namespace SilentParser
             exit(1);
         }
         silentFunction function = globalScope->functions[i];
-        printf("here\n");
-        for(i = 0; tokens[i].value != ")"; i++)
-        {
-            int eIndex = 2;
-            std::vector<silentToken> expression;
-            expression = prepareExpression(tokens,index);
-            parseExpression(expression,&eIndex,output,
-                function.arguments[i].dataType);
-            printf("here\n");
 
-            std::vector<std::string> ou = *output;
-            for(int j = 0; j < ou.size(); j++)
-            {
-                printf("k %s\n",ou[j].data());
-            }
+        std::vector<silentToken> expression = prepareExpression(tokens,index);
+        int eIndex = 2;
+        for(; expression[eIndex-1].value != ")"; eIndex++)
+        {
+        
+            parseExpression(expression,&eIndex,output,
+                function.arguments[i].dataType
+            );
+            //printf("here\n");
+            //printf("val %s\n",expression[eIndex].value.data());
+
+            //std::vector<std::string> ou = *output;
+            //for(int j = 0; j < ou.size(); j++)
+            //{
+            //    printf("k %s\n",ou[j].data());
+            //}
         }
+        *index-=2;
     }
 
     silentVariable parseFunctionVar(
@@ -833,6 +836,7 @@ namespace SilentParser
                         parseArguments(tokens,index,&function.expressions,
                             tokens[*index].value);
                         function.expressions.push_back("call" + tokens[x].value);
+                        printf("here chef\n");
                         
                     }
                     else

@@ -29,7 +29,7 @@ var int con;
 
 func int main()
 {
-    add(4,3);
+    add(4,3,2+5);
     //con = 5;
     //var int testVar = 2 + con;
     //return 1;
