@@ -23,9 +23,9 @@ namespace SilentParser
     silentFunction* currentFunction;
     bool inLoop = false;
 
-    void errorMessage(std::string message)
+    void errorMessage(std::string message, unsigned int line)
     {
-        printf("Error: %s\n",message.data());
+        printf("Error: %s - on line %u\n",message.data(),line);
         errorsThrown = true;
         errorCount += 1;
     }
@@ -36,50 +36,32 @@ namespace SilentParser
     }
 
     //Find the variable in the closest scope
-    char getVariable(std::string name)
+    char getVariable(silentToken var)
     {
-        //If it's referenced from a function
-        if(useCurrentFunction)
-        {
-            //Scan through the function scope
-            for(unsigned int i = 0; i < scopeVars.size(); i++)
-            {
-                //If the variable is found
-                if(scopeVars[i].name == name)
-                {
-                    //Assign the found variable and return
-                    foundVar = scopeVars[i];
-                    return 1;
-                }
-            }
-            
-        }
         //Scan through the global scope
-            for(unsigned int i = 0; i < globalScope->globals.size(); i++)
-            {
-                //If it was found
-                if( globalScope->globals[i].name == name)
-                {
-                    //Assign to found variable and return
-                    foundVar = globalScope->globals[i];
-                    return 2;
-                }
-            }
-        return 0;
-    }
-
-    //Check whether the custom type exists
-    bool checkExistingType(std::string type)
-    {
-        //Iterate through global scope structures
-        for(unsigned int i = 0; i < globalScope->structures.size();i++)
+        for(unsigned int i = 0; i < globalScope->globals.size(); i++)
         {
-            if(type == globalScope->structures[i].name)
+            //If it was found
+            if( globalScope->globals[i].name == var.value)
             {
-                return true;
+                //Assign to found variable and return
+                foundVar = globalScope->globals[i];
+                return 0;
             }
         }
-        return false;
+        //Scan through the accessible scope
+        for(unsigned int i = 0; i < scopeVars.size(); i++)
+        {
+            //If the variable is found
+            if(scopeVars[i].name == var.value)
+            {
+                //Assign the found variable and return
+                foundVar = scopeVars[i];
+                return 1;
+            }
+        }
+        errorMessage("Variable "+var.value+" was not found",var.currentLine);
+        return -1;
     }
 
     //Check whether a function exists
@@ -131,29 +113,47 @@ namespace SilentParser
     }
 
     //Get data type based on string
-    silentDataType getBuiltinDataType(std::string type)
+    silentDataType getDataType(silentToken type)
     {
-        if(type == "int")
+        if(type.type == silentTypeToken)
         {
-            return silentIntType;
+            if(type.value == "int")
+            {
+                return silentIntType;
+            }
+            else if(type.value == "long")
+            {
+                return silentLongType;
+            }
+            else if(type.value == "float")
+            {
+                return silentFloatType;
+            }
+            else if(type.value == "double")
+            {
+                return silentDoubleType;
+            }
+            else if(type.value == "string")
+            {
+                return silentStringType;
+            }
+            else{
+                return silentNullType;
+            }
         }
-        else if(type == "long")
+        else
         {
-            return silentLongType;
-        }
-        else if(type == "float")
-        {
-            return silentFloatType;
-        }
-        else if(type == "double")
-        {
-            return silentDoubleType;
-        }
-        else if(type == "string")
-        {
-            return silentStringType;
-        }
-        else{
+            //Iterate through global scope structures
+            for(unsigned int i = 0; i < globalScope->structures.size();i++)
+            {
+                if(type.value == globalScope->structures[i].name)
+                {
+                   return silentStructType;
+                }
+            }
+            errorMessage("Use of incorrect type "+type.value,
+                type.currentLine
+            );
             return silentNullType;
         }
     }
@@ -164,9 +164,8 @@ namespace SilentParser
         if(tokens[*index].type != silentIdentifierToken)
         {
             errorMessage(
-                "Incorrect token " + tokens[*index].value +
-                " on line " + std::to_string(tokens[*index].currentLine) +
-                " (expected identifier)"
+                "Incorrect token " + tokens[*index].value + " (expected identifier)",
+                tokens[*index].currentLine
             );
         }
         *index+=1;
@@ -422,25 +421,7 @@ namespace SilentParser
         silentExpression outputExpression;
         //Get variable type
         *index+=1;
-        if(tokens[*index].type == silentTypeToken)
-        {
-            variable.dataType = getBuiltinDataType(tokens[*index].value);
-        }
-        else{
-            if(checkExistingType(tokens[*index].value))
-            {
-                variable.dataType = silentStructType;
-            }
-            else
-            {
-                errorMessage(
-                    "Use of incorrect type \"" + 
-                    tokens[*index].value +
-                    "\" on line " +
-                    std::to_string(tokens[*index].currentLine)
-                );
-            }
-        }
+        variable.dataType = getDataType(tokens[*index]);
         variable.size = getTypeSize(tokens[*index].value);
 
         //Get variable name
@@ -452,18 +433,13 @@ namespace SilentParser
         else
         {
             errorMessage(
-                "Expected variable name in place of \"" +
-                tokens[*index].value +
-                "\" on line" +
-                std::to_string(tokens[*index].currentLine)
+                "Expected variable name in place of \""+tokens[*index].value +"\"",
+                tokens[*index].currentLine
             );
         }
         //Check whether it's been initialised
         *index+=1;
-        if(tokens[*index].value == ";")
-        {
-            
-        }
+        if(tokens[*index].value == ";") ;
 
         else if(tokens[*index].value == "=")
         {
@@ -474,8 +450,8 @@ namespace SilentParser
 
         else
         {
-            errorMessage("Incorrect token after variable declaration one line" +
-                std::to_string(tokens[*index].currentLine)
+            errorMessage("Incorrect token after variable declaration",
+                tokens[*index].currentLine
             );
         }
         return variable;
@@ -504,29 +480,15 @@ namespace SilentParser
 
             //Get variable type
             *index+=1;
-            if(tokens[*index].type == silentTypeToken)
+            variable.dataType = getDataType(tokens[*index]);
+            if(tokens[*index].value == structure.name)
             {
-                variable.dataType = getBuiltinDataType(tokens[*index].value);
-            }
-            else{
-                if(checkExistingType(tokens[*index].value))
-                {
-                    variable.dataType = silentStructType;
-                }
-                else if(tokens[*index].value == structure.name)
-                {
-                    printf("Variable can't have the same type as the struct that it's in\n");
-                    printf("error on line %i\n",tokens[*index].currentLine);
-                    exit(1);
-                }
-                else
-                {
-                    printf("Use of incorrect type \"%s\" on line %i\n",
-                        tokens[*index].value.data(),tokens[*index].currentLine);
-                    exit(1);
-                }
-            }
-
+                errorMessage(
+                    "Structure member type can't be the same as "
+                    "the currently declared structure",
+                    tokens[*index].currentLine
+                );
+            }     
             variable.size = getTypeSize(tokens[*index].value);
 
             //Get variable name
@@ -611,13 +573,11 @@ namespace SilentParser
         //Check whether scope should be declared
         if(tokens[*index].value != "{")
         {
-            errorMessage(
-                "Expected scope declaration on line " +
-                std::to_string(tokens[*index].currentLine)
-            );
+            errorMessage("Expected scope declaration", tokens[*index].currentLine);
         }
         //Parse scope
         *index+=1;
+        unsigned int scopeCountBefore = scopeVars.size();
         for(;tokens[*index].value != "}"; *index+=1)
         {
             switch(tokens[*index].type)
@@ -627,18 +587,122 @@ namespace SilentParser
                     //Parse variable declaration
                     if(tokens[*index].value == "var")
                     {
+                        //Parse variable
+                        silentVariable newVar = parseVarDeclaration(
+                            tokens,index,*varIndex,&scope->expressions
+                        );
+                        //Add to scope variables
+                        scope->variables.push_back(newVar);
+                        //Add to accessible variables
+                        scopeVars.push_back(newVar);
+
+                        //Store variable in memory
+                        scope->expressions.push_back(
+                            "alloc"+std::to_string(newVar.size)+
+                            " i"+std::to_string(newVar.scopeIndex)
+                        );
+                        scope->expressions.push_back(
+                            "store"+std::to_string(newVar.size)+
+                            " i"+std::to_string(newVar.scopeIndex)
+                        );
+                        *varIndex += 1;
+                    }
+                    else if(tokens[*index].value == "return")
+                    {
+                        if(inFunction)
+                        {
+                            int eIndex = 2;
+                            std::vector<silentToken> expressionStr;
+                            expressionStr = prepareExpression(tokens,index);
+                            parseExpression(
+                                expressionStr, 
+                                &eIndex, 
+                                &scope->expressions,
+                                currentFunction->returnType
+                            );
+                            scope->expressions.push_back("ret");
+                            *index -= 1;
+                        }
+                        else
+                        {
+                            errorMessage(
+                                "Return operation prohibited outside of a function", 
+                                tokens[*index].currentLine
+                            );
+                        }
                         
+                    }
+                    else
+                    {
+                        errorMessage(
+                            "Declaration of structures within this scope prohibited",
+                            tokens[*index].currentLine
+                        );
+                    }
+                break;
+                //Parse identifier operation
+                case silentIdentifierToken:
+                    //Parse variable initialisation
+                    if(tokens[*index+1].value == "=")
+                    {
+                        char varSearch = getVariable(tokens[*index]);
+                        if(!varSearch)
+                        {
+                            //Use global
+                            scope->expressions.push_back("ug");
+                        }
+                        int eIndex = 3;
+                        std::vector<silentToken> expressionStr = 
+                            prepareExpression(tokens,index);
+
+                        parseExpression(expressionStr,&eIndex,
+                            &scope->expressions,foundVar.dataType);
+
+                        scope->expressions.push_back(
+                            "store"+std::to_string(foundVar.size)+
+                            " i"+std::to_string(foundVar.scopeIndex)
+                        );                            
+                        if(!varSearch)
+                        {
+                            //End global
+                            scope->expressions.push_back("eg");
+                        }
+                        *index-=1;
+                    }
+                    //Parse function call
+                    else if(tokens[*index+1].value == "(")
+                    {
+                        int x = *index;
+                        //parse arguments
+                        parseArguments(tokens,index,&scope->expressions,
+                            tokens[*index].value
+                        );
+                        scope->expressions.push_back("call" + tokens[x].value);
+                        printf("here chef\n");
+                        if(tokens[*index+=2].value != ";")
+                        {
+                            errorMessage("Invalid token after function call on line",
+                                tokens[*index].currentLine
+                            );
+                        }
+                    }
+                    else
+                    {
+                        errorMessage("Invalid identifier operation",
+                            tokens[*index].currentLine
+                        );
                     }
                 break;
                 default:
                     errorMessage(
-                        "Invalid token within scope on line " +
-                        std::to_string(tokens[*index].currentLine) +
-                        ", invalid token: \"" + tokens[*index].value + "\""
+                        "Invalid token within scope " + tokens[*index].value,
+                        tokens[*index].currentLine
                     );
                 break;
             }
         }
+        unsigned int scopeVarsRemove = scopeVars.size() - scopeCountBefore;
+        for(unsigned int i = 0; i < scopeVarsRemove;i++) scopeVars.pop_back(); 
     }
 
     silentFunction parseFunction(std::vector<silentToken> tokens, int *index)
@@ -646,33 +710,17 @@ namespace SilentParser
         silentFunction function;
         //Get function return type
         *index+=1;
-        if(tokens[*index].type == silentTypeToken)
-        {
-            function.returnType = getBuiltinDataType(tokens[*index].value);
-        }
-        else{
-            if(checkExistingType(tokens[*index].value))
-            {
-                function.returnType = silentStructType;
-            }
-            else
-            {
-                printf("Use of incorrect type \"%s\" on line %i\n",
-                    tokens[*index].value.data(),tokens[*index].currentLine);
-                exit(1);
-            }
-        }
+        function.returnType = getDataType(tokens[*index]);
         //Get function name
         *index+=1;
         function.name = getIdentifierName(tokens,index);
         //Parse parameters
         if(tokens[*index].value != "(")
         {
-            printf("Expected arguments for function \"%s\" on line %i\n",
-                    function.name.data(),tokens[*index].currentLine);
-            exit(1);
+            errorMessage("Expected declaration of function parameters",
+                tokens[*index].currentLine
+            );
         }
-
         if(tokens[*index+1].value != ")")
         {
             //Parse parameters
@@ -681,47 +729,20 @@ namespace SilentParser
                 silentVariable argument;
                 //Get argument type
                 *index+=1;
-                if(tokens[*index].type == silentTypeToken)
-                {
-                    argument.dataType = getBuiltinDataType(tokens[*index].value);
-                }
-                else{
-                    if(checkExistingType(tokens[*index].value))
-                    {
-                        argument.dataType = silentStructType;
-                    }
-                    else
-                    {
-                        printf("Use of incorrect type \"%s\" on line %i\n",
-                            tokens[*index].value.data(),tokens[*index].currentLine);
-                        printf("within declaration of function \"%s\"\n",
-                            function.name.data());
-                        exit(1);
-                    }
-                }
+                argument.dataType = getDataType(tokens[*index]);
                 argument.size = getTypeSize(tokens[*index].value);
 
                 //Get argument name
                 *index+=1;
-                if(tokens[*index].type == silentIdentifierToken)
-                {
-                    argument.name = tokens[*index].value;
-                }
-                else
-                {
-                    printf("Expected argument name in place of \"%s\" on line %i\n",
-                            tokens[*index].value.data(),tokens[*index].currentLine);
-                    exit(1);
-                }
+                argument.name = getIdentifierName(tokens,index);
+                //*index+=1;
 
-                *index+=1;
                 if(tokens[*index].value != "," && tokens[*index].value != ")")
                 {
-                    printf("Expected a \",\" or \")\" on line %i" 
-                        "(no declaraction allowed)\n", tokens[*index].currentLine);
-                    exit(1);
+                    errorMessage("Expected a \",\" or \")\" (no declaraction allowed)",
+                        tokens[*index].currentLine
+                    );
                 }
-
                 function.arguments.push_back(argument);
                 function.varIndex += 1;
             }
@@ -740,130 +761,8 @@ namespace SilentParser
         }
 
         inFunction = true;
-
         //Parse scope
-        *index+=1;
         parseScope(tokens,index,&function.varIndex,&function.scope);
-        /*
-        for(;tokens[*index].value != "}"; *index+=1)
-        {
-            switch(tokens[*index].type)
-            {
-                //Parse function variable declaration
-                case silentStructureToken:
-                    //Parse variable declaration
-                    if(tokens[*index].value == "var")
-                    {
-                        silentVariable newVar = 
-                            //parseFunctionVar(&function, tokens, index,varIndex);
-                            parseVarDeclaration(tokens,
-                                index,varIndex, &function.expressions
-                            );
-                        function.variables.push_back(newVar);
-                        *index -= 1;
-                        //function.expressions.push_back("var");
-                        function.expressions.push_back(
-                            "alloc"+std::to_string(newVar.size)+
-                            " i"+std::to_string(newVar.scopeIndex)
-                        );
-
-                        function.expressions.push_back(
-                            "store"+std::to_string(newVar.size)+
-                            " i"+std::to_string(newVar.scopeIndex)
-                        );
-                        varIndex += 1;
-                    }
-                    else if(tokens[*index].value == "return")
-                    {
-                        int eIndex = 2;
-                        std::vector<silentToken> expressionStr =
-                            prepareExpression(tokens,index);
-                        parseExpression(expressionStr, &eIndex, &function.expressions,
-                            function.returnType);
-                        function.expressions.push_back("ret");
-                        *index -= 1;
-                    }
-                    else
-                    {
-                        printf("Can't declare structures within function scope,\n");
-                        printf("Perhaps you forgot a \"}\" around line %i?\n",
-                            tokens[*index].currentLine);
-                        exit(1);
-                    }                   
-                break;
-                //Parse function identifier
-                case silentIdentifierToken:
-                    //Parse assignment
-                    if(tokens[*index + 1].value == "=")
-                    {
-                        useCurrentFunction = true;
-                        currentFunction = &function;
-                        char varSearch = getVariable(tokens[*index].value);
-                        if(varSearch > 0)
-                        {
-                            if(varSearch == 2)
-                            {
-                                //Use global
-                                function.expressions.push_back("ug");
-                            }
-                            int eIndex = 3;
-                            std::vector<silentToken> expressionStr = 
-                                prepareExpression(tokens,index);
-
-                            parseExpression(expressionStr,&eIndex,
-                                &function.expressions,foundVar.dataType);
-
-                            function.expressions.push_back(
-                                "store"+std::to_string(foundVar.size)+
-                                " i"+std::to_string(foundVar.scopeIndex)
-                            );                            
-
-                            if(varSearch == 2)
-                            {
-                                //End global
-                                function.expressions.push_back("eg");
-                            }
-                            *index-=1;
-                        }
-                        else
-                        {
-                            printf("token \"%s\" found to not be a function or"
-                                "a variable",tokens[*index].value.data());
-                        }
-                        useCurrentFunction = false;
-                    }
-                    //Parse function call
-                    else if(tokens[*index + 1].value == "(")
-                    {
-                        int x = *index;
-                        //parse arguments
-                        parseArguments(tokens,index,&function.expressions,
-                            tokens[*index].value);
-                        function.expressions.push_back("call" + tokens[x].value);
-                        printf("here chef\n");
-                        if(tokens[*index+=2].value != ";")
-                        {
-                            printf("Invalid token after function call on line %u, "
-                                "expected a ';'\n",tokens[*index].currentLine);
-                            exit(1);
-                        }
-                        
-                    }
-                    else
-                    {
-                        printf("Invalid identifier operation on line %i\n",
-                            tokens[*index].currentLine);
-                    }
-                break;
-                default:
-                    printf("Invalid token in the function scope of \"%s\" on line %i,\n"
-                        "Invalid token: \"%s\"\n",
-                        function.name.data(), tokens[*index].currentLine,
-                        tokens[*index].value.data());
-                    exit(1);
-                break;
-            }
-        }*/
         inFunction = false;
         return function;
     }
@@ -902,10 +801,9 @@ namespace SilentParser
                     }
                 break;
                 default:
-                    printf("Invalid token in the global scope \"%s\" on line %i\n",
-                        tokens[i].value.data(), tokens[i].currentLine);
-                    exit(1);
-    
+                    errorMessage("Invalid token in the global scope \""+
+                        tokens[i].value+"\"", tokens[i].currentLine
+                    );
                 break;
             }
         }

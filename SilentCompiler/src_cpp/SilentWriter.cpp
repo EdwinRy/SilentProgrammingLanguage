@@ -8,6 +8,7 @@ namespace SilentCodeGenerator
     silentProgram *globalScope;
     bool useCurrentFunction;
 
+    /*
     char getVariable(std::string name)
     {
         if(useCurrentFunction)
@@ -42,6 +43,7 @@ namespace SilentCodeGenerator
         }
         return 0;
     }
+    */
 
     std::string compileBytecode(SilentParser::silentProgram program)
     {
@@ -69,7 +71,7 @@ namespace SilentCodeGenerator
             else if(expression[i].substr(0,7) == "pushVar")
             {
                 std::string name = expression[i].substr(8);
-                char varType = getVariable(name);
+                char varType = 0;
                 if(varType > 0)
                 {
                     if(varType == 2)
@@ -223,7 +225,7 @@ namespace SilentCodeGenerator
             }
 
             //Write down function's expression
-            writeAssemblyExpression(&output,function.expressions);
+            //writeAssemblyExpression(&output,function.expressions);
         }
         return output;
     }
