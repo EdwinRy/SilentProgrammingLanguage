@@ -604,9 +604,8 @@ namespace SilentParser
 
     void parseScope(
         std::vector<silentToken> tokens, 
-        int *index, int *varIndex,
-        std::vector<std::string> *output, 
-        std::vector<std::string> *expression
+        int *index, unsigned int *varIndex,
+        silentScope *scope
     )
     {
         //Check whether scope should be declared
@@ -645,7 +644,6 @@ namespace SilentParser
     silentFunction parseFunction(std::vector<silentToken> tokens, int *index)
     {
         silentFunction function;
-        unsigned int varIndex = 0;
         //Get function return type
         *index+=1;
         if(tokens[*index].type == silentTypeToken)
@@ -725,7 +723,7 @@ namespace SilentParser
                 }
 
                 function.arguments.push_back(argument);
-                varIndex += 1;
+                function.varIndex += 1;
             }
         }
         else
@@ -743,9 +741,10 @@ namespace SilentParser
 
         inFunction = true;
 
-        /*
         //Parse scope
         *index+=1;
+        parseScope(tokens,index,&function.varIndex,&function.scope);
+        /*
         for(;tokens[*index].value != "}"; *index+=1)
         {
             switch(tokens[*index].type)
@@ -873,8 +872,7 @@ namespace SilentParser
     {
         silentProgram* program = new silentProgram();
         globalScope = program;
-
-        unsigned int globalIndex = 0;
+        program->varIndex = 0;
 
         for(int i = 0; i < (int)tokens.size();i++)
         {
@@ -883,14 +881,16 @@ namespace SilentParser
                 case silentStructureToken:
                     if(tokens[i].value == "var")
                     {
-                        program->globals.push_back(
+                        silentVariable newVar = 
                             parseVarDeclaration(
                                 tokens,
                                 &i,
-                                globalIndex,
-                                &program->expressions)
-                        );
-                        globalIndex += 1;
+                                program->varIndex,
+                                &program->expressions
+                            );
+                        program->globals.push_back(newVar);
+                        program->varIndex += 1;
+                        scopeVars.push_back(newVar);
                     }
                     if(tokens[i].value == "struct")
                     {

@@ -77,6 +77,7 @@ namespace SilentParser
     {
         std::string name;
         std::vector<silentVariable> arguments;
+        unsigned int varIndex;
         //std::vector<silentVariable> variables;
         //std::vector<std::string> expressions;
         silentScope scope;
@@ -86,6 +87,7 @@ namespace SilentParser
     
     struct silentProgram
     {
+        unsigned int varIndex;
         std::vector<silentFunction> functions;
         std::vector<silentStructure> structures;
         std::vector<silentVariable> globals;

@@ -3,7 +3,6 @@
 using namespace SilentParser;
 namespace SilentCodeGenerator
 {
-    
     silentVariable foundVar;
     silentFunction currentFunction;
     silentProgram *globalScope;
