@@ -61,6 +61,13 @@ namespace SilentParser
         unsigned int items;
     };
 
+    struct silentScope
+    {
+        std::vector<silentVariable> variables;
+        std::vector<std::string> expressions;
+        std::vector<silentScope> scopes;
+    };
+
     struct silentWhileLoop
     {
 
@@ -68,10 +75,11 @@ namespace SilentParser
 
     struct silentFunction
     {
-        std::vector<std::string> expressions;
-        std::vector<silentVariable> arguments;
-        std::vector<silentVariable> variables;
         std::string name;
+        std::vector<silentVariable> arguments;
+        //std::vector<silentVariable> variables;
+        //std::vector<std::string> expressions;
+        silentScope scope;
         std::vector<silentValue> returnValues;
         silentDataType returnType;
     };
@@ -81,6 +89,7 @@ namespace SilentParser
         std::vector<silentFunction> functions;
         std::vector<silentStructure> structures;
         std::vector<silentVariable> globals;
+        std::vector<std::string> expressions;
     };
 
     silentProgram *silentParseProgram(
