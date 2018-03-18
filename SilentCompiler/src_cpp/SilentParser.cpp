@@ -455,7 +455,6 @@ namespace SilentParser
             );
         }
         return variable;
-
     }
 
     //Parse structure declaration
@@ -469,9 +468,9 @@ namespace SilentParser
         structure.name = getIdentifierName(tokens,index);
         if(tokens[*index].value != "{")
         {
-            printf("expected struct declaration on line %u\n",
-                tokens[*index].currentLine);
-            exit(1);
+            errorMessage("Expected structure declaration",
+                tokens[*index].currentLine
+            );
         }
         *index+=1;
         while(tokens[*index].value != "}")
@@ -493,25 +492,14 @@ namespace SilentParser
 
             //Get variable name
             *index+=1;
-            if(tokens[*index].type == silentIdentifierToken)
-            {
-                variable.name = tokens[*index].value;
-            }
-            else
-            {
-                printf("Expected variable name in place of \"%s\" on line %i\n",
-                        tokens[*index].value.data(),tokens[*index].currentLine);
-                exit(1);
-            }
+            variable.name = getIdentifierName(tokens,index);
             //Check whether it's been initialised
-            *index+=1;
             if(tokens[*index].value != ";")
             {
-                printf("Expected a \";\" at the end of line %i (no declaraction allowed)\n",
-                            tokens[*index].currentLine);
-                exit(1);
+                errorMessage("Expected \";\" after identifier",
+                    tokens[*index].currentLine
+                );
             }
-
             structure.variables.push_back(variable);
             structure.size += variable.size;
             *index+=1;
@@ -552,7 +540,6 @@ namespace SilentParser
             parseExpression(expression,&eIndex,output,
                 function.arguments[i].dataType
             );
-            printf("here\n");
             printf("val %s\n",expression[eIndex].value.data());
 
             std::vector<std::string> ou = *output;
@@ -629,8 +616,7 @@ namespace SilentParser
                                 "Return operation prohibited outside of a function", 
                                 tokens[*index].currentLine
                             );
-                        }
-                        
+                        }       
                     }
                     else
                     {
