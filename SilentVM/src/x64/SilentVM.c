@@ -3,121 +3,95 @@
 #include <memory.h>
 #include <stdio.h>
 
-#ifdef __linux__
-//Linux specific code
-#include <dlfcn.h>
-#elif _WIN32
-//Windows specific code
+typedef int uint;
 
-#else
-//Cross platform workaround
-printf("Your system won't be able to suppord native libraries\n");
-#endif
-
-//Allocate memory for the program
 SilentMemory* createSilentMemory(
-	unsigned int stackS,
-	unsigned int memStackS, 
-	unsigned int heapS
+	unsigned int stackBufferSize, unsigned int heapBufferSize
 )
 {
 	SilentMemory* memory 	= malloc(sizeof(SilentMemory));
-	memory->stack 			= calloc(stackS,sizeof(char));
-	memory->stackTop		= 0;
-	memory->memStack 		= calloc(memStackS,sizeof(SilentMemoryBlock));
+	memory->stack 			= malloc(stackBufferSize);
 	memory->stackPointer	= 0;
 	memory->framePointer	= 0;
-	memory->memHeap			= calloc(heapS,sizeof(char));
+	memory->heap			= malloc(heapBufferSize*sizeof(SilentMemoryBlock));
 	return memory;
 }
 
-//Create executing thread
-SilentThread* createSilentThread(SilentMemory* memory, char* bytecode)
+SilentVM* createSilentVM(SilentMemory* memory, char* program)
 {
-	SilentThread* thread 		= malloc(sizeof(SilentThread));
-	thread->memory 				= memory;
-	thread->bytecode 			= bytecode;
-	thread->running 			= 0;
-	thread->programCounter 		= 0;
-	return thread;
+	SilentVM* vm 		= malloc(sizeof(SilentVM));
+	vm->memory 			= memory;
+	vm->program 		= program;
+	vm->running 		= 0;
+	vm->programCounter 	= 0;
+	return vm;
 }
 
 //Delete program's allocated space
-void deleteSilentMemory(SilentMemory * memory)
+void deleteSilentMemory(SilentMemory* memory)
 {
 	free(memory->stack);
-	free(memory->memStack);
-	free(memory->memHeap);
+	free(memory->heap);
 	free(memory);
 }
 
-//Delete program's thread
-void deleteSilentThread(SilentThread * thread)
+void deleteSilentVM(SilentVM* vm)
 {
-	free(thread);
+	if(vm->memory != NULL) deleteSilentMemory(vm->memory);
+	free(vm);
 }
 
-void executeSilentThread(SilentThread * thread)
+void silentVMStart(SilentVM* vm)
 {
 	//Setup registers
 	char 	breg = 0;
+	short	sreg = 0;
 	int 	ireg = 0;
 	float 	freg = 0;
 	long 	lreg = 0;
 	double 	dreg = 0;
 
-	//Set thread state to running
-	thread->running = 1;
+	//Set vm running flag to true
+	vm->running = 1;
 
-	SilentMemory* 	memory 				= thread->memory;
-	SilentGB* 		gb 					= thread->garbageCollector;
-	int* 			storagePointer 		= memory->storagePointers->integers;
-	int*			storageCount 		= malloc(sizeof(int));
-	int* 			lastPC 				= memory->programCounters->integers;
-	int 			localStoragePointer = 0;
-	int 			altStoragePointer 	= 0;
-	
-	*storageCount = 0;
+	char* 				program = vm->program;
+	char* 				stack 	= vm->memory->stack;
+	SilentMemoryBlock* 	heap 	= vm->memory->heap;
+	int* 				sp 		= &(vm->memory->stackPointer);
+	int* 				fp 		= &(vm->memory->framePointer);
+	int 				altSP 	= *sp;
+	int					altFP	= *fp;
 
-	//insert initial storage pointer of 0
-	vectorInsert(memory->storagePointers,&localStoragePointer,0);
-	vectorInsert(memory->programCounters,&thread->programCounter,0);
-
-	while(thread->running)
+	while(vm->running)
 	{
-		switch(thread->bytecode[thread->programCounter])
+		switch(program[vm->programCounter])
 		{
-			//Stops the execution of the program
 			case Halt:
-				thread->running = 0;
+				vm->running = 0;
 			break;
 			
-			//Changes the program pointer based on bytecode
 			case Goto:
-				thread->programCounter++;
-				thread->programCounter = 
-					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
-				thread->programCounter--;
-			break;
-			
-			case LoadSys: //Not yet implemented
+				vm->programCounter++;
+				vm->programCounter = 
+					*((uint*)(vm->program + (vm->programCounter)));
+				vm->programCounter--;
 			break;
 
-			case CallSys: //Not yet implemented
+			case Sweep:
+				
 			break;
 
-			case GBSweep:
-				silentSweep(gb,memory,storageCount);
-			break;
-
-			//Disable storage pointer
 			case UseGlobal:
-				altStoragePointer = 0;
+				altSP = *sp;
+				altFP = *fp;
+				*sp = 0;
+				*fp = 0;
 			break;
 
 			//Call silent subrouting
 			case EndGlobal:
-				altStoragePointer = *storagePointer;
+				*sp = altSP;
+				*fp = altFP;
 			break;
 
 			case Call:
@@ -140,12 +114,17 @@ void executeSilentThread(SilentThread * thread)
 				vectorRemove(memory->programCounters,0);
 			break;
 
-			//Pushes 1 byte of data to the stack
 			case Push1:
-				memory->stack[memory->stackPointer++] = 
-					thread->bytecode[++thread->programCounter];
+				//memory->stack[memory->stackPointer++] = 
+				//	thread->bytecode[++thread->programCounter];
+				stack[*sp] = vm->program[++(vm->programCounter)];
+				*sp += 1;
 			break;
-				
+
+			case Push2:
+
+			break;
+
 			//Pushes 4 bytes of data to the stack
 			case Push4:
 				//printf("push4\n");

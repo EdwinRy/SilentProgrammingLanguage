@@ -1,0 +1,160 @@
+
+
+Type description:
+Byte - 1 byte whole number value
+Short - 2 byte whole number value
+Int - 4 byte whole number value
+Long - 8 byte whole number value
+Float - 4 byte whole number value
+Double - 8 byte whole number value
+
+Halt - Stop the program
+Goto X - Go to the address X
+Sweep - Force Garbage Collector sweep
+UseGlobal - Bring stack pointer to 0 temporarily
+EndGlobal - Return stack pointer to normal again
+Call X - Call a function at address X in the code
+Return - Go back to previous subroutine
+
+
+
+Push1 X - Push 1 byte of X onto stack
+Push2 X - Push 2 bytes of X onto stack
+Push4 X - Push 4 bytes of X onto stack
+Push8 X - Push 8 bytes of X onto stack
+PushX Y - Push X bytes of Y onto stack
+
+Pop1 - Decrease stack pointer by 1
+Pop2 - Decrease stack pointer by 2
+Pop4 - Decrease stack pointer by 4
+Pop8 - Decrease stack pointer by 8
+PopX - Decrease stack pointer by X
+
+
+
+Store1 X - Store 1 byte from the stack at X
+Store2 X - Store 2 bytes from the stack at X
+Store4 X - Store 4 bytes from the stack at X
+Store8 X - Store 8 bytes from the stack at X
+StoreX Y - Store X bytes from the stack at Y
+
+Load1 X - Load 1 byte from X to the stack
+Load2 X - Load 2 bytes from X to the stack
+Load4 X - Load 4 bytes from X to the stack
+Load8 X - Load 8 bytes from X to the stack
+LoadX Y - Load X bytes from Y to the stack
+
+
+
+Alloc1 - Dynamically allocate 1 byte
+Alloc2 - Dynamically allocate 2 bytes
+Alloc4 - Dynamically allocate 4 bytes
+Alloc8 - Dynamically allocate 8 bytes
+AllocX - Dynamically allocate X bytes
+
+LoadPtr1 X - Load 1 byte from pointer X
+LoadPtr2 X - Load 2 bytes from pointer X
+LoadPtr4 X - Load 4 bytes from pointer X
+LoadPtr8 X - Load 8 bytes from pointer X
+LoadPtrX Y - Load X bytes from pointer Y
+
+StorePtr1 X - Store 1 byte at pointer X
+StorePtr2 X - Store 2 bytes at pointer X
+StorePtr4 X - Store 4 bytes at pointer X
+StorePtr8 X - Store 8 bytes at pointer X
+StorePtrX Y - Store X bytes at pointer Y
+
+
+
+FREE X - free dynamically allocated storage at X
+
+
+
+AddByte - Add 2 bytes on the stack
+AddShort - Add 2 shorts on the stack
+AddInt - Add 2 integers on the stack
+AddLong - Add 2 longs on the stack
+AddFloat - Add 2 floats on the stack
+AddDouble - Add 2 doubles on the stack
+
+SubByte - Subtract 2 bytes on the stack
+SubShort - Subtract 2 shorts on the stack
+SubInt - Subtract 2 integers on the stack
+SubLong - Subtract 2 longs on the stack
+SubFloat - Subtract 2 floats on the stack
+SubDouble - Subtract 2 doubles on the stack
+
+MulByte - Multiply 2 bytes on the stack
+MulShort - Multiply 2 shorts on the stack
+MulInt - Multiply 2 integers on the stack
+MulLong - Multiply 2 longs on the stack
+MulFloat - Multiply 2 floats on the stack
+MulDouble - Multiply 2 doubles on the stack
+
+DivByte - Divide 2 bytes on the stack
+DivShort - Divide 2 shorts on the stack
+DivInt - Divide 2 integers on the stack
+DivLong - Divide 2 longs on the stack
+DivFloat - Divide 2 floats on the stack
+DivDouble - Divide 2 doubles on the stack
+
+
+
+ByteToInt - Convert a byte to an integer on the stack
+ByteToShort - Convert a byte to a short on the stack
+ByteToLong - Convert a byte to a long on the stack
+ByteToFloat - Convert a byte to a float on the stack
+ByteToDouble - Convert a byte to a double on the stack
+
+IntToByte - Convert an integer to a byte on the stack
+IntToShort - Convert a short to a byte on the stack
+IntToLong - Convert an integer to a long on the stack
+IntToFloat - Convert an integer to a long on the stack
+IntToDouble - Convert an integer to a double on the stack
+
+FloatToByte - Convert a float to a byte on the stack
+FloatToShort - Convert a float to a short on the stack
+FloatToInt - Convert a float to an int on the stack
+FloatToLong - Convert a float to a long on the stack
+FloatToDouble - Convert a float to a double on the stack
+
+DoubleToByte - Convert a double to a byte on the stack
+DoubleToShort - Convert a double to a short on the stack
+DoubleToInt - Convert a double to an int on the stack
+DoubleToLong - Convert a double to a float on the stack
+DoubleToFloat - Convert a double to a float on the stack
+
+LongToByte - Convert a long to a byte on the stack
+LongToShort - Convert a long to a short on the stack
+LongToInt - Convert a long to an int on the stack
+LongToFloat - Convert a long to a float on the stack
+LongToDouble - Convert a long to a double on the stack
+
+//Comparison outputs either 1 or 0 in 1 byte on the stack
+
+SmallerThanByte - Compare 2 byte types with smaller than operator
+SmallerThanShort - Compare 2 shorts with smaller than operator
+SmallerThanInt - Compare 2 integers with smaller than operator
+SmallerThanLong - Compare 2 longs with smaller than operator
+SmallerThanFloat - Compare 2 floats with smaller than operator
+SmallerThanDouble - Compare 2 doubles with smaller than operator
+
+LargerThanByte - Compare 2 byte types with larger than operator
+LargerThanShort - Compare 2 shorts with larger than operator
+LargerThanInt - Compare 2 integers with larger than operator
+LargerThanLong - Compare 2 longs with larger than operator
+LargerThanFloat - Compare 2 floats with larger than operator
+LargerThanDouble - Compare 2 doubles with larger than operator
+
+EqualByte - Compare 2 byte types with equality operator
+EqualShort - Compare 2 byte types with equality operator
+EqualInt - Compare 2 byte types with equality operator
+EqualLong - Compare 2 byte types with equality operator
+EqualFloat - Compare 2 byte types with equality operator
+EqualDouble - Compare 2 byte types with equality operator
+
+
+
+If X - Go to address X if there's a 1 on the top of the stack
+IfNot X - Go to the address X if there's a 0 on the top of the stack
+
