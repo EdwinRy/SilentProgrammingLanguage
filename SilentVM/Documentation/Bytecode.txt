@@ -8,6 +8,8 @@ Long - 8 byte whole number value
 Float - 4 byte whole number value
 Double - 8 byte whole number value
 
+Pointers are 8 byte long no matter the architecture
+
 Halt - Stop the program
 Goto X - Go to the address X
 Sweep - Force Garbage Collector sweep

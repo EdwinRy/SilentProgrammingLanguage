@@ -115,71 +115,56 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Push1:
-				//memory->stack[memory->stackPointer++] = 
-				//	thread->bytecode[++thread->programCounter];
 				stack[*sp] = vm->program[++(vm->programCounter)];
 				*sp += 1;
 			break;
 
 			case Push2:
-
+				memcpy(stack + *sp, vm->program + ++vm->programCounter,2);
+				vm->programCounter++;
+				*sp += 2;
 			break;
 
-			//Pushes 4 bytes of data to the stack
 			case Push4:
-				//printf("push4\n");
-				memcpy(memory->stack + memory->stackPointer,
-						thread->bytecode + (++thread->programCounter),
-						4);
-				thread->programCounter += 3;
-				memory->stackPointer += 4;
+				memcpy(stack + *sp, vm->program + ++vm->programCounter,4);
+				vm->programCounter += 3;
+				*sp += 4;
 			break;
 			
-			//Pushes 8 bytes of data to the stack
 			case Push8:
-				//printf("push8\n");
-				memcpy(memory->stack + memory->stackPointer,
-						thread->bytecode + (++thread->programCounter),
-						sizeof(long));
-				thread->programCounter += 7;
-				memory->stackPointer += sizeof(long);
+				memcpy(stack + *sp, vm->program + ++vm->programCounter,8);
+				vm->programCounter += 7;
+				*sp += 8;
 			break;
 
-			//Pushes X (in bytecode) bytes of data to the stack
 			case PushX:
-				//printf("pushx\n");
-				lreg = *((int*)(thread->bytecode + (++thread->programCounter)));
-				memcpy(memory->stack + memory->stackPointer,
-						thread->bytecode + 4 + thread->programCounter,
-						lreg);
-				thread->programCounter += (3+lreg);
-				memory->stackPointer += lreg;
+				ireg = *((int*)(vm->program + ++vm->programCounter));
+				memcpy(stack + *sp, vm->program + vm->programCounter + 4, ireg);
+				vm->programCounter += 3+ireg;
+				*sp += ireg;
 			break;
 			
-			//Decreases the stack pointer by 1
 			case Pop1:
-				memory->stackPointer--;
+				*sp -= 1;
 			break;
-			
-			//Decreases the stack pointer by 4
+
+			case Pop2:
+				*sp -= 2;
+			break;
+
 			case Pop4:
-				//printf("pop4\n");
-				memory->stackPointer-=4;
+				*sp -= 4;
 			break;
-					
-			//Decreases the stack pointer by 8
+
 			case Pop8:
-				memory->stackPointer-=sizeof(long);
+				*sp -= 8;
 			break;
 
-			//Decreases the stack pointer by X (in bytecode)
 			case PopX:
-				memory->stackPointer-=
-					*(int*)(thread->bytecode + (++thread->programCounter));
-				thread->programCounter += 3;
+				*sp -= *((int*)(vm->program + (++vm->programCounter)));
+				vm->programCounter += 3;
 			break;
 
-			//Saves 1 byte from the stack to allocated space
 			case Store1:
 				memcpy(			
 					memory->storage[
@@ -190,6 +175,9 @@ void silentVMStart(SilentVM* vm)
 					1
 				);
 				thread->programCounter += 3;
+
+				lreg = *(long*)(vm->program +(++vm->programCounter));
+				
 			break;
 
 			//Saves 4 bytes from the stack to allocated space
