@@ -49,6 +49,7 @@ void silentVMStart(SilentVM* vm)
 	char 	breg = 0;
 	short	sreg = 0;
 	int 	ireg = 0;
+	int 	ireg2 = 0;
 	float 	freg = 0;
 	long 	lreg = 0;
 	double 	dreg = 0;
@@ -168,64 +169,37 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Store1:
-				memcpy(			
-					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter)) +
-						altStoragePointer
-					]->data,
-					memory->stack + (--memory->stackPointer),
-					1
-				);
-				thread->programCounter += 3;
-
-				lreg = *(long*)(vm->program +(++vm->programCounter));
-				
+				ireg = *(int*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 3;
+				memcpy(stack + *fp + ireg, stack + (*sp -= 1), 1);
 			break;
 
-			//Saves 4 bytes from the stack to allocated space
+			case Store2:
+				ireg = *(int*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 3;
+				memcpy(stack + *fp + ireg, stack + (*sp -= 2), 2);
+			break;
+
 			case Store4:
-				//printf("store4\n");
-				memory->stackPointer -= 4;
-				memcpy(
-					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter)) +
-						altStoragePointer
-					]->data,
-					memory->stack + (memory->stackPointer),
-					4
-				);
-				thread->programCounter += 3;
+				ireg = *(int*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 3;
+				memcpy(stack + *fp + ireg, stack + (*sp -= 4), 4);
 			break;
 
 			//Saves 8 bytes from the stack to allocated space
 			case Store8:
-				memory->stackPointer -= sizeof(long);
-				memcpy(	
-					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter)) +
-						altStoragePointer
-					]->data,
-					memory->stack + (memory->stackPointer),
-					sizeof(long)
-				);
-				thread->programCounter += 3;		
+				ireg = *(int*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 3;	
+				memcpy(stack + *fp + ireg, stack + (*sp -= 8), 8);
 			break;
 
 			//Saves X bytes from stack to allocated space
 			case StoreX:
-				//printf("storex\n");
-				//Data size
-				ireg = *((int*)(thread->bytecode + (++thread->programCounter)))+1;
-				thread->programCounter+=4;
-				memory->stackPointer-=ireg;
-				memcpy(
-					memory->storage[
-						(*(int*)(thread->bytecode +(thread->programCounter))) +
-						altStoragePointer
-					]->data,
-					memory->stack + (++memory->stackPointer),
-					ireg);
-				thread->programCounter += 3;
+				ireg = *(int*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 3;
+				ireg2 = *(int*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 3;
+				memcpy(stack + *fp + ireg2, stack + (*sp -= ireg), ireg);
 			break;
 	
 			//Copies 1 byte of data from storage onto the stack
