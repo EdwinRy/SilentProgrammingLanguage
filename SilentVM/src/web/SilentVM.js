@@ -1,26 +1,14 @@
 module.exports = {
-    SilentMemory : SilentMemory,
-    SilentVM : SilentVM,
-    SilentGB : SilentGB
+    SilentVM : SilentVM
 };
 
-function SilentMemory()
+function runVM(program)
 {
-    this.heap = [];
-    this.stack = [];
-}
-
-
-
-function SilentVM(memory, garbageCollector)
-{
-
     
-
 }
 
-function SilentGB(memory)
+function SilentVM()
 {
-
+    this.run = runVM;
+    return this;
 }
-

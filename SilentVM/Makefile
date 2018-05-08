@@ -1,22 +1,12 @@
-Compiler = gcc
-src = src/*.{c,h}
-out = bin/SilentVM
-bin = bin/*
+compiler = gcc
+standard = -std=c99
+flags = -Wall
 
-
-all:
-	$(Compiler) $(src) -Wall -o $(out)
+bit64:
+	$(compiler) $(standard) -m64 src/x64/*.c $(flags) -o src/x64/SilentVM
 
 bit32:
-	$(Compiler) -m32 $(src) -Wall -o $(out)
+	$(compiler) $(standard) -m32 src/x32/*.c $(flags) -o src/x32/SilentVM
 
-install:
-	$(Compiler) $(src) -Wall -o $(out)
-	sudo cp $(out) /usr/bin/SilentVM
 
-delete:
-	sudo rm /usr/bin/SilentVM
 
-gitadd:
-	git add $(src)
-	git add $(bin)

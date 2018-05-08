@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <stdio.h>
 
-typedef int uint;
+typedef unsigned int uint;
 
 SilentMemory* createSilentMemory(
 	unsigned int stackBufferSize, unsigned int heapBufferSize
