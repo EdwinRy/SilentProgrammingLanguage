@@ -2,184 +2,143 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-//<instruction> <argument> <argument>
-//Argument types:
-//X = number
-//Y = string
 typedef enum SilentBytecode
 {
-	//Stops the execution of the program
 	Halt,
-	//Moves the program counter to X
-	Goto, //X - Byte
-	//Load native subroutine
-	LoadSys,
-	//Call native subroutine
-	CallSys,//X - 4 bytes
-
-	//Force the garbage collector to do its job
-	GBSweep,
-
-	//Disable storage pointer
+	Goto,
+	Sweep,
     UseGlobal,
-	//Enable storage pointer
     EndGlobal,
-
-	//Call silent subrouting
-	Call,//X - 4 bytes
-	//Return back from subroutine
+	Call,
 	Return,
 
-	//Pushes values onto the stack (CPU stack)
-	Push1, //X - 1 byte value
-	Push4, //X - 4 byte value
-	Push8, //X - 8 byte value
-	PushX, //X - X byte value, X - value
+	Push1,
+	Push2,
+	Push4,
+	Push8,
+	PushX,
 	
-	//Pops values from the stack
-	Pop1, //X - 1 byte value
-	Pop4, //X - 4 byte value
-	Pop8, //X - 8 byte value
-	PopX, //X - X byte value, X - value
+	Pop1,
+	Pop2,
+	Pop4,
+	Pop8,
+	PopX,
 
-	//Store value in dedicated memory
-	Store1, //X - memory address
-	Store4, //X - memory address
-	Store8, //X - memory address
-	StoreX, //X - X value size, X - memory address
+	Store1,
+	Store2,
+	Store4,
+	Store8,
+	StoreX,
 	
-	//Load value from memory
-	Load1, //X - memory address
-	Load4, //X - memory address
-	Load8, //X - memory address
-	LoadX, //X - X value size, X - memory address
+	Load1,
+	Load2,
+	Load4,
+	Load8,
+	LoadX,
 
-	//Allocate space for a value
-	Alloc1, //X - memory address
-	Alloc4, //X - memory address
-	Alloc8, //X - memory address
-	AllocX, //X - memory address
+	Alloc1,
+	Alloc2,
+	Alloc4,
+	Alloc8,
+	AllocX,
 
-	//Return a pointer to X and push it to stack
-	GetPtr, //X - memory address
+	LoadPtr1,
+	LoadPtr2,
+	LoadPtr4,
+	LoadPtr8,
+	LoadPtrX,
 
-	//Push 1 byte from the pointer
-	LoadPtr1, 
-	//Push 4 byte from the pointer
-	LoadPtr4, 
-	//Push 8 byte from the pointer
-	LoadPtr8, 
-	//Push X bytes from the pointer
-	LoadPtrX, //X - value size
+	StorePtr1,
+	StorePtr2,
+	StorePtr4,
+	StorePtr8,
+	StorePtrX,
 
-	//Change 1 byte at a pointer
-	EditPtr1,
-	//Change 4 bytes at a pointer
-	EditPtr4,
-	//Change 8 bytes at a pointer
-	EditPtr8,
-	//Change X bytes at a pointer
-	EditPtrX, //X - value size
+    GetPtr,
+	FREE,
 
-	//Free a value at address
-	FREE, //X - memory address
-
-	//Add numbers on the stack together
 	AddByte,
+	AddShort,
 	AddInt,
 	AddLong,
 	AddFloat,
 	AddDouble,
 
-	//Subtract values on the stack
-	//stack before:    	stack after
-	// 2				0
-	// 4				2
-	//Operation is applied to the first
-	//pushed value
 	SubByte,
+	SubShort,
 	SubInt,
 	SubLong,
 	SubFloat,
 	SubDouble,
 	
-	//Multiply numbers on the stack
 	MulByte,
+	MulShort,
 	MulInt,
 	MulLong,
 	MulFloat,
 	MulDouble,
 	
-	//Divide numbers on the stack
-	//in the same order as subtraction
 	DivByte,
+	DivShort,
 	DivInt,
 	DivLong,
 	DivFloat,
 	DivDouble,
 
-	//Casting bytes to other data
 	ByteToInt,
+	ByteToShort,
 	ByteToLong,
 	ByteToFloat,
 	ByteToDouble,
 	
-	//Casting integers to other data
 	IntToByte,
+	IntToShort,
 	IntToLong,
 	IntToFloat,
 	IntToDouble,
 
-	//Casting floats to other data
-	FloatToByte,//
-	FloatToInt,//
-	FloatToLong,//
-	FloatToDouble,//
+	FloatToByte,
+	FloatToShort,
+	FloatToInt,
+	FloatToLong,
+	FloatToDouble,
 
-	//Casting doubles to other data
-	DoubleToByte,//
-	DoubleToInt,//
-	DoubleToLong,//
-	DoubleToFloat,//
+	DoubleToByte,
+	DoubleToShort,
+	DoubleToInt,
+	DoubleToLong,
+	DoubleToFloat,
 
-	//Cast long value to other data types
-	LongToByte,//
-	LongToInt,//
-	LongToFloat,//
-	LongToDouble,//
+	LongToByte,
+	LongToShort,
+	LongToInt,
+	LongToFloat,
+	LongToDouble,
 	
-	//Smaller than operators
-	//Same order as with subtraction
 	SmallerThanByte,
+	SmallerThanShort,
 	SmallerThanInt,
 	SmallerThanLong,
 	SmallerThanFloat,
 	SmallerThanDouble,
 
-	//Larger than operators
-	//Same order as subtraction
-	BiggerThanByte,
-	BiggerThanInt,
-	BiggerThanLong,
-	BiggerThanFloat,
-	BiggerThanDouble,
+	LargerThanByte,
+	LargerThanShort,
+	LargerThanInt,
+	LargerThanLong,
+	LargerThanFloat,
+	LargerThanDouble,
 
-	//Equality operators
 	EqualByte,
+	EqualShort,
 	EqualInt,
 	EqualLong,
 	EqualFloat,
 	EqualDouble,
 
-	//All of the comparison operators return either
-	// a 1 - true or 0 - false to the stack
-	
-	//If theres a 1 on the stack
 	If,
-	//If the isn't one
 	IfNot
 }SilentBytecode;
-
 
 typedef struct silentInstruction
 {
@@ -191,6 +150,7 @@ typedef struct silentLabel
     char* label;
     int index;
 }silentLabel;
+
 int getLabelIndex(silentLabel* labels,int count, char* label)
 {
     //printf("label %s\n",label);
@@ -209,10 +169,12 @@ char assemble(char* inFile, char* outFile)
 {
     char* program = malloc(1000);
     unsigned int programCounter = 0;
+
     silentLabel labels[1000];
     silentLabel gotos[1000];
     unsigned int labelIndex = 0;
     unsigned int gotosIndex = 0;
+
     FILE* f;
     f = fopen(inFile,"r");
     if(f==NULL)
@@ -351,7 +313,7 @@ char assemble(char* inFile, char* outFile)
         }
 
 
-
+        /*
         if(strcmp(instructions[0],"callsys") == 0)
         {
             program[programCounter] = (char)CallSys;
@@ -371,10 +333,11 @@ char assemble(char* inFile, char* outFile)
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
+        */
 
-        if(strcmp(instructions[0],"gbsweep") == 0)
+        if(strcmp(instructions[0],"sweep") == 0)
         {
-            program[programCounter] = (char)GBSweep;
+            program[programCounter] = (char)Sweep;
             programCounter+=1;
         }
 
@@ -419,7 +382,7 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(char)
+                    1
                 );
                 programCounter += 1;
             }
@@ -428,6 +391,28 @@ char assemble(char* inFile, char* outFile)
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
+
+        if(strcmp(instructions[0],"push2") == 0)
+        {
+            program[programCounter] = (char)Push2;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                short temp = (short)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    2
+                );
+                programCounter += 1;
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+
+
         if(strcmp(instructions[0],"push4") == 0)
         {
             program[programCounter] = (char)Push4;
@@ -438,9 +423,9 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else if(instructions[1][0] == 'd')
             {
@@ -448,44 +433,46 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(float)
+                    4
                 );
-                programCounter += sizeof(float);
+                programCounter += 4;
             }
             else
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
+
         if(strcmp(instructions[0],"push8") == 0)
         {
             program[programCounter] = (char)Push8;
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                long temp = (long)atoi(instructions[1]+1);
+                long temp = (long)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(long)
+                    8
                 );
-                programCounter += sizeof(long);
+                programCounter += 8;
             }
-            else if(instructions[1][0] == 'd')
+            else if(instructions[1][0] == 'f')
             {
                 double temp = (double)atof(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(double)
+                    8
                 );
-                programCounter += sizeof(double);
+                programCounter += 8;
             }
             else
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
+
         if(strcmp(instructions[0],"pushx") == 0)
         {
             program[programCounter] = (char)PushX;
@@ -536,8 +523,6 @@ char assemble(char* inFile, char* outFile)
             }
         }
 
-
-
         if(strcmp(instructions[0],"pop1") == 0)
         {
             program[programCounter] = (char)Pop1;
@@ -553,7 +538,7 @@ char assemble(char* inFile, char* outFile)
             program[programCounter] = (char)Pop8;
             programCounter+=1;
         }
-        if(strcmp(instructions[0],"popx") == 0)//
+        if(strcmp(instructions[0],"popx") == 0)
         {
             program[programCounter] = (char)PopX;
             programCounter+=1;
@@ -573,9 +558,7 @@ char assemble(char* inFile, char* outFile)
             }
         }
 
-
-
-        if(strcmp(instructions[0],"store1") == 0)//
+        if(strcmp(instructions[0],"store1") == 0)
         {
             program[programCounter] = (char)Store1;
             programCounter+=1;
@@ -585,16 +568,37 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
-        if(strcmp(instructions[0],"store4") == 0)//
+
+        if(strcmp(instructions[0],"store2") == 0)
+        {
+            program[programCounter] = (char)Store2;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    4
+                );
+                programCounter += 4;
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+
+        if(strcmp(instructions[0],"store4") == 0)
         {
             program[programCounter] = (char)Store4;
             programCounter+=1;
@@ -604,16 +608,17 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
-        if(strcmp(instructions[0],"store8") == 0)//
+
+        if(strcmp(instructions[0],"store8") == 0)
         {
             program[programCounter] = (char)Store8;
             programCounter+=1;
@@ -623,16 +628,16 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
-        if(strcmp(instructions[0],"storex") == 0)//
+        if(strcmp(instructions[0],"storex") == 0)
         {
             program[programCounter] = (char)StoreX;
             programCounter+=1;
@@ -642,9 +647,9 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
@@ -656,9 +661,9 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
@@ -666,9 +671,7 @@ char assemble(char* inFile, char* outFile)
             }
         }
 
-
-
-        if(strcmp(instructions[0],"load1") == 0)//
+        if(strcmp(instructions[0],"load1") == 0)
         {
             program[programCounter] = (char)Load1;
             programCounter+=1;
@@ -678,16 +681,37 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
-        if(strcmp(instructions[0],"load4") == 0)//
+
+        if(strcmp(instructions[0],"load2") == 0)
+        {
+            program[programCounter] = (char)Load2;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    4
+                );
+                programCounter += 4;
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
+
+        if(strcmp(instructions[0],"load4") == 0)
         {
             program[programCounter] = (char)Load4;
             programCounter+=1;
@@ -697,16 +721,16 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
-        if(strcmp(instructions[0],"load8") == 0)//
+        if(strcmp(instructions[0],"load8") == 0)
         {
             program[programCounter] = (char)Load8;
             programCounter+=1;
@@ -716,16 +740,16 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
                 printf("Use of incorrect type on line %i\n",currentLine);
             }
         }
-        if(strcmp(instructions[0],"loadx") == 0)//
+        if(strcmp(instructions[0],"loadx") == 0)
         {
             program[programCounter] = (char)LoadX;
             programCounter+=1;
@@ -735,9 +759,9 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
@@ -749,9 +773,9 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
@@ -761,64 +785,30 @@ char assemble(char* inFile, char* outFile)
 
 
 
-        if(strcmp(instructions[0],"alloc1") == 0)//
+        if(strcmp(instructions[0],"alloc1") == 0)
         {
             program[programCounter] = (char)Alloc1;
             programCounter+=1;
-            if(instructions[1][0] == 'i')
-            {
-                int temp = (int)atoi(instructions[1]+1);
-                memcpy(
-                    program + programCounter,
-                    &temp,
-                    sizeof(int)
-                );
-                programCounter += sizeof(int);
-            }
-            else
-            {
-                printf("Use of incorrect type on line %i\n",currentLine);
-            }
         }
-        if(strcmp(instructions[0],"alloc4") == 0)//
+
+        if(strcmp(instructions[0],"alloc2") == 0)
+        {
+            program[programCounter] = (char)Alloc2;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"alloc4") == 0)
         {
             program[programCounter] = (char)Alloc4;
             programCounter+=1;
-            if(instructions[1][0] == 'i')
-            {
-                int temp = (int)atoi(instructions[1]+1);
-                memcpy(
-                    program + programCounter,
-                    &temp,
-                    sizeof(int)
-                );
-                programCounter += sizeof(int);
-            }
-            else
-            {
-                printf("Use of incorrect type on line %i\n",currentLine);
-            }
         }
-        if(strcmp(instructions[0],"alloc8") == 0)//
+
+        if(strcmp(instructions[0],"alloc8") == 0)
         {
             program[programCounter] = (char)Alloc8;
             programCounter+=1;
-            if(instructions[1][0] == 'i')
-            {
-                int temp = (int)atoi(instructions[1]+1);
-                memcpy(
-                    program + programCounter,
-                    &temp,
-                    sizeof(int)
-                );
-                programCounter += sizeof(int);
-            }
-            else
-            {
-                printf("Use of incorrect type on line %i\n",currentLine);
-            }
         }
-        if(strcmp(instructions[0],"allocx") == 0)//
+        if(strcmp(instructions[0],"allocx") == 0)
         {
             program[programCounter] = (char)AllocX;
             programCounter+=1;
@@ -828,23 +818,9 @@ char assemble(char* inFile, char* outFile)
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    4
                 );
-                programCounter += sizeof(int);
-            }
-            else
-            {
-                printf("Use of incorrect type on line %i\n",currentLine);
-            }
-            if(instructions[2][0] == 'i')
-            {
-                int temp = (int)atoi(instructions[2]+1);
-                memcpy(
-                    program + programCounter,
-                    &temp,
-                    sizeof(int)
-                );
-                programCounter += sizeof(int);
+                programCounter += 4;
             }
             else
             {
@@ -852,33 +828,20 @@ char assemble(char* inFile, char* outFile)
             }
         }
 
-
-
-        if(strcmp(instructions[0],"getptr") == 0)
-        {
-            program[programCounter] = (char)GetPtr;
-            programCounter+=1;
-            if(instructions[1][0] == 'i')
-            {
-                int temp = (int)atoi(instructions[1]+1);
-                memcpy(
-                    program + programCounter,
-                    &temp,
-                    sizeof(int)
-                );
-                programCounter += sizeof(int);
-            }
-            else
-            {
-                printf("Use of incorrect type on line %i\n",currentLine);
-            }
-        }
         if(strcmp(instructions[0],"loadptr1") == 0)
         {
             program[programCounter] = (char)LoadPtr1;
             programCounter+=1;
 
         }
+
+        if(strcmp(instructions[0],"loadptr2") == 0)
+        {
+            program[programCounter] = (char)LoadPtr2;
+            programCounter+=1;
+
+        }
+
         if(strcmp(instructions[0],"loadptr4") == 0)
         {
             program[programCounter] = (char)LoadPtr4;
@@ -909,27 +872,33 @@ char assemble(char* inFile, char* outFile)
             }
         }
 
-        if(strcmp(instructions[0],"editptr1") == 0)
+        if(strcmp(instructions[0],"storeptr1") == 0)
         {
-            program[programCounter] = (char)EditPtr1;
+            program[programCounter] = (char)StorePtr1;
             programCounter+=1;
         }
 
-        if(strcmp(instructions[0],"editptr4") == 0)
+        if(strcmp(instructions[0],"storeptr2") == 0)
         {
-            program[programCounter] = (char)EditPtr4;
+            program[programCounter] = (char)StorePtr2;
             programCounter+=1;
         }
 
-        if(strcmp(instructions[0],"editptr8") == 0)
+        if(strcmp(instructions[0],"storeptr4") == 0)
         {
-            program[programCounter] = (char)EditPtr8;
+            program[programCounter] = (char)StorePtr4;
             programCounter+=1;
         }
 
-        if(strcmp(instructions[0],"editptrx") == 0)
+        if(strcmp(instructions[0],"storeptr8") == 0)
         {
-            program[programCounter] = (char)EditPtrX;
+            program[programCounter] = (char)StorePtr8;
+            programCounter+=1;
+        }
+
+        if(strcmp(instructions[0],"storeptrx") == 0)
+        {
+            program[programCounter] = (char)StorePtrX;
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
@@ -948,6 +917,25 @@ char assemble(char* inFile, char* outFile)
         }
 
 
+        if(strcmp(instructions[0],"getptr") == 0)
+        {
+            program[programCounter] = (char)GetPtr;
+            programCounter+=1;
+            if(instructions[1][0] == 'i')
+            {
+                int temp = (int)atoi(instructions[1]+1);
+                memcpy(
+                    program + programCounter,
+                    &temp,
+                    sizeof(int)
+                );
+                programCounter += sizeof(int);
+            }
+            else
+            {
+                printf("Use of incorrect type on line %i\n",currentLine);
+            }
+        }
 
         if(strcmp(instructions[0],"free") == 0)//
         {
@@ -974,6 +962,11 @@ char assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"addbyte") == 0)
         {
             program[programCounter] = (char)AddByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"addshort") == 0)
+        {
+            program[programCounter] = (char)AddShort;
             programCounter+=1;
         }
         if(strcmp(instructions[0],"addint") == 0)
@@ -1004,6 +997,11 @@ char assemble(char* inFile, char* outFile)
             program[programCounter] = (char)SubByte;
             programCounter+=1;
         }
+        if(strcmp(instructions[0],"subshort") == 0)
+        {
+            program[programCounter] = (char)SubShort;
+            programCounter+=1;
+        }
         if(strcmp(instructions[0],"subint") == 0)
         {
             program[programCounter] = (char)SubInt;
@@ -1030,6 +1028,11 @@ char assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"mulbyte") == 0)
         {
             program[programCounter] = (char)MulByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"mulshort") == 0)
+        {
+            program[programCounter] = (char)MulShort;
             programCounter+=1;
         }
         if(strcmp(instructions[0],"mulint") == 0)
@@ -1060,6 +1063,11 @@ char assemble(char* inFile, char* outFile)
             program[programCounter] = (char)DivByte;
             programCounter+=1;
         }
+        if(strcmp(instructions[0],"divshort") == 0)
+        {
+            program[programCounter] = (char)DivShort;
+            programCounter+=1;
+        }
         if(strcmp(instructions[0],"divint") == 0)
         {
             program[programCounter] = (char)DivInt;
@@ -1088,6 +1096,11 @@ char assemble(char* inFile, char* outFile)
             program[programCounter] = (char)ByteToInt;
             programCounter+=1;
         }
+        if(strcmp(instructions[0],"bytetoshort") == 0)
+        {
+            program[programCounter] = (char)ByteToShort;
+            programCounter+=1;
+        }
         if(strcmp(instructions[0],"bytetolong") == 0)
         {
             program[programCounter] = (char)ByteToLong;
@@ -1109,6 +1122,11 @@ char assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"inttobyte") == 0)
         {
             program[programCounter] = (char)IntToByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"inttoshort") == 0)
+        {
+            program[programCounter] = (char)IntToShort;
             programCounter+=1;
         }
         if(strcmp(instructions[0],"inttolong") == 0)
@@ -1134,6 +1152,11 @@ char assemble(char* inFile, char* outFile)
             program[programCounter] = (char)FloatToByte;
             programCounter+=1;
         }
+        if(strcmp(instructions[0],"floattoshort") == 0)
+        {
+            program[programCounter] = (char)FloatToShort;
+            programCounter+=1;
+        }
         if(strcmp(instructions[0],"floattoint") == 0)
         {
             program[programCounter] = (char)FloatToInt;
@@ -1155,6 +1178,11 @@ char assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"doubletobyte") == 0)
         {
             program[programCounter] = (char)DoubleToByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"doubletoshort") == 0)
+        {
+            program[programCounter] = (char)DoubleToShort;
             programCounter+=1;
         }
         if(strcmp(instructions[0],"doubletoint") == 0)
@@ -1179,6 +1207,11 @@ char assemble(char* inFile, char* outFile)
             program[programCounter] = (char)LongToByte;
             programCounter+=1;
         }
+        if(strcmp(instructions[0],"longtoshort") == 0)
+        {
+            program[programCounter] = (char)LongToShort;
+            programCounter+=1;
+        }
         if(strcmp(instructions[0],"longtoint") == 0)
         {
             program[programCounter] = (char)LongToInt;
@@ -1199,6 +1232,11 @@ char assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"smallerthanbyte") == 0)
         {
             program[programCounter] = (char)SmallerThanByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"smallerthanshort") == 0)
+        {
+            program[programCounter] = (char)SmallerThanShort;
             programCounter+=1;
         }
         if(strcmp(instructions[0],"smallerthanint") == 0)
@@ -1226,27 +1264,32 @@ char assemble(char* inFile, char* outFile)
 
         if(strcmp(instructions[0],"largerthanbyte") == 0)
         {
-            program[programCounter] = (char)BiggerThanByte;
+            program[programCounter] = (char)LargerThanByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"largerthanshort") == 0)
+        {
+            program[programCounter] = (char)LargerThanShort;
             programCounter+=1;
         }
         if(strcmp(instructions[0],"largerthanint") == 0)
         {
-            program[programCounter] = (char)BiggerThanInt;
+            program[programCounter] = (char)LargerThanInt;
             programCounter+=1;
         }
         if(strcmp(instructions[0],"largerthanlong") == 0)
         {
-            program[programCounter] = (char)BiggerThanLong;
+            program[programCounter] = (char)LargerThanLong;
             programCounter+=1;
         }
         if(strcmp(instructions[0],"largerthanfloat") == 0)
         {
-            program[programCounter] = (char)BiggerThanFloat;
+            program[programCounter] = (char)LargerThanFloat;
             programCounter+=1;
         }
         if(strcmp(instructions[0],"largerthandouble") == 0)
         {
-            program[programCounter] = (char)BiggerThanDouble;
+            program[programCounter] = (char)LargerThanDouble;
             programCounter+=1;
         }
 
@@ -1255,6 +1298,11 @@ char assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"equalbyte") == 0)
         {
             program[programCounter] = (char)EqualByte;
+            programCounter+=1;
+        }
+        if(strcmp(instructions[0],"equalshort") == 0)
+        {
+            program[programCounter] = (char)EqualShort;
             programCounter+=1;
         }
         if(strcmp(instructions[0],"equalint") == 0)
@@ -1292,6 +1340,7 @@ char assemble(char* inFile, char* outFile)
             gotosIndex += 1;    
             programCounter+=sizeof(int);
         }
+
         if(strcmp(instructions[0],"ifnot") == 0)
         {
             program[programCounter] = (char)IfNot;

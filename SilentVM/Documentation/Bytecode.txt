@@ -48,27 +48,28 @@ LoadX Y - Load X bytes from Y to the stack
 
 
 
-Alloc1 - Dynamically allocate 1 byte
-Alloc2 - Dynamically allocate 2 bytes
-Alloc4 - Dynamically allocate 4 bytes
-Alloc8 - Dynamically allocate 8 bytes
-AllocX - Dynamically allocate X bytes
+Alloc1 - Dynamically allocate 1 byte and push the pointer to the stack
+Alloc2 - Dynamically allocate 2 bytes and push the pointer to the stack
+Alloc4 - Dynamically allocate 4 bytes and push the pointer to the stack
+Alloc8 - Dynamically allocate 8 bytes and push the pointer to the stack
+AllocX - Dynamically allocate X bytes and push the pointer to the stack
 
-LoadPtr1 X - Load 1 byte from pointer X
-LoadPtr2 X - Load 2 bytes from pointer X
-LoadPtr4 X - Load 4 bytes from pointer X
-LoadPtr8 X - Load 8 bytes from pointer X
-LoadPtrX Y - Load X bytes from pointer Y
+LoadPtr1 - Load 1 byte from pointer on stack
+LoadPtr2 - Load 2 bytes from pointer on stack
+LoadPtr4 - Load 4 bytes from pointer on stack
+LoadPtr8 - Load 8 bytes from pointer on stack
+LoadPtrX - Load X bytes from pointer on stack
 
-StorePtr1 X - Store 1 byte at pointer X
-StorePtr2 X - Store 2 bytes at pointer X
-StorePtr4 X - Store 4 bytes at pointer X
-StorePtr8 X - Store 8 bytes at pointer X
-StorePtrX Y - Store X bytes at pointer Y
+StorePtr1 - Store 1 byte at pointer on stack
+StorePtr2 - Store 2 bytes at pointer on stack
+StorePtr4 - Store 4 bytes at pointer on stack
+StorePtr8 - Store 8 bytes at pointer on stack
+StorePtrX - Store X bytes at pointer on stack
 
 
 
-FREE X - free dynamically allocated storage at X
+GetPtr X - gets a direct pointer to memory from element X on the stack
+FREE X - free dynamically allocated storage at pointer on stack location X
 
 
 
@@ -157,6 +158,6 @@ EqualDouble - Compare 2 byte types with equality operator
 
 
 
-If X - Go to address X if there's a 1 on the top of the stack
-IfNot X - Go to the address X if there's a 0 on the top of the stack
+If X - Go to label X if there's a byte 1 on the top of the stack
+IfNot X - Go to label X if there's a byte 0 on the top of the stack
 
