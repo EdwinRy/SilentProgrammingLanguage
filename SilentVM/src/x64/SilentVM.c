@@ -6,14 +6,16 @@
 typedef unsigned int uint;
 
 SilentMemory* createSilentMemory(
-	unsigned int stackBufferSize, unsigned int heapBufferSize
+	uint stackBufferSize, uint heapBufferSize, uint stackFrameSize
 )
 {
 	SilentMemory* memory 	= malloc(sizeof(SilentMemory));
 	memory->stack 			= malloc(stackBufferSize);
+	memory->heap			= malloc(heapBufferSize*sizeof(SilentMemoryBlock));
+	memory->stackFrame		= malloc(stackFrameSize*sizeof(long));
 	memory->stackPointer	= 0;
 	memory->framePointer	= 0;
-	memory->heap			= malloc(heapBufferSize*sizeof(SilentMemoryBlock));
+	memory->stackFramePointer = 0;
 	return memory;
 }
 
@@ -96,22 +98,22 @@ void silentVMStart(SilentVM* vm)
 
 			case Call:
 				//printf("call\n");
-				vectorInsert(memory->storagePointers,&localStoragePointer,0);
-				vectorInsert(memory->programCounters,&thread->programCounter,0);
-				altStoragePointer = *storagePointer;
-				thread->programCounter++;
-				thread->programCounter = 
-					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
-				thread->programCounter--;
+				//vectorInsert(memory->storagePointers,&localStoragePointer,0);
+				//vectorInsert(memory->programCounters,&thread->programCounter,0);
+				//altStoragePointer = *storagePointer;
+				//thread->programCounter++;
+				//thread->programCounter = 
+				//	*((unsigned int*)(thread->bytecode + (thread->programCounter)));
+				//thread->programCounter--;
 			break;
 
 			case Return:
 				//silentSweep(gb,memory,storageCount);
-				thread->programCounter = (*lastPC) + 4;
-				localStoragePointer = storagePointer[0];
-				altStoragePointer = storagePointer[0];
-				vectorRemove(memory->storagePointers,0);
-				vectorRemove(memory->programCounters,0);
+				//thread->programCounter = (*lastPC) + 4;
+				//localStoragePointer = storagePointer[0];
+				//altStoragePointer = storagePointer[0];
+				//vectorRemove(memory->storagePointers,0);
+				//vectorRemove(memory->programCounters,0);
 			break;
 
 			case Push1:
