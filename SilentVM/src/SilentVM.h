@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #ifndef SILENT_VM
 #define SILENT_VM
-
 typedef enum SilentBytecode
 {
 	Halt,
@@ -16,7 +15,7 @@ typedef enum SilentBytecode
 	Push2,
 	Push4,
 	Push8,
-	PushX, 
+	PushX,
 	
 	Pop1,
 	Pop2,
@@ -32,9 +31,9 @@ typedef enum SilentBytecode
 	
 	Load1,
 	Load2,
-	Load4, 
-	Load8, 
-	LoadX, 
+	Load4,
+	Load8,
+	LoadX,
 
 	Alloc1,
 	Alloc2,
@@ -44,8 +43,8 @@ typedef enum SilentBytecode
 
 	LoadPtr1,
 	LoadPtr2,
-	LoadPtr4, 
-	LoadPtr8, 
+	LoadPtr4,
+	LoadPtr8,
 	LoadPtrX,
 
 	StorePtr1,
@@ -54,6 +53,7 @@ typedef enum SilentBytecode
 	StorePtr8,
 	StorePtrX,
 
+    GetPtr,
 	FREE,
 
 	AddByte,

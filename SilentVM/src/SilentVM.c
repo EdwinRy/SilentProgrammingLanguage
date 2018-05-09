@@ -14,7 +14,7 @@ SilentMemory* createSilentMemory(
 	SilentMemory* memory 	= malloc(sizeof(SilentMemory));
 	memory->stack 			= malloc(stackBufferSize);
 	memory->heap			= malloc(heapBufferSize*sizeof(SilentMemoryBlock));
-	memory->stackFrame		= malloc(stackFrameSize*sizeof(long));
+	memory->stackFrame		= malloc(stackFrameSize*sizeof(long long));
 	memory->stackPointer	= 0;
 	memory->framePointer	= 0;
 	memory->stackFramePointer = 0;
