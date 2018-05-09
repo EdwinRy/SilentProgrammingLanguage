@@ -4,6 +4,8 @@
 #include <stdio.h>
 
 typedef unsigned int uint;
+typedef unsigned long long uint64;
+typedef long long int64;
 
 SilentMemory* createSilentMemory(
 	uint stackBufferSize, uint heapBufferSize, uint stackFrameSize
@@ -51,7 +53,7 @@ void silentVMStart(SilentVM* vm)
 	int 	ireg = 0;
 	int 	ireg2 = 0;
 	float 	freg = 0;
-	long 	lreg = 0;
+	int64 	lreg = 0;
 	double 	dreg = 0;
 
 	//Set vm running flag to true
@@ -60,10 +62,10 @@ void silentVMStart(SilentVM* vm)
 	char* 				program = vm->program;
 	char* 				stack 	= vm->memory->stack;
 	SilentMemoryBlock* 	heap 	= vm->memory->heap;
-	int* 				sp 		= &(vm->memory->stackPointer);
-	int* 				fp 		= &(vm->memory->framePointer);
-	int 				altSP 	= *sp;
-	int					altFP	= *fp;
+	int64* 				sp 		= &(vm->memory->stackPointer);
+	int64* 				fp 		= &(vm->memory->framePointer);
+	int64 				altSP 	= *sp;
+	int64				altFP	= *fp;
 
 	while(vm->running)
 	{
@@ -76,7 +78,7 @@ void silentVMStart(SilentVM* vm)
 			case Goto:
 				vm->programCounter++;
 				vm->programCounter = 
-					*((uint*)(vm->program + (vm->programCounter)));
+					*((uint64*)(vm->program + (vm->programCounter)));
 				vm->programCounter--;
 			break;
 

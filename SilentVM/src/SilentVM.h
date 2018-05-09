@@ -147,20 +147,20 @@ typedef struct SilentMemoryBlock
 
 typedef struct SilentMemory
 {
-	char* 				stack;
-	SilentMemoryBlock* 	heap;
-	unsigned long*		stackFrame;
-    unsigned long 		stackPointer;
-	unsigned long 		framePointer;
-	unsigned long		stackFramePointer;
+	char* 					stack;
+	SilentMemoryBlock* 		heap;
+	unsigned long long*		stackFrame;
+    unsigned long long		stackPointer;
+	unsigned long long		framePointer;
+	unsigned long long		stackFramePointer;
 }SilentMemory;
 
 typedef struct SilentVM
 {
-	SilentMemory* 	memory;
-	char* 			program;
-	char 			running;
-	unsigned int 	programCounter;
+	SilentMemory* 		memory;
+	char* 				program;
+	char 				running;
+	unsigned long long 	programCounter;
 }SilentVM;
 
 SilentMemory* createSilentMemory(

@@ -165,7 +165,7 @@ int getLabelIndex(silentLabel* labels,int count, char* label)
 char assemble(char* inFile, char* outFile)
 {
     char* program = malloc(1000);
-    unsigned int programCounter = 0;
+    unsigned long long programCounter = 0;
 
     silentLabel labels[1000];
     silentLabel gotos[1000];
