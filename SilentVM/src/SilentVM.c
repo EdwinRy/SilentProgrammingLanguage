@@ -18,7 +18,7 @@ SilentMemory* createSilentMemory(
 	memory->stackPointer	= 0;
 	memory->framePointer	= 0;
 	memory->stackFramePointer = 0;
-	return memory;
+	return memory; 
 }
 
 SilentVM* createSilentVM(SilentMemory* memory, char* program)
