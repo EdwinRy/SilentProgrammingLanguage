@@ -148,9 +148,11 @@ typedef struct SilentMemoryBlock
 typedef struct SilentMemory
 {
 	char* 				stack;
-    unsigned int 		stackPointer;
-	unsigned int 		framePointer;
 	SilentMemoryBlock* 	heap;
+	unsigned long*		stackFrame;
+    unsigned long 		stackPointer;
+	unsigned long 		framePointer;
+	unsigned long		stackFramePointer;
 }SilentMemory;
 
 typedef struct SilentVM
@@ -163,7 +165,8 @@ typedef struct SilentVM
 
 SilentMemory* createSilentMemory(
 	unsigned int stackBufferSize, //How much to allocate each realloc 
-	unsigned int heapBufferSize //same as stackBuffer 
+	unsigned int heapBufferSize, //same as stackBuffer 
+	unsigned int stackFrameSize
 );
 
 SilentVM* createSilentVM(SilentMemory* memory, char* program);
@@ -173,4 +176,3 @@ void deleteSilentMemory(SilentMemory* memory);
 void deleteSilentVM(SilentVM* vm);
 
 #endif //SILENT_VM
-

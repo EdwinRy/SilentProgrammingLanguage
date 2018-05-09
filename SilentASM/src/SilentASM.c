@@ -153,13 +153,10 @@ typedef struct silentLabel
 
 int getLabelIndex(silentLabel* labels,int count, char* label)
 {
-    //printf("label %s\n",label);
     for(int i = 0; i < count; i++)
     {
-       // printf("label test:%s\n",labels[i].label);
         if(strcmp(labels[i].label,label)==0)
         {
-            //printf("label2 %s\n",labels[i].label);
             return labels[i].index;
         }
        
