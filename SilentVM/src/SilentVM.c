@@ -101,23 +101,11 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Call:
-				//printf("call\n");
-				//vectorInsert(memory->storagePointers,&localStoragePointer,0);
-				//vectorInsert(memory->programCounters,&thread->programCounter,0);
-				//altStoragePointer = *storagePointer;
-				//thread->programCounter++;
-				//thread->programCounter = 
-				//	*((unsigned int*)(thread->bytecode + (thread->programCounter)));
-				//thread->programCounter--;
+
 			break;
 
 			case Return:
-				//silentSweep(gb,memory,storageCount);
-				//thread->programCounter = (*lastPC) + 4;
-				//localStoragePointer = storagePointer[0];
-				//altStoragePointer = storagePointer[0];
-				//vectorRemove(memory->storagePointers,0);
-				//vectorRemove(memory->programCounters,0);
+
 			break;
 
 			case Push1:
@@ -204,59 +192,41 @@ void silentVMStart(SilentVM* vm)
 			break;
 	
 			case Load1:
-				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				lreg = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + lreg),stack+*sp,1);
-				*sp+=1;
+				memcpy(stack + (*fp + lreg), stack + *sp, 1);
+				*sp += 1;
 			break;
 
-			case load2:
-
+			case Load2:
+				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + (*fp + lreg), stack + *sp, 2);
+				*sp+=2;
 			break;
 
 			case Load4:
-				//printf("load4\n");
-				memcpy
-				(
-					memory->stack + (memory->stackPointer),
-					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter)) +
-						altStoragePointer
-					]->data,
-					4
-				);
-				memory->stackPointer += 4;
-				thread->programCounter += 3;
+				lreg = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + (*fp + lreg), stack + *sp, 4);
+				*sp += 4;
 			break;
 
 			case Load8:
-				memcpy
-				(
-					memory->stack + (memory->stackPointer),
-					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter)) +
-						altStoragePointer
-					]->data,
-					sizeof(long)
-				);
-				memory->stackPointer += sizeof(long);
-				thread->programCounter += 3;
+				lreg = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + (*fp + lreg), stack + *sp, 8);
+				*sp += 8;
 			break;
 
 			case LoadX:
-				ireg = *((int*)(thread->bytecode + (++thread->programCounter)));
-				thread->programCounter+=3;
-				memcpy(
-					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter)) +
-						altStoragePointer
-					]->data,
-					memory->stack + (memory->stackPointer),
-					ireg);
-				thread->programCounter += 3;
-				memory->stackPointer += ireg;
+				lreg = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 8;
+				lreg2 = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + (*fp + lreg2), stack + *sp, lreg);
+				*sp += lreg;
 			break;
-//unnecessary deex nubs 
 
 			case Alloc1:
 				
