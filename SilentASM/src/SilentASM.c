@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+
+typedef unsigned int uint;
+typedef unsigned long long uint64;
+typedef long long int64;
 typedef enum SilentBytecode
 {
 	Halt,
@@ -165,12 +169,12 @@ int getLabelIndex(silentLabel* labels,int count, char* label)
 char assemble(char* inFile, char* outFile)
 {
     char* program = malloc(1000);
-    unsigned long long programCounter = 0;
+    uint64 programCounter = 0;
 
     silentLabel labels[1000];
     silentLabel gotos[1000];
-    unsigned int labelIndex = 0;
-    unsigned int gotosIndex = 0;
+    uint labelIndex = 0;
+    uint gotosIndex = 0;
 
     FILE* f;
     f = fopen(inFile,"r");
@@ -306,7 +310,7 @@ char assemble(char* inFile, char* outFile)
             memcpy(go.label,instructions[1],size);
             gotos[gotosIndex] = go;
             gotosIndex += 1;    
-            programCounter+=sizeof(int);
+            programCounter+=sizeof(uint64);
         }
 
 
@@ -360,7 +364,7 @@ char assemble(char* inFile, char* outFile)
             memcpy(go.label,instructions[1],size);
             gotos[gotosIndex] = go;
             gotosIndex += 1;    
-            programCounter+=sizeof(int);
+            programCounter+=sizeof(uint64);
         }
         
         if(strcmp(instructions[0],"return") == 0)
@@ -446,7 +450,7 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                long temp = (long)atol(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
@@ -474,15 +478,15 @@ char assemble(char* inFile, char* outFile)
         {
             program[programCounter] = (char)PushX;
             programCounter+=1;
-            int temp = (int)atoi(instructions[1]+1);
+            uint64 temp = (uint64)atol(instructions[1]+1);
             if(instructions[1][0] == 'i')
             {
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    8
                 );
-                programCounter += sizeof(int);
+                programCounter += 8;
             }
             else
             {
@@ -491,23 +495,23 @@ char assemble(char* inFile, char* outFile)
 
             if(instructions[2][0] == 'i')
             {
-                int temp2 = (int)atoi(instructions[2]+1);
+                uint64 temp2 = (uint64)atol(instructions[2]+1);
                 memcpy(
                     program + programCounter,
                     &temp2,
-                    sizeof(int)
+                    8
                 );
-                programCounter += sizeof(int);
+                programCounter += 8;
             }
             else if(instructions[2][0] == 'f')
             {
-                int temp2 = (float)atof(instructions[2]+1);
+                double temp2 = (double)atof(instructions[2]+1);
                 memcpy(
                     program + programCounter,
                     &temp2,
-                    sizeof(float)
+                    8
                 );
-                programCounter += sizeof(float);
+                programCounter += 8;
             }
             else if(instructions[2][0] == 's')
             {
@@ -541,13 +545,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    8
                 );
-                programCounter += sizeof(int);
+                programCounter += 8;
             }
             else
             {
@@ -561,13 +565,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -581,13 +585,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -601,13 +605,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -621,13 +625,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -640,13 +644,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -654,13 +658,13 @@ char assemble(char* inFile, char* outFile)
             }
             if(instructions[2][0] == 'i')
             {
-                int temp = (int)atoi(instructions[2]+1);
+                uint64 temp = (uint64)atol(instructions[2]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -674,13 +678,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -694,13 +698,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -714,13 +718,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -733,13 +737,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -752,13 +756,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -766,13 +770,13 @@ char assemble(char* inFile, char* outFile)
             }
             if(instructions[2][0] == 'i')
             {
-                int temp = (int)atoi(instructions[2]+1);
+                uint64 temp = (uint64)atol(instructions[2]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -811,13 +815,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    4
+                    8
                 );
-                programCounter += 4;
+                programCounter += 8;
             }
             else
             {
@@ -855,13 +859,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    8
                 );
-                programCounter += sizeof(int);
+                programCounter += 8;
             }
             else
             {
@@ -899,13 +903,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    8
                 );
-                programCounter += sizeof(int);
+                programCounter += 8;
             }
             else
             {
@@ -920,13 +924,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    8
                 );
-                programCounter += sizeof(int);
+                programCounter += 8;
             }
             else
             {
@@ -940,13 +944,13 @@ char assemble(char* inFile, char* outFile)
             programCounter+=1;
             if(instructions[1][0] == 'i')
             {
-                int temp = (int)atoi(instructions[1]+1);
+                uint64 temp = (uint64)atol(instructions[1]+1);
                 memcpy(
                     program + programCounter,
                     &temp,
-                    sizeof(int)
+                    8
                 );
-                programCounter += sizeof(int);
+                programCounter += 8;
             }
             else
             {
@@ -1328,14 +1332,14 @@ char assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"if") == 0)
         {
             program[programCounter] = (char)If;
-            programCounter+=1;
+            programCounter += 1;
             silentLabel go;
             go.index = programCounter;
             go.label = malloc(size);
             memcpy(go.label,instructions[1],size);
             gotos[gotosIndex] = go;
             gotosIndex += 1;    
-            programCounter+=sizeof(int);
+            programCounter += 8;
         }
 
         if(strcmp(instructions[0],"ifnot") == 0)
@@ -1348,10 +1352,8 @@ char assemble(char* inFile, char* outFile)
             memcpy(go.label,instructions[1],size);
             gotos[gotosIndex] = go;
             gotosIndex += 1;    
-            programCounter+=sizeof(int);
+            programCounter+=8;
         }
-
-
 
         currentLine += 1;
         size = getline(&line,&s,f);
@@ -1365,17 +1367,11 @@ char assemble(char* inFile, char* outFile)
     //Sort out gotos
     for(int i = 0; i < gotosIndex; i++)
     {
-        int index = 
-            getLabelIndex(
-                labels,
-                labelIndex,
-                gotos[i].label
-                );
-        //printf("%i\n",index);
+        int index = getLabelIndex(labels,labelIndex,gotos[i].label);
         memcpy(
             program + gotos[i].index,
             &index,
-            sizeof(int)
+            8
         );
     }
 
