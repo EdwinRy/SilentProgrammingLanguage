@@ -22,7 +22,7 @@ SilentMemory* createSilentMemory(
 	return memory; 
 }
 
-SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGB gb)
+SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGC gb)
 {
 	SilentVM* vm 		= malloc(sizeof(SilentVM));
 	vm->memory 			= memory;
@@ -64,10 +64,10 @@ void silentVMStart(SilentVM* vm)
 	char* 				stack 	= vm->memory->stack;
 	SilentMemoryBlock* 	heap 	= vm->memory->heap;
 	SilentMemory*		memory 	= &vm->memory;
-	int64* 				sp 		= &(vm->memory->stackPointer);
-	int64* 				fp 		= &(vm->memory->framePointer);
-	int64 				altSP 	= *sp;
-	int64				altFP	= *fp;
+	uint64* 			sp 		= &(vm->memory->stackPointer);
+	uint64* 			fp 		= &(vm->memory->framePointer);
+	uint64 				altSP 	= *sp;
+	uint64				altFP	= *fp;
 
 	while(vm->running)
 	{
