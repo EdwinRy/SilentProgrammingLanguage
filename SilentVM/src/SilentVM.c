@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <stdio.h>
 
-typedef unsigned int uint;
+typedef uint uint;
 typedef unsigned long long uint64;
 typedef long long int64;
 
@@ -13,15 +13,16 @@ SilentMemory* createSilentMemory(
 {
 	SilentMemory* memory 	= malloc(sizeof(SilentMemory));
 	memory->stack 			= malloc(stackBufferSize);
-	memory->heap			= malloc(heapBufferSize*sizeof(SilentMemoryBlock));
-	memory->stackFrame		= malloc(stackFrameSize*8);
+	memory->stackSize		= stackBufferSize;
 	memory->stackPointer	= 0;
 	memory->framePointer	= 0;
-	memory->stackFramePointer = 0;
+	memory->heap			= malloc(heapBufferSize*sizeof(SilentMemoryBlock));
+	memory->heapSize		= heapBufferSize;
+	memory->heapPointer		= 0;
 	return memory; 
 }
 
-SilentVM* createSilentVM(SilentMemory* memory, char* program)
+SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGB gb)
 {
 	SilentVM* vm 		= malloc(sizeof(SilentVM));
 	vm->memory 			= memory;
@@ -47,22 +48,22 @@ void deleteSilentVM(SilentVM* vm)
 
 void silentVMStart(SilentVM* vm)
 {
-	//Setup registers
-	char 	breg = 0;
-	short	sreg = 0;
-	int 	ireg = 0;
-	int 	ireg2 = 0;
-	float 	freg = 0;
-	uint64 	lreg = 0;
-	uint64	lreg2 = 0;
-	double 	dreg = 0;
+	union Registers
+	{
+		char c;
+		short s;
+		int i;
+		long long l;
+		float f;
+		double d;
+	}reg, reg2;
 
-	//Set vm running flag to true
+
 	vm->running = 1;
-
 	char* 				program = vm->program;
 	char* 				stack 	= vm->memory->stack;
 	SilentMemoryBlock* 	heap 	= vm->memory->heap;
+	SilentMemory*		memory 	= &vm->memory;
 	int64* 				sp 		= &(vm->memory->stackPointer);
 	int64* 				fp 		= &(vm->memory->framePointer);
 	int64 				altSP 	= *sp;
@@ -84,7 +85,7 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Sweep:
-				
+				SilentSweep(vm->gc);
 			break;
 
 			case UseGlobal:
@@ -132,10 +133,10 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case PushX:
-				lreg = *((uint64*)(vm->program + ++vm->programCounter));
-				memcpy(stack + *sp, vm->program + vm->programCounter + 7, lreg);
-				vm->programCounter += 7+lreg;
-				*sp += lreg;
+				reg.l = *((uint64*)(vm->program + ++vm->programCounter));
+				memcpy(stack + *sp, vm->program + vm->programCounter + 7, reg.l);
+				vm->programCounter += 7+reg.l;
+				*sp += reg.l;
 			break;
 			
 			case Pop1:
@@ -160,212 +161,165 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Store1:
-				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + *fp + lreg, stack + (*sp -= 1), 1);
+				memcpy(stack + *fp + reg.l, stack + (*sp -= 1), 1);
 			break;
 
 			case Store2:
-				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + *fp + lreg, stack + (*sp -= 2), 2);
+				memcpy(stack + *fp + reg.l, stack + (*sp -= 2), 2);
 			break;
 
 			case Store4:
-				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + *fp + lreg, stack + (*sp -= 4), 4);
+				memcpy(stack + *fp + reg.l, stack + (*sp -= 4), 4);
 			break;
 
 			case Store8:
-				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;	
-				memcpy(stack + *fp + lreg, stack + (*sp -= 8), 8);
+				memcpy(stack + *fp + reg.l, stack + (*sp -= 8), 8);
 			break;
 
 			case StoreX:
-				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 8;
-				lreg2 = *(uint64*)(vm->program +(++vm->programCounter));
+				reg2.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + *fp + lreg2, stack + (*sp -= lreg), lreg);
+				memcpy(stack + *fp + reg2.l, stack + (*sp -= reg.l), reg.l);
 			break;
 	
 			case Load1:
-				lreg = *(uint64*)(vm->program + (++vm->programCounter));
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + lreg), stack + *sp, 1);
+				memcpy(stack + (*fp + reg.l), stack + *sp, 1);
 				*sp += 1;
 			break;
 
 			case Load2:
-				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + lreg), stack + *sp, 2);
+				memcpy(stack + (*fp + reg.l), stack + *sp, 2);
 				*sp+=2;
 			break;
 
 			case Load4:
-				lreg = *(uint64*)(vm->program + (++vm->programCounter));
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + lreg), stack + *sp, 4);
+				memcpy(stack + (*fp + reg.l), stack + *sp, 4);
 				*sp += 4;
 			break;
 
 			case Load8:
-				lreg = *(uint64*)(vm->program + (++vm->programCounter));
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + lreg), stack + *sp, 8);
+				memcpy(stack + (*fp + reg.l), stack + *sp, 8);
 				*sp += 8;
 			break;
 
 			case LoadX:
-				lreg = *(uint64*)(vm->program + (++vm->programCounter));
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 8;
-				lreg2 = *(uint64*)(vm->program + (++vm->programCounter));
+				reg2.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + lreg2), stack + *sp, lreg);
-				*sp += lreg;
+				memcpy(stack + (*fp + reg2.l), stack + *sp, reg.l);
+				*sp += reg.l;
 			break;
 
 			case Alloc1:
-				
 			break;
 
-			case Alloc2;
-			brea;
-
-			case Alloc4:
-				
+			case Alloc2:
 			break;
 
-			//Allocates 8 bytes of data for the program
+			case Alloc4:				
+			break;
+
 			case Alloc8:
-
 			break;
 
-			//Allocates X bytes of data for the program
-			case AllocX:
-				
+			case AllocX:	
 			break;
 			
 			case LoadPtr1:
-				memory->stackPointer-=sizeof(long);
-				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				memcpy(memory->stack + memory->stackPointer,
-					(long*)lreg,1);
-				memory->stackPointer+=1;
+				memcpy(stack + *sp, stack + (*sp -= 8), 1);
+				*sp += 1;
+			break;
+
+			case LoadPtr2:
+				memcpy(stack + *sp, stack + (*sp -= 8), 2);
+				*sp += 2;
 			break;
 
 			case LoadPtr4:
-				memory->stackPointer-=sizeof(long);
-				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				memcpy(memory->stack + memory->stackPointer,
-					(long*)lreg,4);
-				memory->stackPointer+=4;
+				memcpy(stack + *sp, stack + (*sp -= 8), 4);
+				*sp += 4;
 			break;
 
 			case LoadPtr8:
-				memory->stackPointer-=sizeof(long);
-				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				memcpy(memory->stack + memory->stackPointer,
-					(long*)lreg,sizeof(long));
-				memory->stackPointer+=sizeof(long);
+				memcpy(stack + *sp, stack + (*sp -= 8), 8);
+				*sp += 8;
 			break;
 
 			case LoadPtrX:
-				memory->stackPointer-=sizeof(long);
-				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				ireg = *(int*)(thread->bytecode + (++thread->programCounter));
-				memcpy(memory->stack + memory->stackPointer,
-					(long*)lreg,ireg);
-				thread->programCounter += 3;
-				memory->stackPointer += ireg;
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + *sp, stack + (*sp -= reg.l), reg.l);
+				*sp += reg.l;
 			break;
 
-			case EditPtr1:
-				//printf("editptr1\n");
-				memory->stackPointer -= sizeof(long);
-				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				memory->stackPointer -= 1;
-				memcpy(
-					(void*)lreg,
-					(memory->stack + (memory->stackPointer)),
-					sizeof(char)
-				);
+			case StorePtr1:
+				memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
 			break;
 
-			case EditPtr4:
-				memory->stackPointer -= sizeof(long);
-				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				memory->stackPointer -= 4;
-				memcpy(
-					(void*)lreg,
-					memory->stack + (memory->stackPointer),
-					sizeof(int)
-				);
+			case StorePtr2:
+				memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
 			break;
 
-			case EditPtr8:
-				memory->stackPointer -= sizeof(long);
-				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				memory->stackPointer -= sizeof(long);
-				memcpy(
-					(void*)lreg,
-					memory->stack + (memory->stackPointer),
-					sizeof(long)
-				);
+			case StorePtr4:
+				memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
 			break;
 
-			case EditPtrX:
-				memory->stackPointer -= sizeof(long);
-				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
-				memory->stackPointer -= ireg;
-				memcpy(
-					(void*)lreg,
-					memory->stack + (memory->stackPointer),
-					ireg
-				);
-				thread->programCounter += 3;
+			case StorePtr8:
+				memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
 			break;
 
-			case FREE://not implemented
-				memory->stackPointer -= sizeof(long);
-				lreg = *(long*)(memory->stack + (memory->stackPointer));
-				silentDeletePointer(memory,storageCount,(void*)lreg);
+			case StorePtrX:
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + (*sp -= 8), stack + (*sp-=1),reg.l);
 			break;
 
-			//Adds together 2 bytes on the stack
+			case FREE:
+			break;
+
 			case AddByte:
 				memory->stackPointer--;
 				*(char*)(memory->stack + (memory->stackPointer-1)) += 
 					*(char*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Adds together 2 integers on the stack
 			case AddInt:
-				//printf("addint\n");
 				memory->stackPointer-=4;
 				*(int*)(memory->stack + (memory->stackPointer-4)) += 
 					*(int*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Adds together 2 longs on the stack
 			case AddLong:
 				memory->stackPointer-=sizeof(long);
 				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) += 
 					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Adds together 2 floats on the stack
 			case AddFloat:
 				memory->stackPointer-=4;
 				*(float*)(memory->stack + (memory->stackPointer-4)) += 
 					*(float*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Adds together 2 doubles on the stack
 			case AddDouble:
 				memory->stackPointer-=sizeof(double);
 				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) += 
@@ -373,35 +327,30 @@ void silentVMStart(SilentVM* vm)
 
 			break;
 
-			//Subtracts the last number from the second last number on the stack
 			case SubByte:
 				memory->stackPointer--;
 				*(char*)(memory->stack + (memory->stackPointer-1)) -= 
 					*(char*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Subtracts the last number from the second last number on the stack
 			case SubInt:
 				memory->stackPointer-=4;
 				*(int*)(memory->stack + (memory->stackPointer-4)) -= 
 					*(int*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Subtracts the last number from the second last number on the stack
 			case SubLong:
 				memory->stackPointer-=sizeof(long);
 				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) -= 
 					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Subtracts the last number from the second last number on the stack
 			case SubFloat:
 				memory->stackPointer-=4;
 				*(float*)(memory->stack + (memory->stackPointer-4)) -= 
 					*(float*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Subtracts the last number from the second last number on the stack
 			case SubDouble:
 				memory->stackPointer-=sizeof(double);
 				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) -= 
@@ -409,90 +358,77 @@ void silentVMStart(SilentVM* vm)
 
 			break;
 			
-			//Multiplies 2 bytes together
 			case MulByte:
 				memory->stackPointer--;
 				*(char*)(memory->stack + (memory->stackPointer-1)) *= 
 					*(char*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Multiplies 2 integers together
 			case MulInt:
-				//printf("mulint\n");
 				memory->stackPointer-=4;
 				*(int*)(memory->stack + (memory->stackPointer-4)) *= 
 					*(int*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Multiplies 2 longs together
 			case MulLong:
 				memory->stackPointer-=sizeof(long);
 				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) *= 
 					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Multiplies 2 floats together
 			case MulFloat:
 				memory->stackPointer-=4;
 				*(float*)(memory->stack + (memory->stackPointer-4)) *= 
 					*(float*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Multiplies 2 doubles together
 			case MulDouble:
 				memory->stackPointer-=sizeof(double);
 				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) *= 
 					*(double*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Divides 2 bytes
 			case DivByte:
 				memory->stackPointer--;
 				*(char*)(memory->stack + (memory->stackPointer-1)) /= 
 					*(char*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Divides 2 integers
 			case DivInt:
 				memory->stackPointer-=4;
 				*(int*)(memory->stack + (memory->stackPointer-4)) /= 
 					*(int*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Divides 2 longs
 			case DivLong:
 				memory->stackPointer-=sizeof(long);
 				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) /= 
 					*(long*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Divides 2 floats
+
 			case DivFloat:
 				memory->stackPointer-=4;
 				*(float*)(memory->stack + (memory->stackPointer-4)) /= 
 					*(float*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Divides 2 doubles
 			case DivDouble:
 				memory->stackPointer-=sizeof(double);
 				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) /= 
 					*(double*)(memory->stack + memory->stackPointer);
 			break;
 
-			//Byte to integer conversion
 			case ByteToInt:
 				memset(memory->stack + memory->stackPointer, 0, 3);
 				memory->stackPointer += 3;
 			break;
 
-			//Byte to long conversion
 			case ByteToLong:
 				memset(memory->stack + memory->stackPointer, 0, sizeof(long)-1);
 				memory->stackPointer += sizeof(long)-1;
 			break;
 
-			//Byte to float conversion
 			case ByteToFloat:
 				memory->stackPointer -= 1;
 				breg =  *(char*)(memory->stack + (memory->stackPointer));
@@ -501,8 +437,7 @@ void silentVMStart(SilentVM* vm)
 				memory->stackPointer += 4;
 			break;
 
-			//Byte to double conversion
-			case ByteToDouble://untested
+			case ByteToDouble:
 				memory->stackPointer -= 1;
 				breg =  *(char*)(memory->stack + (memory->stackPointer));
 				dreg = breg;
@@ -510,18 +445,15 @@ void silentVMStart(SilentVM* vm)
 				memory->stackPointer += sizeof(double);
 			break;
 
-			//Integer to byte conversion
 			case IntToByte:
 				memory->stackPointer-=3;
 			break;
 
-			//Integer to long conversion
 			case IntToLong:
 				memset(memory->stack + memory->stackPointer,0,sizeof(long)-sizeof(int));
 				memory->stackPointer+=sizeof(long)-sizeof(int);
 			break;
 			
-			//Integer to float conversion
 			case IntToFloat:
 				memory->stackPointer-=4;
 				ireg =  *(int*)(memory->stack + (memory->stackPointer));
@@ -533,7 +465,6 @@ void silentVMStart(SilentVM* vm)
 				memory->stackPointer+=4;
 			break;
 
-			//Integer to double conversion
 			case IntToDouble:
 				memory->stackPointer-=4;
 				ireg =  *(int*)(memory->stack + (memory->stackPointer));
@@ -545,7 +476,6 @@ void silentVMStart(SilentVM* vm)
 				memory->stackPointer+=sizeof(double)-sizeof(int);
 			break;
 
-
 			case FloatToByte:
 				memory->stackPointer-=4;
 				freg =  *(float*)(memory->stack + (memory->stackPointer));
@@ -554,7 +484,6 @@ void silentVMStart(SilentVM* vm)
 				memory->stackPointer+=1;
 			break;
 
-			//Float to integer conversion
 			case FloatToInt:
 				memory->stackPointer-=4;
 				freg =  *(float*)(memory->stack + (memory->stackPointer));
@@ -566,12 +495,11 @@ void silentVMStart(SilentVM* vm)
 			case FloatToLong:
 				memory->stackPointer-=4;
 				freg =  *(float*)(memory->stack + (memory->stackPointer));
-				lreg = (long)freg;
-				memcpy(memory->stack + (memory->stackPointer), &lreg, sizeof(long));
+				reg.l = (long)freg;
+				memcpy(memory->stack + (memory->stackPointer), &reg.l, sizeof(long));
 				memory->stackPointer+=sizeof(long);
 			break;
 
-			//Float to double conversion
 			case FloatToDouble:
 				memory->stackPointer-=4;
 				freg =  *(float*)(memory->stack + (memory->stackPointer));
@@ -599,8 +527,8 @@ void silentVMStart(SilentVM* vm)
 			case DoubleToLong:
 				memory->stackPointer-=sizeof(double);
 				dreg =  *(double*)(memory->stack + (memory->stackPointer));
-				lreg = (long)dreg;
-				memcpy(memory->stack + (memory->stackPointer), &lreg, sizeof(long));
+				reg.l = (long)dreg;
+				memcpy(memory->stack + (memory->stackPointer), &reg.l, sizeof(long));
 				memory->stackPointer+=sizeof(long);
 			break;
 
@@ -856,36 +784,34 @@ void silentVMStart(SilentVM* vm)
 
 
 			case If:
-				//printf("if\n");
 				if(*(char*)(memory->stack + --memory->stackPointer))
 				{
-					thread->programCounter++;
-					thread->programCounter = 
-					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
-					thread->programCounter--;
+					vm->programCounter++;
+					vm->programCounter = 
+					*((uint*)(vm->program + (vm->programCounter)));
+					vm->programCounter--;
 				}
 				else
 				{
-					thread->programCounter += 4;
+					vm->programCounter += 4;
 				}
 			break;
 
 
 			case IfNot:
-				//printf("ifn\n");
 				if(!(*(char*)(memory->stack + (--memory->stackPointer))))
 				{
-					thread->programCounter++;
-					thread->programCounter = 
-					*((unsigned int*)(thread->bytecode + (thread->programCounter)));
-					thread->programCounter--;
+					vm->programCounter++;
+					vm->programCounter = 
+					*((uint*)(vm->program + (vm->programCounter)));
+					vm->programCounter--;
 				}
 				else
 				{
-					thread->programCounter += 4;
+					vm->programCounter += 4;
 				}
 			break;	
 		}
-		thread->programCounter++;
+		vm->programCounter++;
 	}
 }

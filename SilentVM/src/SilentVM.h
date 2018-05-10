@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #ifndef SILENT_VM
 #define SILENT_VM
+#include "SilentGC.h"
 typedef enum SilentBytecode
 {
 	Halt,
@@ -140,23 +141,26 @@ typedef enum SilentBytecode
 
 typedef struct SilentMemoryBlock
 {
-	char* 	data;
 	char 	occupied;
+	char* 	data;
 }SilentMemoryBlock;
 
 typedef struct SilentMemory
 {
 	char* 					stack;
-	SilentMemoryBlock* 		heap;
-	unsigned long long*		stackFrame;
+	unsigned long long		stackSize;
     unsigned long long		stackPointer;
 	unsigned long long		framePointer;
-	unsigned long long		stackFramePointer;
+
+	SilentMemoryBlock* 		heap;
+	unsigned long long		heapSize;
+	unsigned long long		heapPointer;
 }SilentMemory;
 
 typedef struct SilentVM
 {
 	SilentMemory* 		memory;
+	SilentGC*			gc;
 	char* 				program;
 	char 				running;
 	unsigned long long 	programCounter;
@@ -168,7 +172,7 @@ SilentMemory* createSilentMemory(
 	unsigned int stackFrameSize
 );
 
-SilentVM* createSilentVM(SilentMemory* memory, char* program);
+SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGB gb);
 void silentVMStart(SilentVM* vm);
 
 void deleteSilentMemory(SilentMemory* memory);
