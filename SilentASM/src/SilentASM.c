@@ -58,7 +58,6 @@ typedef enum SilentBytecode
 	StorePtr8,
 	StorePtrX,
 
-    GetPtr,
 	FREE,
 
 	AddByte,

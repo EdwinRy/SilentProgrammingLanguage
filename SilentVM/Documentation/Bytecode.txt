@@ -68,7 +68,6 @@ StorePtrX - Store X bytes at pointer on stack
 
 
 
-GetPtr X - gets a direct pointer to memory from element X on the stack
 FREE X - free dynamically allocated storage at pointer on stack location X
 
 

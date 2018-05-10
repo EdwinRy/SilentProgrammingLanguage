@@ -14,7 +14,7 @@ SilentMemory* createSilentMemory(
 	SilentMemory* memory 	= malloc(sizeof(SilentMemory));
 	memory->stack 			= malloc(stackBufferSize);
 	memory->heap			= malloc(heapBufferSize*sizeof(SilentMemoryBlock));
-	memory->stackFrame		= malloc(stackFrameSize*sizeof(long long));
+	memory->stackFrame		= malloc(stackFrameSize*8);
 	memory->stackPointer	= 0;
 	memory->framePointer	= 0;
 	memory->stackFramePointer = 0;
@@ -53,7 +53,8 @@ void silentVMStart(SilentVM* vm)
 	int 	ireg = 0;
 	int 	ireg2 = 0;
 	float 	freg = 0;
-	int64 	lreg = 0;
+	uint64 	lreg = 0;
+	uint64	lreg2 = 0;
 	double 	dreg = 0;
 
 	//Set vm running flag to true
@@ -143,10 +144,10 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case PushX:
-				ireg = *((int*)(vm->program + ++vm->programCounter));
-				memcpy(stack + *sp, vm->program + vm->programCounter + 4, ireg);
-				vm->programCounter += 3+ireg;
-				*sp += ireg;
+				lreg = *((uint64*)(vm->program + ++vm->programCounter));
+				memcpy(stack + *sp, vm->program + vm->programCounter + 7, lreg);
+				vm->programCounter += 7+lreg;
+				*sp += lreg;
 			break;
 			
 			case Pop1:
@@ -166,59 +167,53 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case PopX:
-				*sp -= *((int*)(vm->program + (++vm->programCounter)));
-				vm->programCounter += 3;
+				*sp -= *((uint64*)(vm->program + (++vm->programCounter)));
+				vm->programCounter += 7;
 			break;
 
 			case Store1:
-				ireg = *(int*)(vm->program +(++vm->programCounter));
-				vm->programCounter += 3;
-				memcpy(stack + *fp + ireg, stack + (*sp -= 1), 1);
+				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + *fp + lreg, stack + (*sp -= 1), 1);
 			break;
 
 			case Store2:
-				ireg = *(int*)(vm->program +(++vm->programCounter));
-				vm->programCounter += 3;
-				memcpy(stack + *fp + ireg, stack + (*sp -= 2), 2);
+				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + *fp + lreg, stack + (*sp -= 2), 2);
 			break;
 
 			case Store4:
-				ireg = *(int*)(vm->program +(++vm->programCounter));
-				vm->programCounter += 3;
-				memcpy(stack + *fp + ireg, stack + (*sp -= 4), 4);
+				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + *fp + lreg, stack + (*sp -= 4), 4);
 			break;
 
-			//Saves 8 bytes from the stack to allocated space
 			case Store8:
-				ireg = *(int*)(vm->program +(++vm->programCounter));
-				vm->programCounter += 3;	
-				memcpy(stack + *fp + ireg, stack + (*sp -= 8), 8);
+				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;	
+				memcpy(stack + *fp + lreg, stack + (*sp -= 8), 8);
 			break;
 
-			//Saves X bytes from stack to allocated space
 			case StoreX:
-				ireg = *(int*)(vm->program +(++vm->programCounter));
-				vm->programCounter += 3;
-				ireg2 = *(int*)(vm->program +(++vm->programCounter));
-				vm->programCounter += 3;
-				memcpy(stack + *fp + ireg2, stack + (*sp -= ireg), ireg);
+				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 8;
+				lreg2 = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + *fp + lreg2, stack + (*sp -= lreg), lreg);
 			break;
 	
-			//Copies 1 byte of data from storage onto the stack
 			case Load1:
-				memcpy
-				(
-					memory->stack + (memory->stackPointer++),
-					memory->storage[
-						*(int*)(thread->bytecode +(++thread->programCounter)) +
-						altStoragePointer
-					]->data,
-					1
-				);
-				thread->programCounter += 3;
+				lreg = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + (*fp + lreg),stack+*sp,1);
+				*sp+=1;
 			break;
 
-			//Copies 4 bytes of data from storage onto the stack
+			case load2:
+
+			break;
+
 			case Load4:
 				//printf("load4\n");
 				memcpy
@@ -234,7 +229,6 @@ void silentVMStart(SilentVM* vm)
 				thread->programCounter += 3;
 			break;
 
-			//Copies 8 bytes of data from storage onto the stack
 			case Load8:
 				memcpy
 				(
@@ -249,7 +243,6 @@ void silentVMStart(SilentVM* vm)
 				thread->programCounter += 3;
 			break;
 
-			//Copies X bytes of data from storage onto the stack
 			case LoadX:
 				ireg = *((int*)(thread->bytecode + (++thread->programCounter)));
 				thread->programCounter+=3;
@@ -263,152 +256,29 @@ void silentVMStart(SilentVM* vm)
 				thread->programCounter += 3;
 				memory->stackPointer += ireg;
 			break;
+//unnecessary deex nubs 
 
-			//Allocates 1 byte of data for the program
 			case Alloc1:
-				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
-				thread->programCounter += 3;
-				ireg += altStoragePointer;
-				if(ireg >= localStoragePointer)
-					localStoragePointer = ireg + 1;
-				if(ireg >= memory->storageSize)
-				{
-					int toClear = 0;
-					int start = memory->storageSize;
-					while(ireg >= toClear)
-					{
-						toClear += memory->reallocSize;
-					}
-					memory->storageSize += toClear;
-					//Reallocate memory
-					memory->storage = realloc(memory->storage,memory->storageSize);
-
-					//clear memory
-					memset(memory->storage + start, 0, toClear * sizeof(void*));
-				}
-				if(memory->storage[ireg] != NULL)
-				{
-					*storageCount-=1;
-				}
-				memory->storage[ireg] = malloc(sizeof(silentBlock));
-				memory->storage[ireg]->data = malloc(1);
-				silentSavePointer(gb,&memory->storage[ireg]);
-				*storageCount+=1;
+				
 			break;
 
-			//Allocates 4 bytes of data for the program
-			case Alloc4:
-				//printf("alloc4\n");
-				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
-				thread->programCounter += 3;
-				ireg += altStoragePointer;
-				if(ireg >= localStoragePointer)
-					localStoragePointer = ireg + 1;				
-				if(ireg >= memory->storageSize)
-				{
-					int toClear = 0;
-					int start = memory->storageSize;
-					while(ireg >= toClear)
-					{
-						toClear += memory->reallocSize;
-					}
-					memory->storageSize += toClear;
-					//Reallocate memory
-					memory->storage = realloc(memory->storage,memory->storageSize);
+			case Alloc2;
+			brea;
 
-					//clear memory
-					memset(memory->storage + start, 0,toClear * sizeof(void*));
-				}
-				if(memory->storage[ireg] != NULL)
-				{
-					*storageCount-=1;
-				}
-				memory->storage[ireg] = malloc(sizeof(silentBlock));
-				memory->storage[ireg]->data = malloc(4);
-				silentSavePointer(gb,&memory->storage[ireg]);
-				*storageCount+=1;
+			case Alloc4:
+				
 			break;
 
 			//Allocates 8 bytes of data for the program
 			case Alloc8:
-				ireg = *(int*)(thread->bytecode +(++thread->programCounter));
-				thread->programCounter += 3;
-				ireg += altStoragePointer;
-				if(ireg >= localStoragePointer)
-					localStoragePointer = ireg + 1;
-				if(ireg >= memory->storageSize)
-				{
-					int toClear = 0;
-					int start = memory->storageSize;
-					while(ireg >= toClear)
-					{
-						toClear += memory->reallocSize;
-					}
-					memory->storageSize += toClear;
-					//Reallocate memory
-					memory->storage = realloc(memory->storage,memory->storageSize);
 
-					//clear memory
-					memset(memory->storage + start, 0,toClear * sizeof(void*));
-				}
-				if(memory->storage[ireg] != NULL)
-				{
-					*storageCount-=1;
-				}
-				memory->storage[ireg] = malloc(sizeof(silentBlock));
-				memory->storage[ireg]->data = malloc(sizeof(long));
-				silentSavePointer(gb,&memory->storage[ireg]);
-				*storageCount+=1;
 			break;
 
 			//Allocates X bytes of data for the program
 			case AllocX:
-				ireg = *(int*)(thread->bytecode + (++thread->programCounter)) + 1;
-				thread->programCounter += 3;
-				lreg = *(int*)(thread->bytecode + (++thread->programCounter));
-				thread->programCounter += 3;
-				lreg += altStoragePointer;
-				if(lreg >= localStoragePointer)
-					localStoragePointer = lreg + 1;
-				if(lreg >= memory->storageSize)
-				{
-					int toClear = 0;
-					int start = memory->storageSize;
-					while(lreg >= toClear)
-					{
-						toClear += memory->reallocSize;
-					}
-					memory->storageSize += toClear;
-					//Reallocate memory
-					memory->storage = realloc(memory->storage,memory->storageSize);
-
-					//clear memory
-					memset(memory->storage + start, 0,toClear * sizeof(void*));
-				}
-				if(memory->storage[ireg] != NULL)
-				{
-					*storageCount-=1;
-				}
-				memory->storage[lreg] = malloc(sizeof(silentBlock));
-				memory->storage[lreg]->data = malloc(ireg);
-				silentSavePointer(gb,&memory->storage[ireg]);
-				*storageCount+=1;
+				
 			break;
 			
-			case GetPtr:
-				//printf("getptr\n");
-				thread->programCounter+=1;
-				memcpy(memory->stack + memory->stackPointer,
-						(int*)&memory->storage[
-							*(int*)(thread->bytecode + (thread->programCounter)) +
-							altStoragePointer
-						]->data,
-						sizeof(long));
-				thread->programCounter += 3;
-				memory->stackPointer += sizeof(long);
-			break;
-
-
 			case LoadPtr1:
 				memory->stackPointer-=sizeof(long);
 				lreg = *(long*)(memory->stack + (memory->stackPointer));
