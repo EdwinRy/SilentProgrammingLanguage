@@ -22,13 +22,14 @@ SilentMemory* createSilentMemory(
 	return memory; 
 }
 
-SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGC gb)
+SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGC* gc)
 {
 	SilentVM* vm 		= malloc(sizeof(SilentVM));
 	vm->memory 			= memory;
 	vm->program 		= program;
 	vm->running 		= 0;
 	vm->programCounter 	= 0;
+	vm->gc = gc;
 	return vm;
 }
 
@@ -230,6 +231,7 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Alloc1:
+
 			break;
 
 			case Alloc2:

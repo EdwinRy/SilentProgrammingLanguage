@@ -5,7 +5,6 @@
 typedef struct SilentGC
 {
     SilentMemory* memory;
-
 }SilentGC;
 
 SilentGC* createSilentGB(SilentMemory* memory);

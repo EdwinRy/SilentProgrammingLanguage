@@ -2,6 +2,9 @@
 #ifndef SILENT_VM
 #define SILENT_VM
 #include "SilentGC.h"
+
+typedef struct SilentGC SilentGC;
+
 typedef enum SilentBytecode
 {
 	Halt,
@@ -169,10 +172,9 @@ typedef struct SilentVM
 SilentMemory* createSilentMemory(
 	unsigned int stackBufferSize, //How much to allocate each realloc 
 	unsigned int heapBufferSize, //same as stackBuffer 
-	unsigned int stackFrameSize
 );
 
-SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGB gb);
+SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGC* gc);
 void silentVMStart(SilentVM* vm);
 
 void deleteSilentMemory(SilentMemory* memory);
