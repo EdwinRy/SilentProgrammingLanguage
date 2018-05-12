@@ -16,7 +16,12 @@ void SilentSweep(SilentGC* gc)
 
 }
 
-void* SilentAlloc(SilentGC* gc, unsigned long long size)
+void SilentFree(SilentGC* gc, uint64* ptr)
+{
+
+}
+
+void* SilentAlloc(SilentGC* gc, uint64 size)
 {
     SilentMemory* mem = gc->memory;
     if(mem->heapSize - mem->heapPointer < 2)
@@ -38,7 +43,7 @@ void* SilentAlloc(SilentGC* gc, unsigned long long size)
             } 
         }
     }
-    for(uint64 i = 0; i < mem->heapSize)
+    for(uint64 i = 0; i < mem->heapSize; i++)
     {
         if(mem->heap[i].occupied == 0)
         {
@@ -47,4 +52,5 @@ void* SilentAlloc(SilentGC* gc, unsigned long long size)
             break;
         }
     }
+    return NULL;
 }

@@ -3,12 +3,12 @@
 #include <memory.h>
 #include <stdio.h>
 
-typedef uint uint;
+typedef unsigned int uint;
 typedef unsigned long long uint64;
 typedef long long int64;
 
 SilentMemory* createSilentMemory(
-	uint stackBufferSize, uint heapBufferSize, uint stackFrameSize
+	uint stackBufferSize, uint heapBufferSize
 )
 {
 	SilentMemory* memory 	= malloc(sizeof(SilentMemory));
@@ -63,8 +63,8 @@ void silentVMStart(SilentVM* vm)
 	vm->running = 1;
 	char* 				program = vm->program;
 	char* 				stack 	= vm->memory->stack;
-	SilentMemoryBlock* 	heap 	= vm->memory->heap;
-	SilentMemory*		memory 	= &vm->memory;
+	//SilentMemoryBlock* 	heap 	= vm->memory->heap;
+	//SilentMemory*		memory 	= &vm->memory;
 	uint64* 			sp 		= &(vm->memory->stackPointer);
 	uint64* 			fp 		= &(vm->memory->framePointer);
 	uint64 				altSP 	= *sp;
@@ -231,7 +231,10 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Alloc1:
-
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				uint64* ptr = SilentAlloc(vm->gc,reg.l);
+				memcpy(stack + *sp, )
 			break;
 
 			case Alloc2:
@@ -247,29 +250,34 @@ void silentVMStart(SilentVM* vm)
 			break;
 			
 			case LoadPtr1:
-				memcpy(stack + *sp, stack + (*sp -= 8), 1);
+				*sp -= 8;
+				memcpy(stack + *sp, stack + *sp, 1);
 				*sp += 1;
 			break;
 
 			case LoadPtr2:
-				memcpy(stack + *sp, stack + (*sp -= 8), 2);
+				*sp -= 8;
+				memcpy(stack + *sp, stack + *sp, 2);
 				*sp += 2;
 			break;
 
 			case LoadPtr4:
-				memcpy(stack + *sp, stack + (*sp -= 8), 4);
+				*sp -= 8;
+				memcpy(stack + *sp, stack + *sp, 4);
 				*sp += 4;
 			break;
 
 			case LoadPtr8:
-				memcpy(stack + *sp, stack + (*sp -= 8), 8);
+				*sp -= 8;
+				memcpy(stack + *sp, stack + *sp, 8);
 				*sp += 8;
 			break;
 
 			case LoadPtrX:
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + *sp, stack + (*sp -= reg.l), reg.l);
+				*sp -= reg.l;
+				memcpy(stack + *sp, stack + *sp, reg.l);
 				*sp += reg.l;
 			break;
 
@@ -297,6 +305,8 @@ void silentVMStart(SilentVM* vm)
 
 			case FREE:
 			break;
+
+			/*
 
 			case AddByte:
 				memory->stackPointer--;
@@ -812,7 +822,8 @@ void silentVMStart(SilentVM* vm)
 				{
 					vm->programCounter += 4;
 				}
-			break;	
+			break;
+			*/	
 		}
 		vm->programCounter++;
 	}

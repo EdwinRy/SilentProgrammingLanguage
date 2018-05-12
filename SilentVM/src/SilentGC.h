@@ -7,7 +7,7 @@ typedef struct SilentGC
     SilentMemory* memory;
 }SilentGC;
 
-SilentGC* createSilentGB(SilentMemory* memory);
+SilentGC* createSilentGC(SilentMemory* memory);
 void SilentSweep(SilentGC* gc);
 void* SilentAlloc(SilentGC* gc, unsigned long long size);
 #endif

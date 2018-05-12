@@ -171,7 +171,7 @@ typedef struct SilentVM
 
 SilentMemory* createSilentMemory(
 	unsigned int stackBufferSize, //How much to allocate each realloc 
-	unsigned int heapBufferSize, //same as stackBuffer 
+	unsigned int heapBufferSize //same as stackBuffer 
 );
 
 SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGC* gc);
