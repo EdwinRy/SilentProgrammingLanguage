@@ -63,8 +63,6 @@ void silentVMStart(SilentVM* vm)
 	vm->running = 1;
 	char* 				program = vm->program;
 	char* 				stack 	= vm->memory->stack;
-	//SilentMemoryBlock* 	heap 	= vm->memory->heap;
-	//SilentMemory*		memory 	= &vm->memory;
 	uint64* 			sp 		= &(vm->memory->stackPointer);
 	uint64* 			fp 		= &(vm->memory->framePointer);
 	uint64 				altSP 	= *sp;
