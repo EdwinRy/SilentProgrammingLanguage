@@ -158,6 +158,10 @@ typedef struct SilentMemory
 	SilentMemoryBlock* 		heap;
 	unsigned long long		heapSize;
 	unsigned long long		heapPointer;
+
+	char*					stackTypes;
+	unsigned long long		stackTypePointer;
+	unsigned long long 		stackTypeSize;
 }SilentMemory;
 
 typedef struct SilentVM

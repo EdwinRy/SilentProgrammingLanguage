@@ -232,7 +232,7 @@ void silentVMStart(SilentVM* vm)
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
 				uint64* ptr = SilentAlloc(vm->gc,reg.l);
-				memcpy(stack + *sp, )
+				memcpy(stack + *sp, &ptr, 8);
 			break;
 
 			case Alloc2:
@@ -249,25 +249,41 @@ void silentVMStart(SilentVM* vm)
 			
 			case LoadPtr1:
 				*sp -= 8;
-				memcpy(stack + *sp, stack + *sp, 1);
+				memcpy(
+					stack + *sp,
+					((SilentMemoryBlock*)(stack + *sp))->data,
+					1
+				);
 				*sp += 1;
 			break;
 
 			case LoadPtr2:
 				*sp -= 8;
-				memcpy(stack + *sp, stack + *sp, 2);
+				memcpy(
+					stack + *sp,
+					((SilentMemoryBlock*)(stack + *sp))->data,
+					2
+				);
 				*sp += 2;
 			break;
 
 			case LoadPtr4:
 				*sp -= 8;
-				memcpy(stack + *sp, stack + *sp, 4);
+				memcpy(
+					stack + *sp,
+					((SilentMemoryBlock*)(stack + *sp))->data,
+					4
+				);
 				*sp += 4;
 			break;
 
 			case LoadPtr8:
 				*sp -= 8;
-				memcpy(stack + *sp, stack + *sp, 8);
+				memcpy(
+					stack + *sp,
+					((SilentMemoryBlock*)(stack + *sp))->data,
+					8
+				);
 				*sp += 8;
 			break;
 
@@ -275,7 +291,11 @@ void silentVMStart(SilentVM* vm)
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
 				*sp -= reg.l;
-				memcpy(stack + *sp, stack + *sp, reg.l);
+				memcpy(
+					stack + *sp,
+					((SilentMemoryBlock*)(stack + *sp))->data,
+					reg.l
+				);
 				*sp += reg.l;
 			break;
 

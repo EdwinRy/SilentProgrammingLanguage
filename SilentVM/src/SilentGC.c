@@ -37,7 +37,8 @@ void* SilentAlloc(SilentGC* gc, uint64 size)
             }
             else
             {
-                printf("Couldn't allocate more heap memory");
+                printf("Couldn't allocate more heap memory\n");
+                printf("Press any key to retry...\n");
                 getchar();
                 return SilentAlloc(gc,size);
             } 
@@ -48,7 +49,7 @@ void* SilentAlloc(SilentGC* gc, uint64 size)
         if(mem->heap[i].occupied == 0)
         {
             mem->heap[i].data = malloc(size);
-            return mem->heap[i].data;
+            return mem->heap + i;
             break;
         }
     }
