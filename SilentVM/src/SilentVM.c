@@ -7,6 +7,16 @@ typedef unsigned int uint;
 typedef unsigned long long uint64;
 typedef long long int64;
 
+enum dataSize
+{
+	BYTE_ONE = 0,
+	BYTE_TWO,
+	BYTE_FOUR,
+	BYTE_EIGHT,
+	POINTER,
+	UNDEFINED
+};
+
 SilentMemory* createSilentMemory(
 	uint stackBufferSize, uint heapBufferSize
 )
@@ -16,9 +26,15 @@ SilentMemory* createSilentMemory(
 	memory->stackSize		= stackBufferSize;
 	memory->stackPointer	= 0;
 	memory->framePointer	= 0;
+
+
 	memory->heap			= malloc(heapBufferSize*sizeof(SilentMemoryBlock));
 	memory->heapSize		= heapBufferSize;
 	memory->heapPointer		= 0;
+
+	memory->stackTypes		= malloc(10000);
+	memory->stackTypePtr 	= 0;
+	memory->stackTypeSize	= 0;
 	return memory; 
 }
 

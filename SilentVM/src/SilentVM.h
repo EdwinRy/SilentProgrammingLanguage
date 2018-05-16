@@ -7,7 +7,7 @@ typedef struct SilentGC SilentGC;
 
 typedef enum SilentBytecode
 {
-	Halt,
+	Halt = 0,
 	Goto,
 	Sweep,
     UseGlobal,
@@ -160,7 +160,7 @@ typedef struct SilentMemory
 	unsigned long long		heapPointer;
 
 	char*					stackTypes;
-	unsigned long long		stackTypePointer;
+	unsigned long long		stackTypePtr;
 	unsigned long long 		stackTypeSize;
 }SilentMemory;
 
