@@ -1,7 +1,8 @@
 #include "SilentVM.h"
 #include <stdlib.h>
-#include <memory.h>
 #include <stdio.h>
+#include <string.h>
+#include <math.h>
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;
@@ -49,6 +50,13 @@ SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGC* gc)
 	return vm;
 }
 
+SilentGC* createSilentGC(SilentMemory* memory)
+{
+    SilentGC* gc = malloc(sizeof(SilentGC));
+    gc->memory = memory;
+    return gc;
+}
+
 //Delete program's allocated space
 void deleteSilentMemory(SilentMemory* memory)
 {
@@ -61,6 +69,11 @@ void deleteSilentVM(SilentVM* vm)
 {
 	if(vm->memory != NULL) deleteSilentMemory(vm->memory);
 	free(vm);
+}
+
+void deleteSilentGC(SilentGC* gc)
+{
+	free(gc);
 }
 
 void silentVMStart(SilentVM* vm)
@@ -316,25 +329,25 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case StorePtr1:
-				memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
+				//memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
 			break;
 
 			case StorePtr2:
-				memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
+				//memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
 			break;
 
 			case StorePtr4:
-				memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
+				//memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
 			break;
 
 			case StorePtr8:
-				memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
+				//memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
 			break;
 
 			case StorePtrX:
-				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
-				vm->programCounter += 7;
-				memcpy(stack + (*sp -= 8), stack + (*sp-=1),reg.l);
+				//reg.l = *(uint64*)(vm->program + (++vm->programCounter));
+				//vm->programCounter += 7;
+				//memcpy(stack + (*sp -= 8), stack + (*sp-=1),reg.l);
 			break;
 
 			case FREE:
@@ -861,4 +874,49 @@ void silentVMStart(SilentVM* vm)
 		}
 		vm->programCounter++;
 	}
+}
+
+void SilentSweep(SilentGC* gc)
+{
+
+}
+
+void SilentFree(SilentGC* gc, uint64* ptr)
+{
+
+}
+
+void* SilentAlloc(SilentGC* gc, uint64 size)
+{
+    SilentMemory* mem = gc->memory;
+    if(mem->heapSize - mem->heapPointer < 2)
+    {
+        SilentSweep(gc);
+        if(mem->heapSize - mem->heapPointer < 2)
+        {
+            mem->heapSize = ceil(mem->heapSize/10)+mem->heapSize;
+            void* temp = realloc(mem->heap,mem->heapSize);
+            if(temp != NULL)
+            {
+                mem->heap = temp;
+            }
+            else
+            {
+                printf("Couldn't allocate more heap memory\n");
+                printf("Press any key to retry...\n");
+                getchar();
+                return SilentAlloc(gc,size);
+            } 
+        }
+    }
+    for(uint64 i = 0; i < mem->heapSize; i++)
+    {
+        if(mem->heap[i].occupied == 0)
+        {
+            mem->heap[i].data = malloc(size);
+            return mem->heap + i;
+            break;
+        }
+    }
+    return NULL;
 }
