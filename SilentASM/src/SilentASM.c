@@ -917,27 +917,8 @@ char assemble(char* inFile, char* outFile)
         }
 
 
-        if(strcmp(instructions[0],"getptr") == 0)
-        {
-            program[programCounter] = (char)GetPtr;
-            programCounter+=1;
-            if(instructions[1][0] == 'i')
-            {
-                uint64 temp = (uint64)atol(instructions[1]+1);
-                memcpy(
-                    program + programCounter,
-                    &temp,
-                    8
-                );
-                programCounter += 8;
-            }
-            else
-            {
-                printf("Use of incorrect type on line %i\n",currentLine);
-            }
-        }
 
-        if(strcmp(instructions[0],"free") == 0)//
+        if(strcmp(instructions[0],"free") == 0)
         {
             program[programCounter] = (char)FREE;
             programCounter+=1;
