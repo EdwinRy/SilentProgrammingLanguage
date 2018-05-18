@@ -1,4 +1,5 @@
 #include "SilentVM.h"
+#include "SilentLib.h"
 #include <stdio.h>
 char* readAllText(char* path)
 {

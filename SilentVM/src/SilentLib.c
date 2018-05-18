@@ -6,8 +6,6 @@
 #include <dlfcn.h>
 #endif
 
-typedef void (*dllFunc)();
-
 void* SilentLoadLibrary(char* path)
 {
     void* library;
@@ -20,11 +18,11 @@ void* SilentLoadLibrary(char* path)
     return library;
 }
 
-void* SilentLoadLibraryFunction(void* lib, char* name)
+LibFunc SilentLoadFunc(void* lib, char* name)
 {
-    dllFunc function;
+    LibFunc function;
     #ifdef _WIN32
-    function = (dllFunc)GetProcAddress(lib,name);
+    function = (LibFunc)GetProcAddress(lib,name);
     #else
     function = (dllFunc)dlsym(lib, name);
     #endif
