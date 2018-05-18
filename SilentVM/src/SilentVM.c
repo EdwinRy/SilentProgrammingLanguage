@@ -28,7 +28,6 @@ SilentMemory* createSilentMemory(
 	memory->stackPointer	= 0;
 	memory->framePointer	= 0;
 
-
 	memory->heap			= malloc(heapBufferSize*sizeof(SilentMemoryBlock));
 	memory->heapSize		= heapBufferSize;
 	memory->heapPointer		= 0;
@@ -96,6 +95,10 @@ void silentVMStart(SilentVM* vm)
 	uint64* 			fp 		= &(vm->memory->framePointer);
 	uint64 				altSP 	= *sp;
 	uint64				altFP	= *fp;
+	char* 				stackT  = vm->memory->stackTypes;
+	uint64*				stp		= &(vm->memory->stackTypePtr);
+	//uint64*				sts		= &(vm->memory->stackTypeSize);
+	
 
 	while(vm->running)
 	{
@@ -140,51 +143,69 @@ void silentVMStart(SilentVM* vm)
 			case Push1:
 				stack[*sp] = vm->program[++(vm->programCounter)];
 				*sp += 1;
+				stackT[*stp] = BYTE_ONE;
+				*stp += 1;
 			break;
 
 			case Push2:
 				memcpy(stack + *sp, vm->program + ++vm->programCounter,2);
 				vm->programCounter++;
 				*sp += 2;
+				stackT[*stp] = BYTE_TWO;
+				*stp += 1;
 			break;
 
 			case Push4:
 				memcpy(stack + *sp, vm->program + ++vm->programCounter,4);
 				vm->programCounter += 3;
 				*sp += 4;
+				stackT[*stp] = BYTE_FOUR;
+				*stp += 1;
 			break;
 			
 			case Push8:
 				memcpy(stack + *sp, vm->program + ++vm->programCounter,8);
 				vm->programCounter += 7;
 				*sp += 8;
+				stackT[*stp] = BYTE_EIGHT;
+				*stp += 1;
 			break;
 
 			case PushX:
 				reg.l = *((uint64*)(vm->program + ++vm->programCounter));
-				memcpy(stack + *sp, vm->program + vm->programCounter + 7, reg.l);
+				memcpy(stack + *sp, vm->program + vm->programCounter + 8,reg.l);
 				vm->programCounter += 7+reg.l;
 				*sp += reg.l;
+				stackT[*stp] = UNDEFINED;
+				*stp += 1;
+				memcpy(stackT + *stp, &reg.l, 8);
+				*stp += 8;
 			break;
 			
 			case Pop1:
 				*sp -= 1;
+				*stp -= 1;
 			break;
 
 			case Pop2:
 				*sp -= 2;
+				*stp -= 1;
 			break;
 
 			case Pop4:
 				*sp -= 4;
+				*stp -= 1;
 			break;
 
 			case Pop8:
 				*sp -= 8;
+				*stp -= 1;
 			break;
 
 			case PopX:
-				*sp -= *((uint64*)(vm->program + (++vm->programCounter)));
+				reg.l = *((uint64*)(vm->program + (++vm->programCounter)));
+				*sp -= reg.l;
+				*stp -= (reg.l+1);
 				vm->programCounter += 7;
 			break;
 
@@ -192,32 +213,37 @@ void silentVMStart(SilentVM* vm)
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				memcpy(stack + *fp + reg.l, stack + (*sp -= 1), 1);
+				*stp -= 1;
 			break;
 
 			case Store2:
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				memcpy(stack + *fp + reg.l, stack + (*sp -= 2), 2);
+				*stp -= 1;
 			break;
 
 			case Store4:
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				memcpy(stack + *fp + reg.l, stack + (*sp -= 4), 4);
+				*stp -= 1;
 			break;
 
 			case Store8:
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;	
 				memcpy(stack + *fp + reg.l, stack + (*sp -= 8), 8);
+				*stp -= 1;
 			break;
 
 			case StoreX:
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
-				vm->programCounter += 8;
+				vm->programCounter += 7;
 				reg2.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				memcpy(stack + *fp + reg2.l, stack + (*sp -= reg.l), reg.l);
+				*stp -= 1;
 			break;
 	
 			case Load1:
@@ -353,131 +379,160 @@ void silentVMStart(SilentVM* vm)
 			case FREE:
 			break;
 
-			/*
+			
 
 			case AddByte:
-				memory->stackPointer--;
-				*(char*)(memory->stack + (memory->stackPointer-1)) += 
-					*(char*)(memory->stack + memory->stackPointer);
+				*sp-=1;
+				*(char*)(stack + (*sp-1)) += *(char*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case AddInt:
-				memory->stackPointer-=4;
-				*(int*)(memory->stack + (memory->stackPointer-4)) += 
-					*(int*)(memory->stack + memory->stackPointer);
+				*sp-=4;
+				*(int*)(stack + (*sp-4)) += *(int*)(stack + *sp);
+				*stp -= 1;
+			break;
+			
+			case AddShort:
+				*sp-=2;
+				*(short*)(stack + (*sp-2)) += *(short*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case AddLong:
-				memory->stackPointer-=sizeof(long);
-				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) += 
-					*(long*)(memory->stack + memory->stackPointer);
+				*sp-=8;
+				*(int64*)(stack + (*sp-8)) += *(int64*)(stack + *sp);
+				*stp -= 1;
 			break;
-
+			
 			case AddFloat:
-				memory->stackPointer-=4;
-				*(float*)(memory->stack + (memory->stackPointer-4)) += 
-					*(float*)(memory->stack + memory->stackPointer);
+				*sp-=4;
+				*(float*)(stack + (*sp-4)) += *(float*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case AddDouble:
-				memory->stackPointer-=sizeof(double);
-				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) += 
-					*(double*)(memory->stack + memory->stackPointer);
-
+				*sp-=8;
+				*(double*)(stack + (*sp-8)) += *(double*)(stack + *sp);
+				*stp -= 1;
 			break;
 
+
+
 			case SubByte:
-				memory->stackPointer--;
-				*(char*)(memory->stack + (memory->stackPointer-1)) -= 
-					*(char*)(memory->stack + memory->stackPointer);
+				*sp-=1;
+				*(char*)(stack + (*sp-1)) -= *(char*)(stack + *sp);
+				*stp -= 1;
+			break;
+
+			case SubShort:
+				*sp-=2;
+				*(short*)(stack + (*sp-2)) -= *(short*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case SubInt:
-				memory->stackPointer-=4;
-				*(int*)(memory->stack + (memory->stackPointer-4)) -= 
-					*(int*)(memory->stack + memory->stackPointer);
+				*sp-=4;
+				*(int*)(stack + (*sp-4)) -= *(int*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case SubLong:
-				memory->stackPointer-=sizeof(long);
-				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) -= 
-					*(long*)(memory->stack + memory->stackPointer);
+				*sp-=8;
+				*(int64*)(stack + (*sp-8)) -= *(int64*)(stack + *sp);
+				*stp -= 1;
 			break;
-
+			
 			case SubFloat:
-				memory->stackPointer-=4;
-				*(float*)(memory->stack + (memory->stackPointer-4)) -= 
-					*(float*)(memory->stack + memory->stackPointer);
+				*sp-=4;
+				*(float*)(stack + (*sp-4)) -= *(float*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case SubDouble:
-				memory->stackPointer-=sizeof(double);
-				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) -= 
-					*(double*)(memory->stack + memory->stackPointer);
-
+				*sp-=8;
+				*(double*)(stack + (*sp-8)) -= *(double*)(stack + *sp);
+				*stp -= 1;
 			break;
 			
+			
+			
 			case MulByte:
-				memory->stackPointer--;
-				*(char*)(memory->stack + (memory->stackPointer-1)) *= 
-					*(char*)(memory->stack + memory->stackPointer);
+				*sp-=1;
+				*(char*)(stack + (*sp-1)) *= *(char*)(stack + *sp);
+				*stp -= 1;
+			break;
+
+			case MulShort:
+				*sp-=2;
+				*(short*)(stack + (*sp-1)) *= *(short*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case MulInt:
-				memory->stackPointer-=4;
-				*(int*)(memory->stack + (memory->stackPointer-4)) *= 
-					*(int*)(memory->stack + memory->stackPointer);
+				*sp-=4;
+				*(int*)(stack + (*sp-4)) *= *(int*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case MulLong:
-				memory->stackPointer-=sizeof(long);
-				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) *= 
-					*(long*)(memory->stack + memory->stackPointer);
+				*sp-=8;
+				*(int64*)(stack + (*sp-8)) *= *(int64*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case MulFloat:
-				memory->stackPointer-=4;
-				*(float*)(memory->stack + (memory->stackPointer-4)) *= 
-					*(float*)(memory->stack + memory->stackPointer);
+				*sp-=4;
+				*(float*)(stack + (*sp-4)) *= *(float*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case MulDouble:
-				memory->stackPointer-=sizeof(double);
-				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) *= 
-					*(double*)(memory->stack + memory->stackPointer);
+				*sp-=8;
+				*(double*)(stack + (*sp-8)) *= *(double*)(stack + *sp);
+				*stp -= 1;
 			break;
 
+
+
 			case DivByte:
-				memory->stackPointer--;
-				*(char*)(memory->stack + (memory->stackPointer-1)) /= 
-					*(char*)(memory->stack + memory->stackPointer);
+				*sp-=1;
+				*(char*)(stack + (*sp-1)) /= *(char*)(stack + *sp);
+				*stp -= 1;
+			break;
+
+			case DivShort:
+				*sp-=2;
+				*(short*)(stack + (*sp-2)) /= *(short*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case DivInt:
-				memory->stackPointer-=4;
-				*(int*)(memory->stack + (memory->stackPointer-4)) /= 
-					*(int*)(memory->stack + memory->stackPointer);
+				*sp-=4;
+				*(int*)(stack + (*sp-4)) /= *(int*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case DivLong:
-				memory->stackPointer-=sizeof(long);
-				*(long*)(memory->stack + (memory->stackPointer-sizeof(long))) /= 
-					*(long*)(memory->stack + memory->stackPointer);
+				*sp-=8;
+				*(int64*)(stack + (*sp-8)) /= *(int64*)(stack + *sp);
+				*stp -= 1;
 			break;
 
-
 			case DivFloat:
-				memory->stackPointer-=4;
-				*(float*)(memory->stack + (memory->stackPointer-4)) /= 
-					*(float*)(memory->stack + memory->stackPointer);
+				*sp-=4;
+				*(float*)(stack + (*sp-4)) /= *(float*)(stack + *sp);
+				*stp -= 1;
 			break;
 
 			case DivDouble:
-				memory->stackPointer-=sizeof(double);
-				*(double*)(memory->stack + (memory->stackPointer-sizeof(double))) /= 
-					*(double*)(memory->stack + memory->stackPointer);
+				*sp-=8;
+				*(double*)(stack + (*sp-8)) /= *(double*)(stack + *sp);
+				*stp -= 1;
 			break;
 
+
+/*
 			case ByteToInt:
 				memset(memory->stack + memory->stackPointer, 0, 3);
 				memory->stackPointer += 3;

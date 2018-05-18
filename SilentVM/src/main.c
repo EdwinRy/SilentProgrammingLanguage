@@ -22,15 +22,32 @@ char* readAllText(char* path)
 
 int main(int argc, char** argv)
 {
-	if(argc<2){printf("SilentVM requires an input file\n");return(-1);}
-    char* inFile = argv[1];
-    char* program = readAllText(inFile); 
+	//if(argc<2){printf("SilentVM requires an input file\n");return(-1);}
+    //char* inFile = argv[1];
+    //char* program = readAllText(inFile); 
+
+
+	char program[] = 
+	{
+		Goto,
+		14,0,0,0,0,0,0,0,
+		Push4,
+		9,0,0,0,
+		Push4,
+		10,0,0,0,
+		Halt
+	};
 
 	SilentMemory* memory = createSilentMemory(8000,8000);
 	SilentGC* gc = createSilentGC(memory);
 	SilentVM* vm = createSilentVM(memory,program,gc);
 
 	silentVMStart(vm);
+
+	printf("stack %i\n",*((int*)memory->stack));
+	printf("stack ptr %i\n",memory->stackPointer);
+	printf("stackT %i\n",*(memory->stackTypes));
+	printf("stackTS %i\n",memory->stackTypePtr);
 
 	deleteSilentGC(gc);
 	deleteSilentMemory(memory);
