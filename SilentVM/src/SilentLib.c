@@ -30,3 +30,12 @@ void* SilentLoadLibraryFunction(void* lib, char* name)
     if(!function){ printf("Couldn't load function: %s\n", name); return NULL; }
     return function;
 }
+
+void SilentFreeLibrary(void* lib)
+{
+    #ifdef _WIN32
+    FreeLibrary(lib);
+    #else
+    dlclose(lib);
+    #endif
+}
