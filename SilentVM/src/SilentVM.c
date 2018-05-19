@@ -776,6 +776,20 @@ void silentVMStart(SilentVM* vm)
 				}
 				*stp-=1;
 			break;
+
+			case SmallerThanShort:
+				*sp-=3;
+				if((*(short*)(stack + *sp-1)) < (*(short*)(stack + *sp+1)))
+				{
+					stack[*sp-1] = 1;
+				}
+				else
+				{
+					stack[*sp-1] = 0;
+				}
+				*stp-=1;
+				stackT[*stp-1] = BYTE_ONE;
+			break;
 /*
 			//Compare value of 2 4 bytes
 			case SmallerThanInt:
