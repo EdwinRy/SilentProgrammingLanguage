@@ -29,12 +29,15 @@ int main(int argc, char** argv)
 
 	char program[] = 
 	{
-		Goto,
-		14,0,0,0,0,0,0,0,
-		Push4,
-		9,0,0,0,
-		Push4,
-		10,0,0,0,
+		PushX,
+		6,0,0,0,0,0,0,0,
+		'h','e','l','l','o',0,
+		PushX,
+		3,0,0,0,0,0,0,0,
+		'h','i',0,
+		LoadX,
+		6,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
 		Halt
 	};
 
@@ -44,7 +47,7 @@ int main(int argc, char** argv)
 
 	silentVMStart(vm);
 
-	printf("stack %i\n",*((int*)memory->stack));
+	printf("stack %s\n",((char*)memory->stack+9));
 	printf("stack ptr %i\n",memory->stackPointer);
 	printf("stackT %i\n",*(memory->stackTypes));
 	printf("stackTS %i\n",memory->stackTypePtr);

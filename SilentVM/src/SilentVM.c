@@ -249,38 +249,50 @@ void silentVMStart(SilentVM* vm)
 			case Load1:
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + reg.l), stack + *sp, 1);
+				memcpy(stack + *sp, stack + *fp + reg.l, 1);
 				*sp += 1;
+				stackT[*stp] = BYTE_ONE;
+				*stp += 1;
 			break;
 
 			case Load2:
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + reg.l), stack + *sp, 2);
+				memcpy(stack + *sp, stack + *fp + reg.l, 2);
 				*sp+=2;
+				stackT[*stp] = BYTE_ONE;
+				*stp += 1;
 			break;
 
 			case Load4:
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + reg.l), stack + *sp, 4);
+				memcpy(stack + *sp, stack + *fp + reg.l, 4);
 				*sp += 4;
+				stackT[*stp] = BYTE_FOUR;
+				*stp += 1;
 			break;
 
 			case Load8:
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + reg.l), stack + *sp, 8);
+				memcpy(stack + *sp, stack + *fp + reg.l, 8);
 				*sp += 8;
+				stackT[*stp] = BYTE_EIGHT;
+				*stp += 1;
 			break;
 
 			case LoadX:
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
-				vm->programCounter += 8;
+				vm->programCounter += 7;
 				reg2.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + (*fp + reg2.l), stack + *sp, reg.l);
+				memcpy(stack + *sp, stack + (*fp + reg2.l), reg.l);
 				*sp += reg.l;
+				stackT[*stp] = UNDEFINED;
+				*stp += 1;
+				memcpy(stackT + *stp, &reg.l, 8);
+				*stp += 8;
 			break;
 
 			case Alloc1:
