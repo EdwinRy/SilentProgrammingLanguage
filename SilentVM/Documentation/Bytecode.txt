@@ -102,11 +102,17 @@ DivDouble - Divide 2 doubles on the stack
 
 
 
-ByteToInt - Convert a byte to an integer on the stack
 ByteToShort - Convert a byte to a short on the stack
+ByteToInt - Convert a byte to an integer on the stack
 ByteToLong - Convert a byte to a long on the stack
 ByteToFloat - Convert a byte to a float on the stack
 ByteToDouble - Convert a byte to a double on the stack
+
+ShortToByte - Convert a short to a byte on the stack
+ShortToInt - Convert a short to an integer on the stack
+ShortToLong - Convert a short to a long on the stack
+ShortToFloat - Convert a short to a float on the stack
+ShortToDouble - Convert a short to a double on the stack
 
 IntToByte - Convert an integer to a byte on the stack
 IntToShort - Convert a short to a byte on the stack

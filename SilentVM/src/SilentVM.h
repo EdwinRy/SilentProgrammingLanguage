@@ -84,11 +84,17 @@ typedef enum SilentBytecode
 	DivFloat,
 	DivDouble,
 
-	ByteToInt,
 	ByteToShort,
+	ByteToInt,
 	ByteToLong,
 	ByteToFloat,
 	ByteToDouble,
+
+	ShortToByte,
+	ShortToInt,
+	ShortToLong,
+	ShortToFloat,
+	ShortToDouble,
 	
 	IntToByte,
 	IntToShort,
@@ -136,7 +142,11 @@ typedef enum SilentBytecode
 	EqualDouble,
 
 	If,
-	IfNot
+	IfNot,
+
+	And,
+	Or,
+	Not
 }SilentBytecode;
 
 typedef struct SilentMemoryBlock

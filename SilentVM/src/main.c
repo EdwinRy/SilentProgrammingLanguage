@@ -26,18 +26,17 @@ int main(int argc, char** argv)
     //char* inFile = argv[1];
     //char* program = readAllText(inFile); 
 
-
+	//random float value in binary for testing: 102,102,6,64 = 2.1
+	//random double value in binary: -52,-52,-52,-52,-52,-52,0,64 = 2.1
 	char program[] = 
 	{
-		PushX,
-		6,0,0,0,0,0,0,0,
-		'h','e','l','l','o',0,
-		PushX,
-		3,0,0,0,0,0,0,0,
-		'h','i',0,
-		LoadX,
-		6,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,
+		//Push8,
+		//-51,-52,-52,-52,-52,-52,0,64,
+		Push1,
+		9,
+		Push1,
+		10,
+		SmallerThanByte,
 		Halt
 	};
 
@@ -47,7 +46,7 @@ int main(int argc, char** argv)
 
 	silentVMStart(vm);
 
-	printf("stack %s\n",((char*)memory->stack+9));
+	printf("stack %i\n",*((char*)(memory->stack)));
 	printf("stack ptr %i\n",memory->stackPointer);
 	printf("stackT %i\n",*(memory->stackTypes));
 	printf("stackTS %i\n",memory->stackTypePtr);

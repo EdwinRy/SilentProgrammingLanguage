@@ -544,172 +544,239 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 
-/*
+
+			case ByteToShort:
+				memset(stack + *sp, 0, 1);
+				*sp += 1;
+				stackT[*stp-1] = BYTE_TWO;
+			break;
+
 			case ByteToInt:
-				memset(memory->stack + memory->stackPointer, 0, 3);
-				memory->stackPointer += 3;
+				memset(stack + *sp, 0, 3);
+				*sp += 3;
+				stackT[*stp-1] = BYTE_FOUR;
 			break;
 
 			case ByteToLong:
-				memset(memory->stack + memory->stackPointer, 0, sizeof(long)-1);
-				memory->stackPointer += sizeof(long)-1;
+				memset(stack + *sp, 0, 7);
+				*sp += 7;
+				stackT[*stp-1] = BYTE_EIGHT;
 			break;
 
 			case ByteToFloat:
-				memory->stackPointer -= 1;
-				breg =  *(char*)(memory->stack + (memory->stackPointer));
-				freg = breg;
-				memcpy(memory->stack + memory->stackPointer, &freg, 4);
-				memory->stackPointer += 4;
+				*sp-=1;
+				reg.f = *((char*)stack + *sp);
+				memcpy(stack + *sp, &reg.f, 4);
+				*sp += 4;
+				stackT[*stp-1] = BYTE_FOUR;
 			break;
 
 			case ByteToDouble:
-				memory->stackPointer -= 1;
-				breg =  *(char*)(memory->stack + (memory->stackPointer));
-				dreg = breg;
-				memcpy(memory->stack + memory->stackPointer, &dreg, sizeof(double));
-				memory->stackPointer += sizeof(double);
+				*sp-=1;
+				reg.d = *((char*)stack + *sp);
+				memcpy(stack + *sp, &reg.d, 8);
+				*sp += 8;
+				stackT[*stp-1] = BYTE_EIGHT;
 			break;
 
+
+
+			case ShortToByte:
+				*sp-=1;
+				stackT[*stp-1] = BYTE_ONE;
+			break;
+
+			case ShortToInt:
+				memset(stack + *sp, 0, 2);
+				*sp += 2;
+				stackT[*stp-1] = BYTE_FOUR;
+			break;
+
+			case ShortToLong:
+				memset(stack + *sp, 0, 6);
+				*sp += 6;
+				stackT[*stp-1] = BYTE_EIGHT;
+			break;
+
+			case ShortToFloat:
+				*sp-=2;
+				reg.f = *((char*)stack + *sp);
+				memcpy(stack + *sp, &reg.f, 4);
+				*sp += 4;
+				stackT[*stp-1] = BYTE_FOUR;
+			break;
+
+			case ShortToDouble:
+				*sp-=2;
+				reg.d = *((char*)stack + *sp);
+				memcpy(stack + *sp, &reg.f, 8);
+				*sp+=8;
+				stackT[*stp-1] = BYTE_EIGHT;
+			break;
+
+
+
 			case IntToByte:
-				memory->stackPointer-=3;
+				*sp-=3;
+				stackT[*stp-1] = BYTE_ONE;
+			break;
+
+			case IntToShort:
+				*sp -= 2;
+				stackT[*stp-1] = BYTE_TWO;
 			break;
 
 			case IntToLong:
-				memset(memory->stack + memory->stackPointer,0,sizeof(long)-sizeof(int));
-				memory->stackPointer+=sizeof(long)-sizeof(int);
+				memset(stack + *sp, 0, 4);
+				*sp += 4;
+				stackT[*stp-1] = BYTE_EIGHT;
 			break;
-			
+
 			case IntToFloat:
-				memory->stackPointer-=4;
-				ireg =  *(int*)(memory->stack + (memory->stackPointer));
-				freg = (float)ireg;
-				memcpy(
-					memory->stack + (memory->stackPointer),
-					&freg,
-					4);
-				memory->stackPointer+=4;
+				*sp-=4;
+				reg.f = *((char*)stack+*sp);
+				memcpy(stack+*sp, &reg.f, 4);
+				*sp+=4;
 			break;
 
 			case IntToDouble:
-				memory->stackPointer-=4;
-				ireg =  *(int*)(memory->stack + (memory->stackPointer));
-				dreg = (double)ireg;
-				memcpy(
-					memory->stack + memory->stackPointer,
-					&dreg,
-					sizeof(long));
-				memory->stackPointer+=sizeof(double)-sizeof(int);
+				*sp-=4;
+				reg.d = *((char*)stack+*sp);
+				memcpy(stack+*sp, &reg.f, 8);
+				*sp+=8;
+				stackT[*stp-1] = BYTE_EIGHT;
 			break;
 
-			case FloatToByte:
-				memory->stackPointer-=4;
-				freg =  *(float*)(memory->stack + (memory->stackPointer));
-				breg = (char)freg;
-				memcpy(memory->stack + (memory->stackPointer), &breg, 1);
-				memory->stackPointer+=1;
-			break;
 
-			case FloatToInt:
-				memory->stackPointer-=4;
-				freg =  *(float*)(memory->stack + (memory->stackPointer));
-				ireg = (int)freg;
-				memcpy(memory->stack + (memory->stackPointer), &ireg, 4);
-				memory->stackPointer+=4;
-			break;
-
-			case FloatToLong:
-				memory->stackPointer-=4;
-				freg =  *(float*)(memory->stack + (memory->stackPointer));
-				reg.l = (long)freg;
-				memcpy(memory->stack + (memory->stackPointer), &reg.l, sizeof(long));
-				memory->stackPointer+=sizeof(long);
-			break;
-
-			case FloatToDouble:
-				memory->stackPointer-=4;
-				freg =  *(float*)(memory->stack + (memory->stackPointer));
-				dreg = (double)freg;
-				memcpy(memory->stack + (memory->stackPointer), &dreg, sizeof(double));
-				memory->stackPointer+=sizeof(double);			
-			break;
-
-			case DoubleToByte:
-				memory->stackPointer-=sizeof(long);
-				dreg =  *(double*)(memory->stack + (memory->stackPointer));
-				breg = (char)dreg;
-				memcpy(memory->stack + (memory->stackPointer), &breg, 1);
-				memory->stackPointer+=1;
-			break;
-
-			case DoubleToInt:
-				memory->stackPointer-=sizeof(long);
-				dreg =  *(double*)(memory->stack + (memory->stackPointer));
-				ireg = (int)dreg;
-				memcpy(memory->stack + (memory->stackPointer), &ireg, 4);
-				memory->stackPointer+=4;
-			break;
-
-			case DoubleToLong:
-				memory->stackPointer-=sizeof(double);
-				dreg =  *(double*)(memory->stack + (memory->stackPointer));
-				reg.l = (long)dreg;
-				memcpy(memory->stack + (memory->stackPointer), &reg.l, sizeof(long));
-				memory->stackPointer+=sizeof(long);
-			break;
-
-			case DoubleToFloat:
-				memory->stackPointer-=sizeof(double);
-				dreg =  *(double*)(memory->stack + (memory->stackPointer));
-				freg = (float)dreg;
-				memcpy(memory->stack + (memory->stackPointer), &freg, 4);
-				memory->stackPointer+=4;
-			break;
 
 			case LongToByte:
-				memory->stackPointer -= sizeof(long)-1;
+				*sp -= 7;
+				stackT[*stp-1] = BYTE_ONE;
+			break;
+
+			case LongToShort:
+				*sp -= 6;
+				stackT[*stp-1] = BYTE_TWO;
 			break;
 
 			case LongToInt:
-				memory->stackPointer -= sizeof(long)-sizeof(int);
+				*sp -= 4;
+				stackT[*stp-1] = BYTE_FOUR;
 			break;
 
 			case LongToFloat:
-				memory->stackPointer-=sizeof(long);
-				ireg =  *(long*)(memory->stack + (memory->stackPointer));
-				freg = (float)ireg;
-				memcpy(
-					memory->stack + (memory->stackPointer),
-					&freg,
-					4);
-				memory->stackPointer+=4;
+				*sp-=8;
+				reg.f = *((char*)stack+*sp);
+				memcpy(stack+*sp, &reg.f, 4);
+				*sp+=4;
+				stackT[*stp-1] = BYTE_FOUR;
 			break;
 
 			case LongToDouble:
-				memory->stackPointer-=sizeof(long);
-				ireg =  *(long*)(memory->stack + (memory->stackPointer));
-				dreg = (double)ireg;
-				memcpy(
-					memory->stack + (memory->stackPointer),
-					&dreg,
-					sizeof(double));
-				memory->stackPointer+=sizeof(double);
+				*sp-=8;
+				reg.d = *((char*)stack+*sp);
+				memcpy(stack+*sp, &reg.d, 8);
+				*sp+=8;
 			break;
+
+
+
+			case FloatToByte:
+				*sp-=4;
+				reg.c = *((float*)stack+*sp);
+				memcpy(stack+*sp, &reg.c, 1);
+				*sp+=1;
+				stackT[*stp-1] = BYTE_ONE;
+			break;
+
+			case FloatToShort:
+				*sp-=4;
+				reg.c = *((float*)stack+*sp);
+				memcpy(stack+*sp, &reg.c, 1);
+				*sp+=2;
+				stackT[*stp-1] = BYTE_TWO;
+			break;
+
+			case FloatToInt:
+				*sp-=4;
+				reg.i = *((float*)stack+*sp);
+				memcpy(stack+*sp, &reg.i, 4);
+				*sp+=4;
+			break;
+
+			case FloatToLong:
+				*sp-=4;
+				reg.l = *((float*)stack+*sp);
+				memcpy(stack+*sp, &reg.i, 8);
+				*sp+=8;
+				stackT[*stp-1] = BYTE_EIGHT;
+			break;
+
+			case FloatToDouble:
+				*sp-=4;
+				reg.d = *((float*)stack+*sp);
+				memcpy(stack+*sp, &reg.d, 8);
+				*sp+=8;
+				stackT[*stp-1] = BYTE_EIGHT;		
+			break;
+
+
+
+			case DoubleToByte:
+				*sp-=8;
+				reg.c = *((double*)stack+*sp);
+				memcpy(stack+*sp, &reg.c, 1);
+				*sp+=1;
+				stackT[*stp-1] = BYTE_ONE;
+			break;
+
+			case DoubleToShort:
+				*sp-=8;
+				reg.s = *((double*)stack+*sp);
+				memcpy(stack+*sp, &reg.s, 2);
+				*sp+=2;
+				stackT[*stp-1] = BYTE_TWO;
+			break;
+
+			case DoubleToInt:
+				*sp-=8;
+				reg.i = *((double*)stack+*sp);
+				memcpy(stack+*sp, &reg.i, 4);
+				*sp+=4;
+				stackT[*stp-1] = BYTE_FOUR;
+			break;
+
+			case DoubleToLong:
+				*sp-=8;
+				reg.l = *((double*)stack+*sp);
+				memcpy(stack+*sp, &reg.l, 8);
+				*sp+=8;
+				stackT[*stp-1] = BYTE_EIGHT;
+			break;
+
+			case DoubleToFloat:
+				*sp-=8;
+				reg.f = *((double*)stack+*sp);
+				memcpy(stack+*sp, &reg.f, 4);
+				*sp+=4;
+				stackT[*stp-1] = BYTE_FOUR;
+			break;
+
 			
-			//Compare value of 2 bytes
+
 			case SmallerThanByte:
-				memory->stackPointer--;
-				if(*(char*)(memory->stack + (memory->stackPointer-1)) <
-					*(char*)(memory->stack + memory->stackPointer))
+				*sp-=1;
+				if((*(char*)(stack + *sp-1)) < (*(char*)(stack + *sp)))
 				{
-					memory->stack[memory->stackPointer-1] = 1;
+					stack[*sp-1] = 1;
 				}
 				else
 				{
-					memory->stack[memory->stackPointer-1] = 0;
+					stack[*sp-1] = 0;
 				}
+				*stp-=1;
 			break;
-
+/*
 			//Compare value of 2 4 bytes
 			case SmallerThanInt:
 				//printf("smallerint\n");
