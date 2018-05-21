@@ -3,7 +3,7 @@
 
 typedef struct SilentVector
 {
-    void* data;
+    char* data;
     unsigned long long ptr;
     unsigned long long spaceLeft;
     unsigned long long vectorSize;

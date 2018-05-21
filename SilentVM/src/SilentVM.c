@@ -8,7 +8,7 @@ typedef unsigned int uint;
 typedef unsigned long long uint64;
 typedef long long int64;
 
-enum dataSize
+typedef enum dataSize
 {
 	BYTE_ONE = 0,
 	BYTE_TWO,
@@ -16,7 +16,7 @@ enum dataSize
 	BYTE_EIGHT,
 	POINTER,
 	UNDEFINED
-};
+}dataSize;
 
 SilentMemory* createSilentMemory(
 	uint stackBufferSize, uint heapBufferSize
@@ -55,8 +55,8 @@ SilentGC* createSilentGC(SilentMemory* memory)
 void deleteSilentMemory(SilentMemory* memory)
 {
 	free(memory->stack);
-	free(memory->heap);
 	SilentDeleteVector(memory->stackTypes);
+	SilentDeleteVector(memory->heap);
 	free(memory);
 }
 
@@ -83,6 +83,14 @@ void silentVMStart(SilentVM* vm)
 		double d;
 	}reg, reg2;
 
+	dataSize ds[] = {
+		BYTE_ONE,
+		BYTE_TWO,
+		BYTE_FOUR,
+		BYTE_EIGHT,
+		POINTER,
+		UNDEFINED
+	};
 
 	vm->running = 1;
 	char* 				program = vm->program;
@@ -136,33 +144,28 @@ void silentVMStart(SilentVM* vm)
 			case Push1:
 				stack[*sp] = vm->program[++(vm->programCounter)];
 				*sp += 1;
-				//stackT[*stp] = BYTE_ONE;
-				//*stp += 1;
-				SilentPushBack(stackT,&BYTE_ONE);
+				SilentPushBack(stackT, &ds[BYTE_ONE]);
 			break;
 
 			case Push2:
 				memcpy(stack + *sp, vm->program + ++vm->programCounter,2);
 				vm->programCounter++;
 				*sp += 2;
-				stackT[*stp] = BYTE_TWO;
-				*stp += 1;
+				SilentPushBack(stackT, &ds[BYTE_TWO]);
 			break;
 
 			case Push4:
 				memcpy(stack + *sp, vm->program + ++vm->programCounter,4);
 				vm->programCounter += 3;
 				*sp += 4;
-				stackT[*stp] = BYTE_FOUR;
-				*stp += 1;
+				SilentPushBack(stackT, &ds[BYTE_FOUR]);
 			break;
 			
 			case Push8:
 				memcpy(stack + *sp, vm->program + ++vm->programCounter,8);
 				vm->programCounter += 7;
 				*sp += 8;
-				stackT[*stp] = BYTE_EIGHT;
-				*stp += 1;
+				SilentPushBack(stackT, &ds[BYTE_EIGHT]);
 			break;
 
 			case PushX:
@@ -178,22 +181,22 @@ void silentVMStart(SilentVM* vm)
 			
 			case Pop1:
 				*sp -= 1;
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case Pop2:
 				*sp -= 2;
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case Pop4:
 				*sp -= 4;
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case Pop8:
 				*sp -= 8;
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case PopX:
@@ -207,28 +210,28 @@ void silentVMStart(SilentVM* vm)
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				memcpy(stack + *fp + reg.l, stack + (*sp -= 1), 1);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case Store2:
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				memcpy(stack + *fp + reg.l, stack + (*sp -= 2), 2);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case Store4:
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				memcpy(stack + *fp + reg.l, stack + (*sp -= 4), 4);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case Store8:
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;	
 				memcpy(stack + *fp + reg.l, stack + (*sp -= 8), 8);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case StoreX:
@@ -245,8 +248,7 @@ void silentVMStart(SilentVM* vm)
 				vm->programCounter += 7;
 				memcpy(stack + *sp, stack + *fp + reg.l, 1);
 				*sp += 1;
-				stackT[*stp] = BYTE_ONE;
-				*stp += 1;
+				SilentPushBack(stackT, &ds[BYTE_ONE]);
 			break;
 
 			case Load2:
@@ -254,8 +256,7 @@ void silentVMStart(SilentVM* vm)
 				vm->programCounter += 7;
 				memcpy(stack + *sp, stack + *fp + reg.l, 2);
 				*sp+=2;
-				stackT[*stp] = BYTE_ONE;
-				*stp += 1;
+				SilentPushBack(stackT, &ds[BYTE_TWO]);
 			break;
 
 			case Load4:
@@ -263,8 +264,7 @@ void silentVMStart(SilentVM* vm)
 				vm->programCounter += 7;
 				memcpy(stack + *sp, stack + *fp + reg.l, 4);
 				*sp += 4;
-				stackT[*stp] = BYTE_FOUR;
-				*stp += 1;
+				SilentPushBack(stackT, &ds[BYTE_FOUR]);
 			break;
 
 			case Load8:
@@ -272,8 +272,7 @@ void silentVMStart(SilentVM* vm)
 				vm->programCounter += 7;
 				memcpy(stack + *sp, stack + *fp + reg.l, 8);
 				*sp += 8;
-				stackT[*stp] = BYTE_EIGHT;
-				*stp += 1;
+				SilentPushBack(stackT, &ds[BYTE_EIGHT]);
 			break;
 
 			case LoadX:
@@ -390,37 +389,37 @@ void silentVMStart(SilentVM* vm)
 			case AddByte:
 				*sp-=1;
 				*(char*)(stack + (*sp-1)) += *(char*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case AddInt:
 				*sp-=4;
 				*(int*)(stack + (*sp-4)) += *(int*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 			
 			case AddShort:
 				*sp-=2;
 				*(short*)(stack + (*sp-2)) += *(short*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case AddLong:
 				*sp-=8;
 				*(int64*)(stack + (*sp-8)) += *(int64*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 			
 			case AddFloat:
 				*sp-=4;
 				*(float*)(stack + (*sp-4)) += *(float*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case AddDouble:
 				*sp-=8;
 				*(double*)(stack + (*sp-8)) += *(double*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 
@@ -428,37 +427,37 @@ void silentVMStart(SilentVM* vm)
 			case SubByte:
 				*sp-=1;
 				*(char*)(stack + (*sp-1)) -= *(char*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case SubShort:
 				*sp-=2;
 				*(short*)(stack + (*sp-2)) -= *(short*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case SubInt:
 				*sp-=4;
 				*(int*)(stack + (*sp-4)) -= *(int*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case SubLong:
 				*sp-=8;
 				*(int64*)(stack + (*sp-8)) -= *(int64*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 			
 			case SubFloat:
 				*sp-=4;
 				*(float*)(stack + (*sp-4)) -= *(float*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case SubDouble:
 				*sp-=8;
 				*(double*)(stack + (*sp-8)) -= *(double*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 			
 			
@@ -466,37 +465,37 @@ void silentVMStart(SilentVM* vm)
 			case MulByte:
 				*sp-=1;
 				*(char*)(stack + (*sp-1)) *= *(char*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case MulShort:
 				*sp-=2;
 				*(short*)(stack + (*sp-1)) *= *(short*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case MulInt:
 				*sp-=4;
 				*(int*)(stack + (*sp-4)) *= *(int*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case MulLong:
 				*sp-=8;
 				*(int64*)(stack + (*sp-8)) *= *(int64*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case MulFloat:
 				*sp-=4;
 				*(float*)(stack + (*sp-4)) *= *(float*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case MulDouble:
 				*sp-=8;
 				*(double*)(stack + (*sp-8)) *= *(double*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 
@@ -504,37 +503,37 @@ void silentVMStart(SilentVM* vm)
 			case DivByte:
 				*sp-=1;
 				*(char*)(stack + (*sp-1)) /= *(char*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case DivShort:
 				*sp-=2;
 				*(short*)(stack + (*sp-2)) /= *(short*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case DivInt:
 				*sp-=4;
 				*(int*)(stack + (*sp-4)) /= *(int*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case DivLong:
 				*sp-=8;
 				*(int64*)(stack + (*sp-8)) /= *(int64*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case DivFloat:
 				*sp-=4;
 				*(float*)(stack + (*sp-4)) /= *(float*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 			case DivDouble:
 				*sp-=8;
 				*(double*)(stack + (*sp-8)) /= *(double*)(stack + *sp);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 
 
@@ -542,19 +541,19 @@ void silentVMStart(SilentVM* vm)
 			case ByteToShort:
 				memset(stack + *sp, 0, 1);
 				*sp += 1;
-				stackT[*stp-1] = BYTE_TWO;
+				stackT->data[stackT->ptr - 1] = BYTE_TWO;
 			break;
 
 			case ByteToInt:
 				memset(stack + *sp, 0, 3);
 				*sp += 3;
-				stackT[*stp-1] = BYTE_FOUR;
+				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
 			break;
 
 			case ByteToLong:
 				memset(stack + *sp, 0, 7);
 				*sp += 7;
-				stackT[*stp-1] = BYTE_EIGHT;
+				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
 			break;
 
 			case ByteToFloat:
@@ -562,7 +561,7 @@ void silentVMStart(SilentVM* vm)
 				reg.f = *((char*)stack + *sp);
 				memcpy(stack + *sp, &reg.f, 4);
 				*sp += 4;
-				stackT[*stp-1] = BYTE_FOUR;
+				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
 			break;
 
 			case ByteToDouble:
@@ -570,26 +569,26 @@ void silentVMStart(SilentVM* vm)
 				reg.d = *((char*)stack + *sp);
 				memcpy(stack + *sp, &reg.d, 8);
 				*sp += 8;
-				stackT[*stp-1] = BYTE_EIGHT;
+				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
 			break;
 
 
 
 			case ShortToByte:
 				*sp-=1;
-				stackT[*stp-1] = BYTE_ONE;
+				stackT->data[stackT->ptr - 1] = BYTE_ONE;
 			break;
 
 			case ShortToInt:
 				memset(stack + *sp, 0, 2);
 				*sp += 2;
-				stackT[*stp-1] = BYTE_FOUR;
+				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
 			break;
 
 			case ShortToLong:
 				memset(stack + *sp, 0, 6);
 				*sp += 6;
-				stackT[*stp-1] = BYTE_EIGHT;
+				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
 			break;
 
 			case ShortToFloat:
@@ -597,7 +596,7 @@ void silentVMStart(SilentVM* vm)
 				reg.f = *((char*)stack + *sp);
 				memcpy(stack + *sp, &reg.f, 4);
 				*sp += 4;
-				stackT[*stp-1] = BYTE_FOUR;
+				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
 			break;
 
 			case ShortToDouble:
@@ -605,25 +604,25 @@ void silentVMStart(SilentVM* vm)
 				reg.d = *((char*)stack + *sp);
 				memcpy(stack + *sp, &reg.f, 8);
 				*sp+=8;
-				stackT[*stp-1] = BYTE_EIGHT;
+				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
 			break;
 
 
 
 			case IntToByte:
 				*sp-=3;
-				stackT[*stp-1] = BYTE_ONE;
+				stackT->data[stackT->ptr - 1] = BYTE_ONE;
 			break;
 
 			case IntToShort:
 				*sp -= 2;
-				stackT[*stp-1] = BYTE_TWO;
+				stackT->data[stackT->ptr - 1] = BYTE_TWO;
 			break;
 
 			case IntToLong:
 				memset(stack + *sp, 0, 4);
 				*sp += 4;
-				stackT[*stp-1] = BYTE_EIGHT;
+				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
 			break;
 
 			case IntToFloat:
@@ -638,24 +637,24 @@ void silentVMStart(SilentVM* vm)
 				reg.d = *((char*)stack+*sp);
 				memcpy(stack+*sp, &reg.f, 8);
 				*sp+=8;
-				stackT[*stp-1] = BYTE_EIGHT;
+				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
 			break;
 
 
 
 			case LongToByte:
 				*sp -= 7;
-				stackT[*stp-1] = BYTE_ONE;
+				stackT->data[stackT->ptr - 1] = BYTE_ONE;
 			break;
 
 			case LongToShort:
 				*sp -= 6;
-				stackT[*stp-1] = BYTE_TWO;
+				stackT->data[stackT->ptr - 1] = BYTE_TWO;
 			break;
 
 			case LongToInt:
 				*sp -= 4;
-				stackT[*stp-1] = BYTE_FOUR;
+				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
 			break;
 
 			case LongToFloat:
@@ -663,7 +662,7 @@ void silentVMStart(SilentVM* vm)
 				reg.f = *((char*)stack+*sp);
 				memcpy(stack+*sp, &reg.f, 4);
 				*sp+=4;
-				stackT[*stp-1] = BYTE_FOUR;
+				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
 			break;
 
 			case LongToDouble:
@@ -680,7 +679,7 @@ void silentVMStart(SilentVM* vm)
 				reg.c = *((float*)stack+*sp);
 				memcpy(stack+*sp, &reg.c, 1);
 				*sp+=1;
-				stackT[*stp-1] = BYTE_ONE;
+				stackT->data[stackT->ptr - 1] = BYTE_ONE;
 			break;
 
 			case FloatToShort:
@@ -688,7 +687,7 @@ void silentVMStart(SilentVM* vm)
 				reg.c = *((float*)stack+*sp);
 				memcpy(stack+*sp, &reg.c, 1);
 				*sp+=2;
-				stackT[*stp-1] = BYTE_TWO;
+				stackT->data[stackT->ptr - 1] = BYTE_TWO;
 			break;
 
 			case FloatToInt:
@@ -703,7 +702,7 @@ void silentVMStart(SilentVM* vm)
 				reg.l = *((float*)stack+*sp);
 				memcpy(stack+*sp, &reg.i, 8);
 				*sp+=8;
-				stackT[*stp-1] = BYTE_EIGHT;
+				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
 			break;
 
 			case FloatToDouble:
@@ -711,7 +710,7 @@ void silentVMStart(SilentVM* vm)
 				reg.d = *((float*)stack+*sp);
 				memcpy(stack+*sp, &reg.d, 8);
 				*sp+=8;
-				stackT[*stp-1] = BYTE_EIGHT;		
+				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;		
 			break;
 
 
@@ -721,7 +720,7 @@ void silentVMStart(SilentVM* vm)
 				reg.c = *((double*)stack+*sp);
 				memcpy(stack+*sp, &reg.c, 1);
 				*sp+=1;
-				stackT[*stp-1] = BYTE_ONE;
+				stackT->data[stackT->ptr - 1] = BYTE_ONE;
 			break;
 
 			case DoubleToShort:
@@ -729,7 +728,7 @@ void silentVMStart(SilentVM* vm)
 				reg.s = *((double*)stack+*sp);
 				memcpy(stack+*sp, &reg.s, 2);
 				*sp+=2;
-				stackT[*stp-1] = BYTE_TWO;
+				stackT->data[stackT->ptr - 1] = BYTE_TWO;
 			break;
 
 			case DoubleToInt:
@@ -737,7 +736,7 @@ void silentVMStart(SilentVM* vm)
 				reg.i = *((double*)stack+*sp);
 				memcpy(stack+*sp, &reg.i, 4);
 				*sp+=4;
-				stackT[*stp-1] = BYTE_FOUR;
+				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
 			break;
 
 			case DoubleToLong:
@@ -745,7 +744,7 @@ void silentVMStart(SilentVM* vm)
 				reg.l = *((double*)stack+*sp);
 				memcpy(stack+*sp, &reg.l, 8);
 				*sp+=8;
-				stackT[*stp-1] = BYTE_EIGHT;
+				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
 			break;
 
 			case DoubleToFloat:
@@ -753,7 +752,7 @@ void silentVMStart(SilentVM* vm)
 				reg.f = *((double*)stack+*sp);
 				memcpy(stack+*sp, &reg.f, 4);
 				*sp+=4;
-				stackT[*stp-1] = BYTE_FOUR;
+				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
 			break;
 
 			
@@ -782,7 +781,7 @@ void silentVMStart(SilentVM* vm)
 					stack[*sp-1] = 0;
 				}
 				*stp-=1;
-				stackT[*stp-1] = BYTE_ONE;
+				stackT->data[stackT->ptr - 1] = BYTE_ONE;
 			break;
 /*
 			//Compare value of 2 4 bytes
