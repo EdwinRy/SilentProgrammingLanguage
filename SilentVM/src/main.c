@@ -28,6 +28,7 @@ int main(int argc, char** argv)
 
 	//random float value in binary for testing: 102,102,6,64 = 2.1
 	//random double value in binary: -52,-52,-52,-52,-52,-52,0,64 = 2.1
+	
 	char program[] = 
 	{
 		//Push8,
@@ -48,11 +49,11 @@ int main(int argc, char** argv)
 
 	printf("stack %i\n",*((char*)(memory->stack)));
 	printf("stack ptr %i\n",memory->stackPointer);
-	printf("stackT %i\n",*(memory->stackTypes));
-	printf("stackTS %i\n",memory->stackTypePtr);
 
 	deleteSilentGC(gc);
 	deleteSilentMemory(memory);
 	deleteSilentVM(vm);
+	
+
     return 0;
 }

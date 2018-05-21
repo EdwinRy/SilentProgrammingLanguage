@@ -28,13 +28,8 @@ SilentMemory* createSilentMemory(
 	memory->stackPointer	= 0;
 	memory->framePointer	= 0;
 
-	memory->heap			= malloc(heapBufferSize*sizeof(SilentMemoryBlock));
-	memory->heapSize		= heapBufferSize;
-	memory->heapPointer		= 0;
-
-	memory->stackTypes		= malloc(10000);
-	memory->stackTypePtr 	= 0;
-	memory->stackTypeSize	= 0;
+	memory->heap			= SilentCreateVector(heapBufferSize, 8);
+	memory->stackTypes		= SilentCreateVector(stackBufferSize/4, 1);
 	return memory; 
 }
 
@@ -61,6 +56,7 @@ void deleteSilentMemory(SilentMemory* memory)
 {
 	free(memory->stack);
 	free(memory->heap);
+	SilentDeleteVector(memory->stackTypes);
 	free(memory);
 }
 
@@ -95,10 +91,7 @@ void silentVMStart(SilentVM* vm)
 	uint64* 			fp 		= &(vm->memory->framePointer);
 	uint64 				altSP 	= *sp;
 	uint64				altFP	= *fp;
-	char* 				stackT  = vm->memory->stackTypes;
-	uint64*				stp		= &(vm->memory->stackTypePtr);
-	//uint64*				sts		= &(vm->memory->stackTypeSize);
-	
+	SilentVector* 		stackT  = vm->memory->stackTypes;
 
 	while(vm->running)
 	{
@@ -143,8 +136,9 @@ void silentVMStart(SilentVM* vm)
 			case Push1:
 				stack[*sp] = vm->program[++(vm->programCounter)];
 				*sp += 1;
-				stackT[*stp] = BYTE_ONE;
-				*stp += 1;
+				//stackT[*stp] = BYTE_ONE;
+				//*stp += 1;
+				SilentPushBack(stackT,&BYTE_ONE);
 			break;
 
 			case Push2:

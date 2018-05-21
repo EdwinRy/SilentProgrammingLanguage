@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "SilentVector.h"
 #ifndef SILENT_VM
 #define SILENT_VM
 
@@ -162,13 +163,8 @@ typedef struct SilentMemory
     unsigned long long		stackPointer;
 	unsigned long long		framePointer;
 
-	SilentMemoryBlock* 		heap;
-	unsigned long long		heapSize;
-	unsigned long long		heapPointer;
-
-	char*					stackTypes;
-	unsigned long long		stackTypePtr;
-	unsigned long long 		stackTypeSize;
+	SilentVector* 			heap;
+	SilentVector*			stackTypes;
 }SilentMemory;
 
 typedef struct SilentGC
