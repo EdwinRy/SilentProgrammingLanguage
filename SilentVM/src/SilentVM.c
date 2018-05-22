@@ -173,10 +173,8 @@ void silentVMStart(SilentVM* vm)
 				memcpy(stack + *sp, vm->program + vm->programCounter + 8,reg.l);
 				vm->programCounter += 7+reg.l;
 				*sp += reg.l;
-				stackT[*stp] = UNDEFINED;
-				*stp += 1;
-				memcpy(stackT + *stp, &reg.l, 8);
-				*stp += 8;
+				SilentPushBack(stackT, &ds[UNDEFINED]);
+				SilentPushMultiple(stackT,8,&reg.l);
 			break;
 			
 			case Pop1:
@@ -202,7 +200,7 @@ void silentVMStart(SilentVM* vm)
 			case PopX:
 				reg.l = *((uint64*)(vm->program + (++vm->programCounter)));
 				*sp -= reg.l;
-				*stp -= (reg.l+1);
+				SilentPopMultiple(stackT,reg.l+1);
 				vm->programCounter += 7;
 			break;
 
@@ -240,7 +238,7 @@ void silentVMStart(SilentVM* vm)
 				reg2.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				memcpy(stack + *fp + reg2.l, stack + (*sp -= reg.l), reg.l);
-				*stp -= 1;
+				SilentPopBack(stackT);
 			break;
 	
 			case Load1:
@@ -282,10 +280,8 @@ void silentVMStart(SilentVM* vm)
 				vm->programCounter += 7;
 				memcpy(stack + *sp, stack + (*fp + reg2.l), reg.l);
 				*sp += reg.l;
-				stackT[*stp] = UNDEFINED;
-				*stp += 1;
-				memcpy(stackT + *stp, &reg.l, 8);
-				*stp += 8;
+				SilentPushBack(stackT, &ds[UNDEFINED]);
+				SilentPushMultiple(stackT, 8, &reg.l);
 			break;
 
 			case Alloc1:
