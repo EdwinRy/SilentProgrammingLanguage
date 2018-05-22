@@ -1213,6 +1213,23 @@ char assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"smallerthanbyte") == 0)
         {
             program[programCounter] = (char)SmallerThanByte;
+            if(instructions[1] == 'u')
+            {
+                program[programCounter] = (char)1;
+            }
+
+            else if(instructions[1] == 's')
+            {
+                program[programCounter] = (char)0 ;
+            }
+
+            else{
+                printf("%s %i\n","smallerthanbyte expects argument on line",
+                    currentLine
+                );
+            }
+
+
             programCounter+=1;
         }
         if(strcmp(instructions[0],"smallerthanshort") == 0)

@@ -1,6 +1,0 @@
-call main
-
-main:
-push4 i9
-push4 i10
-addint
