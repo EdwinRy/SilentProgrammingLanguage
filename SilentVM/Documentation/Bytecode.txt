@@ -46,13 +46,11 @@ Load4 X - Load 4 bytes from X to the stack
 Load8 X - Load 8 bytes from X to the stack
 LoadX Y - Load X bytes from Y to the stack
 
-
-
-Alloc1 - Dynamically allocate 1 byte and push the pointer to the stack
-Alloc2 - Dynamically allocate 2 bytes and push the pointer to the stack
-Alloc4 - Dynamically allocate 4 bytes and push the pointer to the stack
-Alloc8 - Dynamically allocate 8 bytes and push the pointer to the stack
-AllocX - Dynamically allocate X bytes and push the pointer to the stack
+Alloc1 - Dynamically allocate 1 byte and push the data index to the stack
+Alloc2 - Dynamically allocate 2 bytes and push the data index to the stack
+Alloc4 - Dynamically allocate 4 bytes and push the data index to the stack
+Alloc8 - Dynamically allocate 8 bytes and push the data index to the stack
+AllocX - Dynamically allocate X bytes and push the data index to the stack
 
 LoadPtr1 - Load 1 byte from pointer on stack
 LoadPtr2 - Load 2 bytes from pointer on stack
@@ -69,7 +67,7 @@ StorePtrX - Store X bytes at pointer on stack
 
 
 FREE X - free dynamically allocated storage at pointer on stack location X
-
+GetPtr - Gets the direct pointer to the data at index on the stack
 
 
 AddByte - Add 2 bytes on the stack

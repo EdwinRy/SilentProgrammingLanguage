@@ -164,6 +164,8 @@ typedef struct SilentMemory
 	unsigned long long		framePointer;
 
 	SilentVector* 			heap;
+	char					freeHeapSpace;
+	unsigned long long		heapPtr;
 	SilentVector*			stackTypes;
 }SilentMemory;
 

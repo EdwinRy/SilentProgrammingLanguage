@@ -69,7 +69,7 @@ void vectorReserve(SilentVector* vector, uint64 toReserve)
 SilentVector* SilentCreateVector(uint64 reallocSize, uint64 dataSize)
 {
     SilentVector* vector = malloc(sizeof(SilentVector));
-    vector->data = malloc(reallocSize);
+    vector->data = calloc(reallocSize,1);
     vector->ptr = 0;
     vector->spaceLeft = reallocSize;
     vector->vectorSize = reallocSize;
