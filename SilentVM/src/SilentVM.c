@@ -1050,23 +1050,17 @@ void SilentFree(SilentGC* gc, uint64 ptr)
 
 void SilentSweep(SilentGC* gc)
 {
-	printf("Sweeping\n");
 	SilentMemory* mem = gc->memory;
 	SilentVector* heap = mem->heap;
-	//if(heap->spaceLeft < heap->dataSize)
-	//{
-		for(uint64 i = 0; i < mem->heapPtr; i++)
+	for(uint64 i = 0; i < mem->heapPtr; i++)
+	{
+		if(((SilentMemoryBlock*)(heap->data))[i].marked != markedByte-2)
 		{
-			printf("heer\n");
-			if(((SilentMemoryBlock*)(heap->data))[i].marked != markedByte-2)
-			{
-				printf("Freeing useless memory\n");
-				((SilentMemoryBlock*)(heap->data))[i].occupied = 0;
-				free(((SilentMemoryBlock*)(heap->data))[i].data);
-				mem->freeHeapSpace = 1;
-			}
+			((SilentMemoryBlock*)(heap->data))[i].occupied = 0;
+			free(((SilentMemoryBlock*)(heap->data))[i].data);
+			mem->freeHeapSpace = 1;
 		}
-	//}
+	}
 }
 
 void SilentMark(SilentGC* gc)
