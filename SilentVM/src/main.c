@@ -33,11 +33,12 @@ int main(int argc, char** argv)
 	{
 		//Push8,
 		//-51,-52,-52,-52,-52,-52,0,64,
-		Push1,
-		9,
-		Push1,
-		10,
-		SmallerThanByte,
+		Alloc1,
+		Alloc1,
+		Alloc4,
+		Pop8,Pop8,
+		Sweep,
+		Alloc1,
 		Halt
 	};
 
@@ -49,6 +50,7 @@ int main(int argc, char** argv)
 
 	printf("stack %i\n",*((char*)(memory->stack)));
 	printf("stack ptr %i\n",memory->stackPointer);
+	printf("stack T %i\n",memory->stackTypes->data[0]);
 
 	deleteSilentGC(gc);
 	deleteSilentMemory(memory);

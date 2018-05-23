@@ -56,6 +56,7 @@ typedef enum SilentBytecode
 	StorePtrX,
 
 	FREE,
+	GetPtr,
 
 	AddByte,
 	AddShort,
@@ -153,6 +154,7 @@ typedef enum SilentBytecode
 typedef struct SilentMemoryBlock
 {
 	char 	occupied;
+	char 	marked;
 	char* 	data;
 }SilentMemoryBlock;
 
@@ -196,7 +198,9 @@ void deleteSilentVM(SilentVM* vm);
 
 SilentGC* createSilentGC(SilentMemory* memory);
 void SilentSweep(SilentGC* gc);
-void* SilentAlloc(SilentGC* gc, unsigned long long size);
+void SilentMark(SilentGC* gc);
+void SilentFree(SilentGC* gc, unsigned long long ptr);
+long SilentAlloc(SilentGC* gc, unsigned long long size);
 void deleteSilentGC(SilentGC* gc);
 
 #endif //SILENT_VM

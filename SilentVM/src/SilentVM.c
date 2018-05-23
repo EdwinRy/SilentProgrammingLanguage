@@ -15,6 +15,7 @@ typedef enum dataSize
 	BYTE_FOUR,
 	BYTE_EIGHT,
 	POINTER,
+	POINTER_LOCATION,
 	UNDEFINED
 }dataSize;
 
@@ -89,6 +90,7 @@ void silentVMStart(SilentVM* vm)
 		BYTE_FOUR,
 		BYTE_EIGHT,
 		POINTER,
+		POINTER_LOCATION,
 		UNDEFINED
 	};
 
@@ -117,6 +119,7 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Sweep:
+				SilentMark(vm->gc);
 				SilentSweep(vm->gc);
 			break;
 
@@ -197,7 +200,7 @@ void silentVMStart(SilentVM* vm)
 				SilentPopBack(stackT);
 			break;
 
-			case PopX:
+			case PopX://Fix for multiple values
 				reg.l = *((uint64*)(vm->program + (++vm->programCounter)));
 				*sp -= reg.l;
 				SilentPopMultiple(stackT,reg.l+1);
@@ -285,20 +288,42 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Alloc1:
+				reg.l = SilentAlloc(vm->gc, 1);
+				memcpy(stack + *sp, &reg.l, 8);
+				*sp += 8;
+				SilentPushBack(stackT,&ds[POINTER_LOCATION]);
 			break;
 
 			case Alloc2:
+				reg.l = SilentAlloc(vm->gc, 2);
+				memcpy(stack + *sp, &reg.l, 8);
+				*sp += 8;
+				SilentPushBack(stackT,&ds[POINTER_LOCATION]);
 			break;
 
-			case Alloc4:				
+			case Alloc4:
+				reg.l = SilentAlloc(vm->gc, 4);
+				memcpy(stack + *sp, &reg.l, 8);
+				*sp += 8;
+				SilentPushBack(stackT,&ds[POINTER_LOCATION]);		
 			break;
 
 			case Alloc8:
+				reg.l = SilentAlloc(vm->gc, 8);
+				memcpy(stack + *sp, &reg.l, 8);
+				*sp += 8;
+				SilentPushBack(stackT,&ds[POINTER_LOCATION]);
 			break;
 
-			case AllocX:	
+			case AllocX:
+				reg2.l = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				reg.l = SilentAlloc(vm->gc, 1);
+				memcpy(stack + *sp, &reg.l, reg2.l);
+				*sp += 8;
+				SilentPushBack(stackT,&ds[POINTER_LOCATION]);
 			break;
-			
+
 			case LoadPtr1:
 				*sp -= 8;
 				memcpy(
@@ -374,9 +399,14 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case FREE:
+				reg.l = *((uint64*)(vm->program + ++vm->programCounter));
+				reg.l = *((long*)(stack + *fp + reg.l));
+				vm->programCounter += 7;
+				SilentFree(vm->gc, reg.l);
 			break;
 
-			
+			case GetPtr:
+			break;
 
 			case AddByte:
 				*sp-=1;
@@ -759,7 +789,7 @@ void silentVMStart(SilentVM* vm)
 				{
 					stack[*sp-1] = 0;
 				}
-				*stp-=1;
+				//*stp-=1;
 			break;
 
 			case SmallerThanShort:
@@ -772,7 +802,7 @@ void silentVMStart(SilentVM* vm)
 				{
 					stack[*sp-1] = 0;
 				}
-				*stp-=1;
+				//*stp-=1;
 				stackT->data[stackT->ptr - 1] = BYTE_ONE;
 			break;
 /*
@@ -1009,40 +1039,103 @@ void silentVMStart(SilentVM* vm)
 	}
 }
 
+char markedByte = 1;
+void SilentFree(SilentGC* gc, uint64 ptr)
+{
+	SilentMemory* mem = gc->memory;
+	SilentVector* heap = mem->heap;
+	((SilentMemoryBlock*)heap->data)[ptr].occupied = 0;
+	mem->freeHeapSpace = 1;
+}
+
 void SilentSweep(SilentGC* gc)
 {
+	printf("Sweeping\n");
 	SilentMemory* mem = gc->memory;
 	SilentVector* heap = mem->heap;
-	if(heap->spaceLeft < heap->dataSize)
-	{
+	//if(heap->spaceLeft < heap->dataSize)
+	//{
+		for(uint64 i = 0; i < mem->heapPtr; i++)
+		{
+			printf("heer\n");
+			if(((SilentMemoryBlock*)(heap->data))[i].marked != markedByte-2)
+			{
+				printf("Freeing useless memory\n");
+				((SilentMemoryBlock*)(heap->data))[i].occupied = 0;
+				free(((SilentMemoryBlock*)(heap->data))[i].data);
+				mem->freeHeapSpace = 1;
+			}
+		}
+	//}
+}
 
+void SilentMark(SilentGC* gc)
+{
+	SilentMemory* 	mem = gc->memory;
+	char* 			stack = mem->stack;
+	SilentVector* 	stackT = mem->stackTypes;
+	SilentVector* 	heap = mem->heap;
+
+	uint64 stackPtr = 0;
+
+	for(uint64 i = 0; i < stackT->ptr; i++)
+	{
+		uint64 temp;
+		switch(stackT->data[i])
+		{
+			case POINTER_LOCATION:
+				temp = *((long*)(stack + stackPtr));
+				((SilentMemoryBlock*)(heap->data))[temp].marked = markedByte;
+				stackPtr += 8;
+				printf("Marked a thing\n");
+			break;		
+			case UNDEFINED:
+				temp = *((long*)(stackT->data + i));
+				stackPtr += temp;
+				i += 8;
+			break;
+			case BYTE_ONE:stackPtr += 1;break;
+			case BYTE_TWO:stackPtr += 2;break;
+			case BYTE_FOUR:stackPtr += 4;break;
+			case BYTE_EIGHT:stackPtr += 8;break;
+			case POINTER:stackPtr += 8;break;
+			default:break;
+		}
 	}
+	markedByte += 2;
 }
 
-void SilentFree(SilentGC* gc, uint64* ptr)
+long SilentAlloc(SilentGC* gc, uint64 size)
 {
-	
-}
-
-void* SilentAlloc(SilentGC* gc, uint64 size)
-{
-	printf("Alloc called\n");
-	SilentSweep(gc);
 	SilentMemory* mem = gc->memory;
 	SilentVector* heap = mem->heap;
-	if(mem->freeHeapSpace)
+	if(mem->freeHeapSpace == 1)
 	{
-
+		for(uint64 i = 0; i < mem->heapPtr; i++)
+		{
+			if(((SilentMemoryBlock*)heap->data)[i].occupied == 0)
+			{
+				if(((SilentMemoryBlock*)heap->data)[i].data != NULL)
+				{	
+					free(((SilentMemoryBlock*)heap->data)[i].data);
+				}
+				((SilentMemoryBlock*)heap->data)[i].occupied = 1;
+				((SilentMemoryBlock*)heap->data)[i].data = malloc(size);
+				printf("Alloc at %i\n",i);
+				return i;
+				break;	
+			}
+		}
+		return -1;
 	}
 	else
 	{
-		printf("New space needed\n");
 		SilentMemoryBlock* memBlock = malloc(sizeof(SilentMemoryBlock));
 		memBlock->occupied = 1;
 		memBlock->data = malloc(size);
 		SilentPushBack(heap, memBlock);
 		mem->heapPtr = heap->ptr/sizeof(SilentMemoryBlock);
-		return mem->heapPtr;
+		printf("Alloc at %i\n",mem->heapPtr-1);
+		return mem->heapPtr-1;
 	}
-	printf("Memory allocated");
 }
