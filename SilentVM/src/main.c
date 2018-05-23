@@ -33,11 +33,16 @@ int main(int argc, char** argv)
 	{
 		//Push8,
 		//-51,-52,-52,-52,-52,-52,0,64,
+		Push1,21,
 		Alloc1,
 		Alloc1,
 		Alloc4,
 		Pop8,Pop8,
 		Sweep,
+		Alloc1,
+		Alloc1,
+		Alloc1,
+		Alloc1,
 		Alloc1,
 		Halt
 	};

@@ -1003,10 +1003,13 @@ void silentVMStart(SilentVM* vm)
 					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
+*/
 
 
 			case If:
-				if(*(char*)(memory->stack + --memory->stackPointer))
+				*sp-=1;
+				SilentPopBack(stackT);
+				if(*(char*)(stack + *sp))
 				{
 					vm->programCounter++;
 					vm->programCounter = 
@@ -1015,13 +1018,15 @@ void silentVMStart(SilentVM* vm)
 				}
 				else
 				{
-					vm->programCounter += 4;
+					vm->programCounter += 8;
 				}
 			break;
 
 
 			case IfNot:
-				if(!(*(char*)(memory->stack + (--memory->stackPointer))))
+				*sp-=1;
+				SilentPopBack(stackT);
+				if(!(*(char*)(stack + *sp)))
 				{
 					vm->programCounter++;
 					vm->programCounter = 
@@ -1030,10 +1035,9 @@ void silentVMStart(SilentVM* vm)
 				}
 				else
 				{
-					vm->programCounter += 4;
+					vm->programCounter += 8;
 				}
 			break;
-			*/	
 		}
 		vm->programCounter++;
 	}
@@ -1120,7 +1124,8 @@ long SilentAlloc(SilentGC* gc, uint64 size)
 				break;	
 			}
 		}
-		return -1;
+		mem->freeHeapSpace = 0;
+		return SilentAlloc(gc,size);
 	}
 	else
 	{
