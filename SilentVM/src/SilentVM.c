@@ -16,7 +16,8 @@ typedef enum dataSize
 	BYTE_EIGHT,
 	POINTER,
 	POINTER_LOCATION,
-	UNDEFINED
+	UNDEFINED,
+	UNDEFINED_END
 }dataSize;
 
 SilentMemory* createSilentMemory(
@@ -92,7 +93,7 @@ void silentVMStart(SilentVM* vm)
 		BYTE_EIGHT,
 		POINTER,
 		POINTER_LOCATION,
-		UNDEFINED
+		UNDEFINED,UNDEFINED_END
 	};
 
 	vm->running = 1;
@@ -182,6 +183,7 @@ void silentVMStart(SilentVM* vm)
 				*sp += reg.l;
 				SilentPushBack(stackT, &ds[UNDEFINED]);
 				SilentPushMultiple(stackT,8,&reg.l);
+				SilentPushBack(stackT, &ds[UNDEFINED_END]);
 			break;
 			
 			case Pop1:
@@ -207,7 +209,7 @@ void silentVMStart(SilentVM* vm)
 			case PopX://Fix for multiple values
 				reg.l = *((uint64*)(vm->program + (++vm->programCounter)));
 				*sp -= reg.l;
-				SilentPopMultiple(stackT,reg.l+1);
+				SilentPopMultiple(stackT,reg.l+2);
 				vm->programCounter += 7;
 			break;
 
@@ -289,6 +291,7 @@ void silentVMStart(SilentVM* vm)
 				*sp += reg.l;
 				SilentPushBack(stackT, &ds[UNDEFINED]);
 				SilentPushMultiple(stackT, 8, &reg.l);
+				SilentPushBack(stackT, &ds[UNDEFINED_END]);
 			break;
 
 			case Alloc1:
@@ -330,6 +333,7 @@ void silentVMStart(SilentVM* vm)
 
 			case LoadPtr1:
 				*sp -= 8;
+				SilentPopBack(stackT);
 				memcpy(&tempPtr, (long*)(stack + *sp), 8);
 				memcpy(stack + *sp, tempPtr, 1);
 				*sp += 1;
@@ -338,6 +342,7 @@ void silentVMStart(SilentVM* vm)
 
 			case LoadPtr2:
 				*sp -= 8;
+				SilentPopBack(stackT);
 				memcpy(&tempPtr, (long*)(stack + *sp), 8);
 				memcpy(stack + *sp, tempPtr, 2);
 				*sp += 2;
@@ -346,6 +351,7 @@ void silentVMStart(SilentVM* vm)
 
 			case LoadPtr4:
 				*sp -= 8;
+				SilentPopBack(stackT);
 				memcpy(&tempPtr, (long*)(stack + *sp), 8);
 				memcpy(stack + *sp, tempPtr, 4);
 				*sp += 4;
@@ -354,6 +360,7 @@ void silentVMStart(SilentVM* vm)
 
 			case LoadPtr8:
 				*sp -= 8;
+				SilentPopBack(stackT);
 				memcpy(&tempPtr, (long*)(stack + *sp), 8);
 				memcpy(stack + *sp, tempPtr, 8);
 				*sp += 8;
@@ -361,39 +368,58 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case LoadPtrX:
-				reg2.l = *(uint64*)(vm->program + (++vm->programCounter));
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
 				*sp -= 8;
+				SilentPopBack(stackT);
 				memcpy(&tempPtr, (long*)(stack + *sp), 8);
-				memcpy(stack + *sp, tempPtr, reg2.l);
-				*sp += reg2.l;
+				memcpy(stack + *sp, tempPtr, reg.l);//
+				*sp += reg.l;
 				SilentPushBack(stackT,&ds[UNDEFINED]);
-				SilentPushMultiple(stackT,8,&reg2.l);
+				SilentPushMultiple(stackT,8,&reg.l);
+				SilentPushBack(stackT,&ds[UNDEFINED_END]);
 			break;
 
 			case StorePtr1:
-				//*sp -= 8;
-				//reg.l = *(uint64*)(stack + *sp);
-				//*sp -= 1;
-				//memcpy(stack + *sp, (int*)reg.l, 1);
+				*sp -= 8;
+				memcpy(&tempPtr, (long*)(stack + *sp), 8);
+				*sp -= 1;
+				memcpy(tempPtr, (char*)(stack + *sp), 1);
+				SilentPopMultiple(stackT, 2);
 			break;
 
 			case StorePtr2:
-				//memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
+				*sp -= 8;
+				memcpy(&tempPtr, (long*)(stack + *sp), 8);
+				*sp -= 2;
+				memcpy(tempPtr, (char*)(stack + *sp), 2);
+				SilentPopMultiple(stackT, 2);
 			break;
 
 			case StorePtr4:
-				//memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
+				*sp -= 8;
+				memcpy(&tempPtr, (long*)(stack + *sp), 8);
+				*sp -= 4;
+				memcpy(tempPtr, (char*)(stack + *sp), 4);
+				SilentPopMultiple(stackT, 2);
 			break;
 
 			case StorePtr8:
-				//memcpy(stack + (*sp -= 8), stack + (*sp-=1),1);
+				*sp -= 8;
+				memcpy(&tempPtr, (long*)(stack + *sp), 8);
+				*sp -= 8;
+				memcpy(tempPtr, (char*)(stack + *sp), 8);
+				SilentPopMultiple(stackT, 2);
 			break;
 
 			case StorePtrX:
-				//reg.l = *(uint64*)(vm->program + (++vm->programCounter));
-				//vm->programCounter += 7;
-				//memcpy(stack + (*sp -= 8), stack + (*sp-=1),reg.l);
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				*sp -= 8;
+				memcpy(&tempPtr, (long*)(stack + *sp), 8);
+				*sp -= reg.l;
+				memcpy(tempPtr, (char*)(stack + *sp), reg.l);
+				SilentPopMultiple(stackT, 10);
 			break;
 
 			case FREE:
@@ -1137,7 +1163,6 @@ long SilentAlloc(SilentGC* gc, uint64 size)
 		SilentMemoryBlock* memBlock = malloc(sizeof(SilentMemoryBlock));
 		memBlock->occupied = 1;
 		memBlock->data = malloc(size);
-		*memBlock->data = 21;
 		SilentPushBack(heap, memBlock);
 		mem->heapPtr = heap->ptr/sizeof(SilentMemoryBlock);
 		printf("Alloc at %i\n",mem->heapPtr-1);
