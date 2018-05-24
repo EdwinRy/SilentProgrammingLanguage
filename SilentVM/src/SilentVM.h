@@ -169,6 +169,7 @@ typedef struct SilentMemory
 	char					freeHeapSpace;
 	unsigned long long		heapPtr;
 	SilentVector*			stackTypes;
+	SilentVector*			stackFrame;
 }SilentMemory;
 
 typedef struct SilentGC

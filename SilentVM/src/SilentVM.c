@@ -31,6 +31,7 @@ SilentMemory* createSilentMemory(
 
 	memory->heap			= SilentCreateVector(heapBufferSize, 8);
 	memory->stackTypes		= SilentCreateVector(stackBufferSize/4, 1);
+	memory->stackFrame		= SilentCreateVector(stackBufferSize/4, 8);
 	return memory; 
 }
 
@@ -103,6 +104,8 @@ void silentVMStart(SilentVM* vm)
 	uint64				altFP	= *fp;
 	SilentVector*		heap	= vm->memory->heap;
 	SilentVector* 		stackT  = vm->memory->stackTypes;
+
+	char* tempPtr;
 
 	while(vm->running)
 	{
@@ -327,32 +330,32 @@ void silentVMStart(SilentVM* vm)
 
 			case LoadPtr1:
 				*sp -= 8;
-				reg.l = *(long*)(stack + *sp);
-				memcpy(stack + *sp, (void*)reg.l, 1);
+				memcpy(&tempPtr, (long*)(stack + *sp), 8);
+				memcpy(stack + *sp, tempPtr, 1);
 				*sp += 1;
 				SilentPushBack(stackT,&ds[BYTE_ONE]);
 			break;
 
 			case LoadPtr2:
 				*sp -= 8;
-				reg.l = *(long*)(stack + *sp);
-				memcpy(stack + *sp, (void*)reg.l, 2);
+				memcpy(&tempPtr, (long*)(stack + *sp), 8);
+				memcpy(stack + *sp, tempPtr, 2);
 				*sp += 2;
 				SilentPushBack(stackT,&ds[BYTE_TWO]);
 			break;
 
 			case LoadPtr4:
 				*sp -= 8;
-				reg.l = *(long*)(stack + *sp);
-				memcpy(stack + *sp, (void*)reg.l, 4);
+				memcpy(&tempPtr, (long*)(stack + *sp), 8);
+				memcpy(stack + *sp, tempPtr, 4);
 				*sp += 4;
 				SilentPushBack(stackT,&ds[BYTE_FOUR]);
 			break;
 
 			case LoadPtr8:
 				*sp -= 8;
-				reg.l = *(long*)(stack + *sp);
-				memcpy(stack + *sp, (void*)reg.l, 8);
+				memcpy(&tempPtr, (long*)(stack + *sp), 8);
+				memcpy(stack + *sp, tempPtr, 8);
 				*sp += 8;
 				SilentPushBack(stackT,&ds[BYTE_EIGHT]);
 			break;
@@ -361,8 +364,8 @@ void silentVMStart(SilentVM* vm)
 				reg2.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
 				*sp -= 8;
-				reg.l = *(long*)(stack + *sp);
-				memcpy(stack + *sp, (void*)reg.l, reg2.l);
+				memcpy(&tempPtr, (long*)(stack + *sp), 8);
+				memcpy(stack + *sp, tempPtr, reg2.l);
 				*sp += reg2.l;
 				SilentPushBack(stackT,&ds[UNDEFINED]);
 				SilentPushMultiple(stackT,8,&reg2.l);
