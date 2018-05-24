@@ -33,17 +33,9 @@ int main(int argc, char** argv)
 	{
 		//Push8,
 		//-51,-52,-52,-52,-52,-52,0,64,
-		Push1,21,
-		Alloc1,
-		Alloc1,
 		Alloc4,
-		Pop8,Pop8,
-		Sweep,
-		Alloc1,
-		Alloc1,
-		Alloc1,
-		Alloc1,
-		Alloc1,
+		GetPtr,0,0,0,0,0,0,0,0,
+		LoadPtr4,
 		Halt
 	};
 
@@ -53,9 +45,9 @@ int main(int argc, char** argv)
 
 	silentVMStart(vm);
 
-	printf("stack %i\n",*((char*)(memory->stack)));
+	printf("stack %i\n",*((char*)(memory->stack+8)));
 	printf("stack ptr %i\n",memory->stackPointer);
-	printf("stack T %i\n",memory->stackTypes->data[0]);
+	printf("stack T %i\n",memory->stackTypes->data[1]);
 
 	deleteSilentGC(gc);
 	deleteSilentMemory(memory);
