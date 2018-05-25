@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 
 	deleteSilentGC(gc);
 	deleteSilentMemory(memory);
-	deleteSilentVM(vm);
+	//deleteSilentVM(vm);
 	
 
     return 0;
