@@ -130,19 +130,6 @@ void silentVMStart(SilentVM* vm)
 				SilentSweep(vm->gc);
 			break;
 
-			case UseGlobal:
-				altSP = *sp;
-				altFP = *fp;
-				*sp = 0;
-				*fp = 0;
-			break;
-
-			//Call silent subrouting
-			case EndGlobal:
-				*sp = altSP;
-				*fp = altFP;
-			break;
-
 			case Call:
 				SilentPushBack(stackF, fp);
 				*fp = *sp;
@@ -294,6 +281,92 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case LoadX:
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				reg2.l = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + *sp + *fp, stack + (*fp + reg2.l), reg.l);
+				*sp += reg.l;
+				SilentPushBack(stackT, &ds[UNDEFINED]);
+				SilentPushMultiple(stackT, 8, &reg.l);
+				SilentPushBack(stackT, &ds[UNDEFINED_END]);
+			break;
+
+			case StoreGlobal1:
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				*sp -= 1;
+				memcpy(stack + *fp + reg.l, stack + *sp + *fp, 1);
+				SilentPopBack(stackT);
+			break;
+
+			case StoreGlobal2:
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				*sp -= 2;
+				memcpy(stack + *fp + reg.l, stack + *sp  + *fp, 2);
+				SilentPopBack(stackT);
+			break;
+
+			case StoreGlobal4:
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				*sp -= 4;
+				memcpy(stack + *fp + reg.l, stack + *sp + *fp, 4);
+				SilentPopBack(stackT);
+			break;
+
+			case StoreGlobal8:
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;	
+				*sp -= 8;
+				memcpy(stack + *fp + reg.l, stack + *sp + *fp, 8);
+				SilentPopBack(stackT);
+			break;
+
+			case StoreGlobalX:
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				reg2.l = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				*sp -= reg.l;
+				memcpy(stack + *fp + reg2.l, stack + *sp  + *fp, reg.l);
+				SilentPopBack(stackT);
+			break;
+	
+			case LoadGlobal1:
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + *sp + *fp, stack + *fp + reg.l, 1);
+				*sp += 1;
+				SilentPushBack(stackT, &ds[BYTE_ONE]);
+			break;
+
+			case LoadGlobal2:
+				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + *sp + *fp, stack + *fp + reg.l, 2);
+				*sp+=2;
+				SilentPushBack(stackT, &ds[BYTE_TWO]);
+			break;
+
+			case LoadGlobal4:
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + *sp + *fp, stack + *fp + reg.l, 4);
+				*sp += 4;
+				SilentPushBack(stackT, &ds[BYTE_FOUR]);
+			break;
+
+			case LoadGlobal8:
+				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
+				vm->programCounter += 7;
+				memcpy(stack + *sp + *fp, stack + *fp + reg.l, 8);
+				*sp += 8;
+				SilentPushBack(stackT, &ds[BYTE_EIGHT]);
+			break;
+
+			case LoadGlobalX:
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
 				reg2.l = *(uint64*)(vm->program + (++vm->programCounter));

@@ -8,10 +8,12 @@ typedef enum SilentBytecode
 	Halt = 0,
 	Goto,
 	Sweep,
-    UseGlobal,
-    EndGlobal,
 	Call,
 	Return,
+
+	LoadDll,
+	LoadDllFunc,
+	FreeDll,
 
 	Push1,
 	Push2,
@@ -36,6 +38,18 @@ typedef enum SilentBytecode
 	Load4,
 	Load8,
 	LoadX,
+
+	StoreGlobal1,
+	StoreGlobal2,
+	StoreGlobal4,
+	StoreGlobal8,
+	StoreGlobalX,
+
+	LoadGlobal1,
+	LoadGlobal2,
+	LoadGlobal4,
+	LoadGlobal8,
+	LoadGlobalX,
 
 	Alloc1,
 	Alloc2,

@@ -13,12 +13,12 @@ Pointers are 8 byte long no matter the architecture
 Halt - Stop the program
 Goto X - Go to the address X
 Sweep - Force Garbage Collector sweep
-UseGlobal - Bring stack pointer to 0 temporarily
-EndGlobal - Return stack pointer to normal again
 Call X - Call a function at address X in the code
 Return - Go back to previous subroutine
 
-
+LoadDll X - Load dll X
+LoadDllFunc X Y - Load function of name Y of the library at index X
+FreeDll X - Free Dll at index X
 
 Push1 X - Push 1 byte of X onto stack
 Push2 X - Push 2 bytes of X onto stack
@@ -32,8 +32,6 @@ Pop4 - Decrease stack pointer by 4
 Pop8 - Decrease stack pointer by 8
 PopX - Decrease stack pointer by X
 
-
-
 Store1 X - Store 1 byte from the stack at X
 Store2 X - Store 2 bytes from the stack at X
 Store4 X - Store 4 bytes from the stack at X
@@ -45,6 +43,18 @@ Load2 X - Load 2 bytes from X to the stack
 Load4 X - Load 4 bytes from X to the stack
 Load8 X - Load 8 bytes from X to the stack
 LoadX Y - Load X bytes from Y to the stack
+
+StoreGlobal1 X - Store 1 byte from the stack onto X in global scope
+StoreGlobal2 X - Store 2 bytes from the stack onto X in global scope
+StoreGlobal4 X - Store 4 bytes from the stack onto X in global scope
+StoreGlobal8 X - Store 8 bytes from the stack onto X in global scope
+StoreGlobalX Y - Store X bytes from the stack onto Y in global scope
+
+LoadGlobal1 X - Load 1 byte from the global scope
+LoadGlobal2 X - Load 2 byte from the global scope
+LoadGlobal4 X - Load 4 byte from the global scope
+LoadGlobal8 X - Load 8 byte from the global scope
+LoadGlobalX Y - Load X byte from the global scope
 
 Alloc1 - Dynamically allocate 1 byte and push the data index to the stack
 Alloc2 - Dynamically allocate 2 bytes and push the data index to the stack
@@ -163,4 +173,8 @@ EqualDouble - Compare 2 byte types with equality operator
 
 If X - Go to label X if there's a byte 1 on the top of the stack
 IfNot X - Go to label X if there's a byte 0 on the top of the stack
+
+And - Performs AND operation on the stack
+Or - Performs OR operation on the stack
+Not - Performs NOT operation on the stack
 
