@@ -75,6 +75,30 @@ void deleteSilentGC(SilentGC* gc)
 	free(gc);
 }
 
+char SilentGetTypeSize(char type)
+{
+	switch(type)
+	{
+		case BYTE_ONE:
+			return 1;
+		break;
+		case BYTE_TWO:
+			return 2;
+		break;
+		case BYTE_FOUR:
+			return 4;
+		break;
+		case BYTE_EIGHT:
+		case POINTER:
+		case POINTER_LOCATION:
+			return 8;
+		break;
+		default:
+			return 0;
+		break;
+	}
+}
+
 void silentVMStart(SilentVM* vm)
 {
 	union Registers
@@ -199,10 +223,23 @@ void silentVMStart(SilentVM* vm)
 				SilentPopBack(stackT);
 			break;
 
-			case PopX://Fix for multiple values
+			case PopX:
 				reg.l = *((uint64*)(vm->program + (++vm->programCounter)));
 				*sp -= reg.l;
-				SilentPopMultiple(stackT,reg.l+2);
+				while(reg.l > 0)
+				{
+					if(stackT->data[stackT->ptr-1] == UNDEFINED_END)
+					{
+						reg.l -= *((long*)(stackT->data + stackT->ptr - 9));
+						SilentPopMultiple(stackT,10);
+					}
+					else
+					{
+						reg.l -= 
+						SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+						SilentPopBack(stackT);
+					}
+				}
 				vm->programCounter += 7;
 			break;
 
@@ -296,7 +333,7 @@ void silentVMStart(SilentVM* vm)
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				*sp -= 1;
-				memcpy(stack + *fp + reg.l, stack + *sp + *fp, 1);
+				memcpy(stack + reg.l, stack + *sp + *fp, 1);
 				SilentPopBack(stackT);
 			break;
 
@@ -304,7 +341,7 @@ void silentVMStart(SilentVM* vm)
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				*sp -= 2;
-				memcpy(stack + *fp + reg.l, stack + *sp  + *fp, 2);
+				memcpy(stack + reg.l, stack + *sp  + *fp, 2);
 				SilentPopBack(stackT);
 			break;
 
@@ -312,7 +349,7 @@ void silentVMStart(SilentVM* vm)
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				*sp -= 4;
-				memcpy(stack + *fp + reg.l, stack + *sp + *fp, 4);
+				memcpy(stack + reg.l, stack + *sp + *fp, 4);
 				SilentPopBack(stackT);
 			break;
 
@@ -320,7 +357,7 @@ void silentVMStart(SilentVM* vm)
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;	
 				*sp -= 8;
-				memcpy(stack + *fp + reg.l, stack + *sp + *fp, 8);
+				memcpy(stack + reg.l, stack + *sp + *fp, 8);
 				SilentPopBack(stackT);
 			break;
 
@@ -330,14 +367,14 @@ void silentVMStart(SilentVM* vm)
 				reg2.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
 				*sp -= reg.l;
-				memcpy(stack + *fp + reg2.l, stack + *sp  + *fp, reg.l);
+				memcpy(stack + reg2.l, stack + *sp  + *fp, reg.l);
 				SilentPopBack(stackT);
 			break;
 	
 			case LoadGlobal1:
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + *sp + *fp, stack + *fp + reg.l, 1);
+				memcpy(stack + *sp + *fp, stack + reg.l, 1);
 				*sp += 1;
 				SilentPushBack(stackT, &ds[BYTE_ONE]);
 			break;
@@ -345,7 +382,7 @@ void silentVMStart(SilentVM* vm)
 			case LoadGlobal2:
 				reg.l = *(uint64*)(vm->program +(++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + *sp + *fp, stack + *fp + reg.l, 2);
+				memcpy(stack + *sp + *fp, stack + reg.l, 2);
 				*sp+=2;
 				SilentPushBack(stackT, &ds[BYTE_TWO]);
 			break;
@@ -353,7 +390,7 @@ void silentVMStart(SilentVM* vm)
 			case LoadGlobal4:
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + *sp + *fp, stack + *fp + reg.l, 4);
+				memcpy(stack + *sp + *fp, stack + reg.l, 4);
 				*sp += 4;
 				SilentPushBack(stackT, &ds[BYTE_FOUR]);
 			break;
@@ -361,7 +398,7 @@ void silentVMStart(SilentVM* vm)
 			case LoadGlobal8:
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + *sp + *fp, stack + *fp + reg.l, 8);
+				memcpy(stack + *sp + *fp, stack + reg.l, 8);
 				*sp += 8;
 				SilentPushBack(stackT, &ds[BYTE_EIGHT]);
 			break;
@@ -371,7 +408,7 @@ void silentVMStart(SilentVM* vm)
 				vm->programCounter += 7;
 				reg2.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
-				memcpy(stack + *sp + *fp, stack + (*fp + reg2.l), reg.l);
+				memcpy(stack + *sp + *fp, stack + reg2.l, reg.l);
 				*sp += reg.l;
 				SilentPushBack(stackT, &ds[UNDEFINED]);
 				SilentPushMultiple(stackT, 8, &reg.l);
