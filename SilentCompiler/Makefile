@@ -11,3 +11,6 @@ cpp:
 bit32:
 	$(compiler) -m32 $(src) -o $(out)
 
+new:
+	g++ -std=c++11 src_new/*.cpp -o bin/SilentC
+
