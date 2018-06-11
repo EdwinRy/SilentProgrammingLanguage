@@ -36,13 +36,47 @@ int main(int argc, char** argv)
 		Halt
 	};
 
+	char fib[] = 
+	{
+		//var n = 40 //index = 0
+		Push4, 40,0,0,0,
+		//i = 2 //index = 4
+		Push4, 2,0,0,0,
+		//fn = 0 //index = 8
+		Push4, 0,0,0,0,
+		//f1 = 0 //index = 12
+		Push4, 0,0,0,0,
+		//f2 = 2 //index = 16
+		Push4, 1,0,0,0,
+		//For location = 25
+		Load4, 0,0,0,0,0,0,0,0,
+		Load4, 4,0,0,0,0,0,0,0, //43
+
+		SmallerThanInt, //44
+		If, 127,0,0,0,0,0,0,0, //Goto end //53
+		Load4, 12,0,0,0,0,0,0,0, //62
+		Load4, 16,0,0,0,0,0,0,0, //71
+		AddInt, //72
+		Store4, 8,0,0,0,0,0,0,0, //81
+
+		Load4, 16,0,0,0,0,0,0,0, //90
+		Load4, 8,0,0,0,0,0,0,0, //99
+
+		Store4, 16,0,0,0,0,0,0,0, //108
+		Store4, 12,0,0,0,0,0,0,0, //117
+
+		Goto, 25,0,0,0,0,0,0,0, //126
+
+		Halt, //127
+	};
+
 	SilentMemory* memory = createSilentMemory(8000,8000);
 	SilentGC* gc = createSilentGC(memory);
-	SilentVM* vm = createSilentVM(memory,program,gc);
+	SilentVM* vm = createSilentVM(memory,fib,gc);
 
 	silentVMStart(vm);
 
-	printf("stack %i\n",*((char*)(memory->stack+8)));
+	printf("stack %i\n",*((char*)(memory->stack+4)));
 	printf("stack ptr %i\n",memory->stackPointer);
 	printf("stack T %i\n",memory->stackTypes->data[0]);
 	printf("stack T c %i\n",memory->stackTypes->ptr);

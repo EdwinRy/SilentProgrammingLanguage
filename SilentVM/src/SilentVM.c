@@ -139,6 +139,7 @@ void silentVMStart(SilentVM* vm)
 		switch(program[vm->programCounter])
 		{
 			case Halt:
+				//printf("halt\n");
 				vm->running = 0;
 			break;
 			
@@ -178,6 +179,7 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Push4:
+				//printf("push 4\n");
 				memcpy(stack + *sp + *fp, vm->program + ++vm->programCounter,4);
 				vm->programCounter += 3;
 				*sp += 4;
@@ -302,6 +304,7 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Load4:
+				//printf("load 4\n");
 				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
 				vm->programCounter += 7;
 				memcpy(stack + *sp + *fp, stack + *fp + reg.l, 4);
@@ -955,22 +958,21 @@ void silentVMStart(SilentVM* vm)
 				}
 				stackT->data[stackT->ptr - 1] = BYTE_ONE;
 			break;
-/*
+
 			//Compare value of 2 4 bytes
 			case SmallerThanInt:
-				//printf("smallerint\n");
-				memory->stackPointer-=7;
-				if(*(int*)(memory->stack + memory->stackPointer-1) < 
-					*(int*)(memory->stack + memory->stackPointer+3))
+				*sp-=7;
+				if((*(int*)(stack + *sp-1 + *fp)) < (*(int*)(stack + *sp+3 + *fp)))
 				{
-					memory->stack[memory->stackPointer-1] = 1;
+					stack[*sp-1 + *fp] = 1;
 				}
 				else
 				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}			
+					stack[*sp-1 + *fp] = 0;
+				}
+				stackT->data[stackT->ptr - 1] = BYTE_ONE;			
 			break;
-
+/*
 			//Compare value of 2 8 bytes
 			case SmallerThanLong:
 				//memory->stackPointer-=15;
@@ -1157,6 +1159,7 @@ void silentVMStart(SilentVM* vm)
 
 
 			case If:
+				//printf("If\n");
 				*sp-=1;
 				SilentPopBack(stackT);
 				if(*(char*)(stack + *sp + *fp))
@@ -1174,6 +1177,7 @@ void silentVMStart(SilentVM* vm)
 
 
 			case IfNot:
+				//printf("Ifnot\n");
 				*sp-=1;
 				SilentPopBack(stackT);
 				if(!(*(char*)(stack + *sp + *fp)))
