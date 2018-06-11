@@ -58,7 +58,7 @@ std::string tokenizeString(std::string source, uint64* line, uint64* index)
 std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
 {
     std::vector<SilentToken>* tokens = new std::vector<SilentToken>();
-    uint64 line = 0;
+    uint64 line = 1;
     for(uint64 i = 0; i < source.length(); i++)
     {
         //Skip next line
