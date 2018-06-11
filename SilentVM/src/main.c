@@ -1,4 +1,4 @@
-#include "SilentVM.h"
+#include "SilentVM2.h"
 #include "SilentLib.h"
 #include <stdio.h>
 char* readAllText(char* path)
@@ -33,6 +33,9 @@ int main(int argc, char** argv)
 	{
 		//Push8,
 		//-51,-52,-52,-52,-52,-52,0,64,
+		Push,12,4,0,0,0,0,0,0,0,
+		21,0,0,0,
+		Pop,
 		Halt
 	};
 
@@ -42,10 +45,9 @@ int main(int argc, char** argv)
 
 	silentVMStart(vm);
 
-	printf("stack %i\n",*((char*)(memory->stack+8)));
-	printf("stack ptr %i\n",memory->stackPointer);
-	printf("stack T %i\n",memory->stackTypes->data[0]);
-	printf("stack T c %i\n",memory->stackTypes->ptr);
+	printf("stack %i\n",*((char*)(memory->stack)));
+	printf("stack Type %i\n",memory->stackTypes->data[0]);
+	printf("stack Type count %i\n",memory->stackTypes->ptr);
 
 	deleteSilentGC(gc);
 	deleteSilentMemory(memory);

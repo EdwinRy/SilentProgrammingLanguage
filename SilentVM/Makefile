@@ -6,7 +6,3 @@ flags = -Wall
 
 all:
 	$(compiler) $(standard) $(flags) $(source) -o $(output)
-
-
-
-

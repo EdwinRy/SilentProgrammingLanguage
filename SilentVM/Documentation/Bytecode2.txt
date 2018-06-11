@@ -1,0 +1,32 @@
+Halt - stop the vm execution
+Goto x - change program counter to value of x 
+Sweep - 
+Call - 
+Return - 
+LoadDll - 
+LoadDllFunc - 
+FreeDll - 
+Push x y - push y of type x on top of stack
+Pop - remove top item from the stack
+Store x - store top item from the stack at local x 
+Load x y - load data of type x on top of stack from position y 
+StoreGlobal x - store top of the stack on global position x
+LoadGlobal x y - load data from global index y of type x
+Alloc x - allocate x bytes of data and push pointer location on stack
+LoadPtr x - load data type x from pointer on the stack
+StorePtr - 
+FREE - 
+GetPtr - 
+Add - 
+Sub - 
+Mul - 
+Div - 
+Convert - 
+SmallerThan - 
+LargerThan - 
+Equal - 
+If - 
+IfNot - 
+And - 
+Or - 
+Not -  
