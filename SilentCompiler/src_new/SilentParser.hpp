@@ -25,6 +25,8 @@ namespace Silent
         float32,
         float64,
         string,
+        pointer,
+        null,
         structType
     };
 
@@ -46,7 +48,7 @@ namespace Silent
 
     typedef struct SilentFunction
     {
-
+        bool initialised;
     }SilentFunction;
 
     typedef struct SilentNode

@@ -33,7 +33,62 @@ SilentNode* findStruct(std::string name)
 
 SilentDataType getType(std::string name)
 {
+    if(name == "int8")
+    {
+        return SilentDataType::int8;
+    }
+    else if(name == "uint8")
+    {
+        return SilentDataType::uint8;
+    }
+    else if(name == "int16")
+    {
+        return SilentDataType::int16;
+    }
+    else if(name == "uint16")
+    {
+        return SilentDataType::uint16;
+    }
+    else if(name == "int32")
+    {
+        return SilentDataType::int32;
+    }
+    else if(name == "uint64")
+    {
+        return SilentDataType::uint64;
+    }
+    else if(name == "float32")
+    {
+        return SilentDataType::float32;
+    }
+    else if(name == "float64")
+    {
+        return SilentDataType::float64;
+    }
+    else if(name == "string")
+    {
+        return SilentDataType::string;
+    }
+    else if(name == "pointer")
+    {
+        return SilentDataType::pointer;
+    }
+    else if(name == "void")
+    {
+        return SilentDataType::null;
+    }
+    else
+    {
+        SilentNode* s = findStruct(name);
+        if(s != NULL)
+        {
+            return SilentDataType::structType;
+        }
+        else
+        {
 
+        }
+    }
 }
 
 void SilentParseVar(
