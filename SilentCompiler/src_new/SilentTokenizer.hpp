@@ -10,6 +10,7 @@ namespace Silent
         expressionSymbol,
         symbol,
         keyword,
+        primitive,
         numericalValue,
         stringValue,
     };

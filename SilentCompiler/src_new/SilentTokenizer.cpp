@@ -174,47 +174,47 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
                     }
                     else if(token.value == "int8")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else if(token.value == "uint8")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else if(token.value == "int16")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else if(token.value == "uint16")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else if(token.value == "int32")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else if(token.value == "uint32")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else if(token.value == "int64")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else if(token.value == "uint64")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else if(token.value == "float32")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else if(token.value == "float64")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else if(token.value == "string")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::primitive;
                     }
                     else
                     {
