@@ -27,6 +27,7 @@ namespace Silent
         string,
         pointer,
         null,
+        undefined,
         structType
     };
 

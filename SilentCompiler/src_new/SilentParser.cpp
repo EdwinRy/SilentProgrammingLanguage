@@ -2,13 +2,13 @@
 using namespace Silent;
 typedef unsigned long long uint64;
 
-std::vector<SilentNode> nodes;
+std::vector<SilentNode>* nodes;
 
 bool checkAccessibleIdentifier(std::string name)
 {
-    for(uint64 i = 0; i < nodes.size(); i++)
+    for(uint64 i = 0; i < nodes->size(); i++)
     {
-        if(nodes[i].name == name)
+        if((*nodes)[i].name == name)
         {
             return true;
         }
@@ -18,13 +18,13 @@ bool checkAccessibleIdentifier(std::string name)
 
 SilentNode* findStruct(std::string name)
 {
-    for(uint64 i = 0; i < nodes.size(); i++)
+    for(uint64 i = 0; i < nodes->size(); i++)
     {
-        if(nodes[i].type == SilentNodeType::structure)
+        if((*nodes)[i].type == SilentNodeType::structure)
         {
-            if(nodes[i].name == name)
+            if((*nodes)[i].name == name)
             {
-                return &nodes[i];
+                return &(*nodes)[i];
             }
         }
     }
@@ -84,32 +84,40 @@ SilentDataType getType(std::string name)
         {
             return SilentDataType::structType;
         }
-        else
-        {
-
-        }
     }
+    return SilentDataType::undefined;
 }
 
 void SilentParseVar(
-    std::vector<Silent::SilentToken> tokens, uint64* i, bool init
+    std::vector<Silent::SilentToken> tokens, uint64* i,
+    SilentDataType type, bool init
 )
 {
-    *i += 1;
     SilentNode node;
     node.variable = new SilentVariable();
     node.type = SilentNodeType::variable;
+    node.variable->type = type;
 
-    if(tokens[*i].type != SilentTokenType::primitive)
+    if(type == SilentDataType::structType)
     {
-        node.variable->type = SilentDataType::structType;
         node.variable->typePtr = findStruct(tokens[*i].value);
     }
-
-    //If its exclusively initialisation
+    *i += 1;
+    if(checkAccessibleIdentifier(tokens[*i].value)){node.name=tokens[*i].value;}
+    else{
+        printf("Error on line %i:\n",tokens[*i].line);
+        printf("Identifier %s already in use\n",tokens[*i].value.data());
+    }
+    *i += 1;
     if(init)
     {
-
+        if(tokens[*i].value != ";"){
+            printf("Error on line %i:\n",tokens[*i].line);
+            printf("Expected \";\" at the end of declaration\n");
+        }
+        nodes->push_back(node);
+        printf("declared variable %s\n",node.name.data());
+        return;
     }
 }
 
@@ -121,17 +129,21 @@ std::vector<std::string>* SilentParse(std::vector<Silent::SilentToken> tokens)
     {
         if(tokens[i].type == SilentTokenType::keyword)
         {
-            if(tokens[i].value == "var")
-            {
-                SilentParseVar(tokens, &i, true);
-            }
-            else if(tokens[i].value == "struct")
+            if(tokens[i].value == "struct")
             {
 
             }
             else if(tokens[i].value == "func")
             {
 
+            }
+            else
+            {
+                SilentDataType type = getType(tokens[i].value);
+                if(type != SilentDataType::null)
+                {
+                    SilentParseVar(tokens,&i,type,true);
+                }
             }
         }
     }

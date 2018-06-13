@@ -1,8 +1,0 @@
-alloc4 i0
-alloc8 i1
-allocx i20 i2
-add:
-store4 i0
-store4 i1
-main:
-halt
