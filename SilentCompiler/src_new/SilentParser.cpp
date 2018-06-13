@@ -1,14 +1,16 @@
 #include "SilentParser.hpp"
 using namespace Silent;
 typedef unsigned long long uint64;
+typedef std::vector<Silent::SilentToken> TokenList;
+typedef std::vector<SilentNode> NodeList;
 
-std::vector<SilentNode>* nodes;
+NodeList* nodes;
 
-bool checkAccessibleIdentifier(std::string name)
+bool checkAccessibleIdentifier(NodeList* scope, std::string name)
 {
-    for(uint64 i = 0; i < nodes->size(); i++)
+    for(uint64 i = 0; i < scope->size(); i++)
     {
-        if((*nodes)[i].name == name)
+        if((*scope)[i].name == name)
         {
             return true;
         }
@@ -16,22 +18,22 @@ bool checkAccessibleIdentifier(std::string name)
     return false;
 }
 
-SilentNode* findStruct(std::string name)
+SilentNode* findStruct(NodeList* scope, std::string name)
 {
-    for(uint64 i = 0; i < nodes->size(); i++)
+    for(uint64 i = 0; i < scope->size(); i++)
     {
-        if((*nodes)[i].type == SilentNodeType::structure)
+        if((*scope)[i].type == SilentNodeType::structure)
         {
-            if((*nodes)[i].name == name)
+            if((*scope)[i].name == name)
             {
-                return &(*nodes)[i];
+                return &(*scope)[i];
             }
         }
     }
     return NULL;
 }
 
-SilentDataType getType(std::string name)
+SilentDataType getType(NodeList* scope, std::string name)
 {
     if(name == "int8")
     {
@@ -79,7 +81,7 @@ SilentDataType getType(std::string name)
     }
     else
     {
-        SilentNode* s = findStruct(name);
+        SilentNode* s = findStruct(scope,name);
         if(s != NULL)
         {
             return SilentDataType::structType;
@@ -88,36 +90,40 @@ SilentDataType getType(std::string name)
     return SilentDataType::undefined;
 }
 
-void SilentParseVar(
-    std::vector<Silent::SilentToken> tokens, uint64* i,
-    SilentDataType type, bool init
+SilentNode* SilentParseVar(
+    NodeList* scope,
+    TokenList tokens,
+    uint64* i,
+    SilentDataType type,
+    bool init
 )
 {
-    SilentNode node;
-    node.variable = new SilentVariable();
-    node.type = SilentNodeType::variable;
-    node.variable->type = type;
+    SilentNode* node = new SilentNode();
+    node->variable = new SilentVariable();
+    node->type = SilentNodeType::variable;
+    node->variable->type = type;
 
     if(type == SilentDataType::structType)
     {
-        node.variable->typePtr = findStruct(tokens[*i].value);
+        node->variable->typePtr = findStruct(scope, tokens[*i].value);
     }
     *i += 1;
-    if(!checkAccessibleIdentifier(tokens[*i].value))node.name=tokens[*i].value;
-    else{
+    if(checkAccessibleIdentifier(scope, tokens[*i].value))
+    {
         printf("Error on line %i:\n",tokens[*i].line);
         printf("Identifier %s already in use\n",tokens[*i].value.data());
     }
+    else node->name=tokens[*i].value;
     *i += 1;
+
     if(init)
     {
         if(tokens[*i].value != ";"){
             printf("Error on line %i:\n",tokens[*i].line);
             printf("Expected \";\" at the end of declaration\n");
         }
-        nodes->push_back(node);
-        printf("declared variable %s\n",node.name.data());
-        return;
+        printf("declared variable %s\n",node->name.data());
+        return node;
     }
     else
     {
@@ -126,14 +132,59 @@ void SilentParseVar(
             printf("Error on line %i:\n",tokens[*i].line);
             printf("Expected an expression for the variable declaration\n");
         }
+        //Add Expression parse
     }
 }
 
-std::vector<SilentNode>* Silent::SilentParse(
-    std::vector<Silent::SilentToken> tokens
-)
+SilentNode* SilentParseStruct(NodeList* scope, TokenList tokens, uint64* i)
 {
-    std::vector<SilentNode>* out = new std::vector<SilentNode>();
+    SilentNode* node = new SilentNode();
+    node->structure = new SilentStructure();
+    node->type = SilentNodeType::structure;
+    *i += 1;
+    if(checkAccessibleIdentifier(scope, tokens[*i].value))
+    {
+        printf("Error on line %i:\n",tokens[*i].line);
+        printf("Identifier %s already in use\n",tokens[*i].value.data());
+    }
+    else node->name=tokens[*i].value;
+
+    *i += 1;
+    if(tokens[*i].value != "{")
+    {
+        printf("Error on line %i:\n",tokens[*i].line);
+        printf("Expected struct declaration\n");
+    }
+    *i += 1;
+
+    for(;tokens[*i].value != "}";*i+=1)
+    {
+        SilentDataType type = getType(scope, tokens[*i].value);
+        if(type != SilentDataType::undefined)
+        {
+            NodeList* list = &node->structure->variables;
+            SilentNode* node = SilentParseVar(list,tokens,i,type,true);
+            node->structure->variables.push_back(*node);
+            //delete node;
+        }
+        else
+        {
+            printf("Error on line %i:\n",tokens[*i].line);
+            printf("Use of non-existing type %s\n",tokens[*i].value.data());
+        }
+    }
+
+    NodeList* list = &node->structure->variables;
+    printf("structure %s declared with variables:\n",node->name.data());
+    for(uint64 i = 0; i < list->size(); i++)
+    {
+        printf("%i:\n",i);
+    }
+}
+
+NodeList* Silent::SilentParse(TokenList tokens)
+{
+    NodeList* out = new NodeList();
     nodes = out;
     //Look for function, struct and variable declarations
     for(uint64 i = 0; i < tokens.size(); i++)
@@ -142,7 +193,9 @@ std::vector<SilentNode>* Silent::SilentParse(
         {
             if(tokens[i].value == "struct")
             {
-
+                SilentNode* node = SilentParseStruct(nodes, tokens,&i);
+                nodes->push_back(*node);
+                delete node;
             }
             else if(tokens[i].value == "func")
             {
@@ -156,10 +209,12 @@ std::vector<SilentNode>* Silent::SilentParse(
         }
         else
         {
-            SilentDataType type = getType(tokens[i].value);
+            SilentDataType type = getType(nodes, tokens[i].value);
             if(type != SilentDataType::undefined)
             {
-                SilentParseVar(tokens,&i,type,true);
+                SilentNode* node = SilentParseVar(nodes,tokens,&i,type,true);
+                nodes->push_back(*node);
+                delete node;
             }
             else
             {

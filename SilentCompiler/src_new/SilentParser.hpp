@@ -31,27 +31,9 @@ namespace Silent
         structType
     };
 
-    typedef struct SilentVariable
-    {
-        SilentDataType type;
-        SilentNode* typePtr;
-        bool initialised;
-        unsigned long long localPos;
-        unsigned long long size;
-    }SilentVariable;
-
-    typedef struct SilentStructure
-    {
-        bool initialised;
-        std::vector<SilentVariable> variables;
-        unsigned long long size;
-    }SilentStructure;
-
-    typedef struct SilentFunction
-    {
-        bool initialised;
-    }SilentFunction;
-
+    typedef struct SilentVariable SilentVariable;
+    typedef struct SilentStructure SilentStructure;
+    typedef struct SilentFunction SilentFunction;
     typedef struct SilentNode
     {
         SilentNodeType type;
@@ -63,6 +45,26 @@ namespace Silent
             SilentFunction* function;
         };
     }SilentNode;
+
+    typedef struct SilentVariable
+    {
+        SilentDataType type;
+        SilentNode* typePtr;
+        bool initialised;
+        unsigned long long localPos;
+        unsigned long long size;
+    }SilentVariable;
+
+    typedef struct SilentStructure
+    {
+        std::vector<SilentNode> variables;
+        unsigned long long size;
+    }SilentStructure;
+
+    typedef struct SilentFunction
+    {
+        bool initialised;
+    }SilentFunction;
 
     std::vector<SilentNode>* SilentParse(
         std::vector<Silent::SilentToken> tokens

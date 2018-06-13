@@ -1,3 +1,9 @@
 //Sample globals
 int8 meme;
-int6 kek;
+int8 kek;
+
+struct sampleText
+{
+    int8 meme;
+    int8 y;
+}

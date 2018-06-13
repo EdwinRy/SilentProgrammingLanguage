@@ -137,11 +137,11 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
             break;
             case '{':
                 token.type = SilentTokenType::symbol;
-                token.value = "(";
+                token.value = "{";
             break;
             case '}':
                 token.type = SilentTokenType::symbol;
-                token.value = ")";
+                token.value = "}";
             break;
             case '\"':
                 token.type = SilentTokenType::stringValue;
