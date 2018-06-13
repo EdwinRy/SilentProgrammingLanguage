@@ -164,10 +164,6 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
                     {
                         token.type = SilentTokenType::keyword;
                     }
-                    else if(token.value == "var")
-                    {
-                        token.type = SilentTokenType::keyword;
-                    }
                     else if(token.value == "return")
                     {
                         token.type = SilentTokenType::keyword;

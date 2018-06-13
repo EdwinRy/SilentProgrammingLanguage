@@ -103,7 +103,7 @@ void SilentParseVar(
         node.variable->typePtr = findStruct(tokens[*i].value);
     }
     *i += 1;
-    if(checkAccessibleIdentifier(tokens[*i].value)){node.name=tokens[*i].value;}
+    if(!checkAccessibleIdentifier(tokens[*i].value))node.name=tokens[*i].value;
     else{
         printf("Error on line %i:\n",tokens[*i].line);
         printf("Identifier %s already in use\n",tokens[*i].value.data());
@@ -119,11 +119,22 @@ void SilentParseVar(
         printf("declared variable %s\n",node.name.data());
         return;
     }
+    else
+    {
+        if(tokens[*i].type != SilentTokenType::expressionSymbol)
+        {
+            printf("Error on line %i:\n",tokens[*i].line);
+            printf("Expected an expression for the variable declaration\n");
+        }
+    }
 }
 
-std::vector<std::string>* SilentParse(std::vector<Silent::SilentToken> tokens)
+std::vector<SilentNode>* Silent::SilentParse(
+    std::vector<Silent::SilentToken> tokens
+)
 {
-    std::vector<std::string>* out = new std::vector<std::string>();
+    std::vector<SilentNode>* out = new std::vector<SilentNode>();
+    nodes = out;
     //Look for function, struct and variable declarations
     for(uint64 i = 0; i < tokens.size(); i++)
     {
@@ -139,14 +150,24 @@ std::vector<std::string>* SilentParse(std::vector<Silent::SilentToken> tokens)
             }
             else
             {
-                SilentDataType type = getType(tokens[i].value);
-                if(type != SilentDataType::null)
-                {
-                    SilentParseVar(tokens,&i,type,true);
-                }
+                printf("Error on line %i:\n",tokens[i].line);
+                printf("Unexpected token in the global scope");
+            }
+        }
+        else
+        {
+            SilentDataType type = getType(tokens[i].value);
+            if(type != SilentDataType::undefined)
+            {
+                SilentParseVar(tokens,&i,type,true);
+            }
+            else
+            {
+                printf("Error on line %i:\n",tokens[i].line);
+                printf("Type \"%s\" was not defined",tokens[i].value.data());
+                exit(-1);
             }
         }
     }
-
     return out;
 }

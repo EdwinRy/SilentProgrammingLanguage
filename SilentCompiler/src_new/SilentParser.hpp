@@ -64,7 +64,7 @@ namespace Silent
         };
     }SilentNode;
 
-    std::vector<std::string>* SilentParse(
+    std::vector<SilentNode>* SilentParse(
         std::vector<Silent::SilentToken> tokens
     );
 }
