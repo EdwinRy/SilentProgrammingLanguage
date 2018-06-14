@@ -5,14 +5,20 @@ namespace Silent
 {
     enum class SilentTokenType
     {
-        unrecognised,
-        identifier,
-        expressionSymbol,
-        symbol,
-        keyword,
-        primitive,
-        numericalValue,
-        stringValue,
+        Unrecognised,
+        Identifier,
+        ExpressionSymbol,
+        Symbol,
+        Function,
+        Struct,
+        Return,
+        Primitive,
+        Number,
+        StringValue,
+        OpenScope,
+        CloseScope,
+        OpenParam,
+        CloseParam
     };
 
     typedef struct SilentToken

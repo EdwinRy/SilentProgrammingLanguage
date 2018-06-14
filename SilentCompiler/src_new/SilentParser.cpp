@@ -189,39 +189,35 @@ NodeList* Silent::SilentParse(TokenList tokens)
     //Look for function, struct and variable declarations
     for(uint64 i = 0; i < tokens.size(); i++)
     {
-        if(tokens[i].type == SilentTokenType::keyword)
+        switch(tokens[i].type)
         {
-            if(tokens[i].value == "struct")
-            {
+            case SilentTokenType::Struct:
                 SilentNode* node = SilentParseStruct(nodes, tokens,&i);
                 nodes->push_back(*node);
                 delete node;
-            }
-            else if(tokens[i].value == "func")
-            {
+            break;
+            case SilentTokenType::Function:
 
-            }
-            else
-            {
+            break;
+            case SilentTokenType::Identifier:
+                SilentDataType type = getType(nodes, tokens[i].value);
+                if(type != SilentDataType::undefined)
+                {
+                    SilentNode* node = SilentParseVar(nodes,tokens,&i,type,true);
+                    nodes->push_back(*node);
+                    delete node;
+                }
+                else
+                {
+                    printf("Error on line %i:\n",tokens[i].line);
+                    printf("Type \"%s\" was not defined",tokens[i].value.data());
+                    exit(-1);
+                }
+            break;
+            default:
                 printf("Error on line %i:\n",tokens[i].line);
                 printf("Unexpected token in the global scope");
-            }
-        }
-        else
-        {
-            SilentDataType type = getType(nodes, tokens[i].value);
-            if(type != SilentDataType::undefined)
-            {
-                SilentNode* node = SilentParseVar(nodes,tokens,&i,type,true);
-                nodes->push_back(*node);
-                delete node;
-            }
-            else
-            {
-                printf("Error on line %i:\n",tokens[i].line);
-                printf("Type \"%s\" was not defined",tokens[i].value.data());
-                exit(-1);
-            }
+            break;
         }
     }
     return out;

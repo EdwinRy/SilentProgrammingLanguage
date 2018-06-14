@@ -93,58 +93,58 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
         }
 
         SilentToken token;
-        token.type = SilentTokenType::unrecognised;
+        token.type = SilentTokenType::Unrecognised;
         token.value = "";
         token.line = line;
 
         switch(source[i])
         {
             case ';':
-                token.type = SilentTokenType::symbol;
+                token.type = SilentTokenType::Symbol;
                 token.value = ";";
             break;
             case ',':
-                token.type = SilentTokenType::symbol;
+                token.type = SilentTokenType::Symbol;
                 token.value = ",";
             break;
             case '=':
-                token.type = SilentTokenType::expressionSymbol;
+                token.type = SilentTokenType::ExpressionSymbol;
                 token.value = "=";
             break;
             case '+':
-                token.type = SilentTokenType::expressionSymbol;
+                token.type = SilentTokenType::ExpressionSymbol;
                 token.value = "+";
             break;
             case '-':
-                token.type = SilentTokenType::expressionSymbol;
+                token.type = SilentTokenType::ExpressionSymbol;
                 token.value = "-";
             break;
             case '*':
-                token.type = SilentTokenType::expressionSymbol;
+                token.type = SilentTokenType::ExpressionSymbol;
                 token.value = "*";
             break;
             case '/':
-                token.type = SilentTokenType::expressionSymbol;
+                token.type = SilentTokenType::ExpressionSymbol;
                 token.value = "/";
             break;
             case '(':
-                token.type = SilentTokenType::expressionSymbol;
+                token.type = SilentTokenType::ExpressionSymbol;
                 token.value = "(";
             break;
             case ')':
-                token.type = SilentTokenType::expressionSymbol;
+                token.type = SilentTokenType::ExpressionSymbol;
                 token.value = ")";
             break;
             case '{':
-                token.type = SilentTokenType::symbol;
+                token.type = SilentTokenType::OpenScope;
                 token.value = "{";
             break;
             case '}':
-                token.type = SilentTokenType::symbol;
+                token.type = SilentTokenType::CloseScope;
                 token.value = "}";
             break;
             case '\"':
-                token.type = SilentTokenType::stringValue;
+                token.type = SilentTokenType::StringValue;
                 token.value = tokenizeString(source, &line, &i);
             break;
             default:
@@ -158,63 +158,63 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
                     i--;
                     if(token.value == "func")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::Function;
                     }
                     else if(token.value == "struct")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::Struct;
                     }
                     else if(token.value == "return")
                     {
-                        token.type = SilentTokenType::keyword;
+                        token.type = SilentTokenType::Return;
                     }
                     else if(token.value == "int8")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else if(token.value == "uint8")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else if(token.value == "int16")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else if(token.value == "uint16")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else if(token.value == "int32")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else if(token.value == "uint32")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else if(token.value == "int64")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else if(token.value == "uint64")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else if(token.value == "float32")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else if(token.value == "float64")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else if(token.value == "string")
                     {
-                        token.type = SilentTokenType::primitive;
+                        token.type = SilentTokenType::Primitive;
                     }
                     else
                     {
-                        token.type = SilentTokenType::identifier;
+                        token.type = SilentTokenType::Identifier;
                     }
                 }
                 else if(isdigit(source[i]))
@@ -225,7 +225,7 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
                         i++;
                     }
                     i--;
-                    token.type = SilentTokenType::numericalValue;
+                    token.type = SilentTokenType::Number;
                 }
                 else
                 {
