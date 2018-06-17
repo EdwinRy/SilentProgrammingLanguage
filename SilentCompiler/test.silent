@@ -7,3 +7,5 @@ struct sampleText
     int8 meme;
     int8 y;
 }
+
+sampleText var;
