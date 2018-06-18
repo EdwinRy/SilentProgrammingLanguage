@@ -256,6 +256,8 @@ SilentNode* SilentParseFunction(NodeList* scope, TokenList tokens, uint64* i)
         std::cout << "Expected \"(\" for parameter declaration\n";
         exit(-1);
     }
+
+    
 }
 
 NodeList* Silent::SilentParse(TokenList tokens)
