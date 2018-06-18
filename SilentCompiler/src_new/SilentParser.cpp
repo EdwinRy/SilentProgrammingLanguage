@@ -11,28 +11,13 @@ NodeList accessibleScope;
 std::vector<uint64> scopeBreaks;
 uint64 currentPos;
 
-bool checkAccessibleIdentifier(NodeList* scope, std::string name)
+SilentNode* getNode(NodeList* scope, std::string name, SilentNodeType type)
 {
     for(uint64 i = 0; i < scope->size(); i++)
     {
-        if((*scope)[i].name == name)
+        if((*scope)[i].type == type)
         {
-            return true;
-        }
-    }
-    return false;
-}
-
-SilentNode* findStruct(NodeList* scope, std::string name)
-{
-    for(uint64 i = 0; i < scope->size(); i++)
-    {
-        if((*scope)[i].type == SilentNodeType::structure)
-        {
-            if((*scope)[i].name == name)
-            {
-                return &(*scope)[i];
-            }
+            if((*scope)[i].name == name) return &(*scope)[i];
         }
     }
     return NULL;
@@ -40,130 +25,46 @@ SilentNode* findStruct(NodeList* scope, std::string name)
 
 SilentDataType getType(NodeList* scope, std::string name)
 {
-    if(name == "int8")
-    {
-        return SilentDataType::int8;
-    }
-    else if(name == "uint8")
-    {
-        return SilentDataType::uint8;
-    }
-    else if(name == "int16")
-    {
-        return SilentDataType::int16;
-    }
-    else if(name == "uint16")
-    {
-        return SilentDataType::uint16;
-    }
-    else if(name == "int32")
-    {
-        return SilentDataType::int32;
-    }
-    else if(name == "uint32")
-    {
-        return SilentDataType::uint32;
-    }
-    else if(name == "int64")
-    {
-        return SilentDataType::int64;
-    }
-    else if(name == "uint64")
-    {
-        return SilentDataType::uint64;
-    }
-    else if(name == "float32")
-    {
-        return SilentDataType::float32;
-    }
-    else if(name == "float64")
-    {
-        return SilentDataType::float64;
-    }
-    else if(name == "string")
-    {
-        return SilentDataType::string;
-    }
-    else if(name == "pointer")
-    {
-        return SilentDataType::pointer;
-    }
-    else if(name == "void")
-    {
-        return SilentDataType::null;
-    }
+    if(name == "int8") return SilentDataType::int8;
+    else if(name == "uint8") return SilentDataType::uint8;
+    else if(name == "int16") return SilentDataType::int16;
+    else if(name == "uint16") return SilentDataType::uint16;
+    else if(name == "int32") return SilentDataType::int32;
+    else if(name == "uint32") return SilentDataType::uint32;
+    else if(name == "int64") return SilentDataType::int64;
+    else if(name == "uint64") return SilentDataType::uint64;
+    else if(name == "float32") return SilentDataType::float32;
+    else if(name == "float64") return SilentDataType::float64;
+    else if(name == "string") return SilentDataType::string;
+    else if(name == "pointer") return SilentDataType::pointer;
+    else if(name == "void") return SilentDataType::null;
     else
     {
-        SilentNode* s = findStruct(scope,name);
-        if(s != NULL)
-        {
-            return SilentDataType::structType;
-        }
+        SilentNode* s = getNode(scope,name,SilentNodeType::structure);
+        if(s != NULL) return SilentDataType::structType;
     }
     return SilentDataType::undefined;
 }
 
 uint64 getTypeSize(NodeList* scope, std::string name)
 {
-    if(name == "int8")
-    {
-        return 1;
-    }
-    else if(name == "uint8")
-    {
-        return 1;
-    }
-    else if(name == "int16")
-    {
-        return 2;
-    }
-    else if(name == "uint16")
-    {
-        return 2;
-    }
-    else if(name == "int32")
-    {
-        return 4;
-    }
-    else if(name == "uint32")
-    {
-        return 4;
-    }
-    else if(name == "int64")
-    {
-        return 8;
-    }
-    else if(name == "uint64")
-    {
-        return 8;
-    }
-    else if(name == "float32")
-    {
-        return 4;
-    }
-    else if(name == "float64")
-    {
-        return 8;
-    }
-    else if(name == "string")
-    {
-        return 8;
-    }
-    else if(name == "pointer")
-    {
-        return 8;
-    }
-    else if(name == "void")
-    {
-        return 0;
-    }
+    if(name == "int8") return 1;
+    else if(name == "uint8") return 1;
+    else if(name == "int16") return 2;
+    else if(name == "uint16") return 2;
+    else if(name == "int32") return 4;
+    else if(name == "uint32") return 4;
+    else if(name == "int64") return 8;
+    else if(name == "uint64") return 8;
+    else if(name == "float32") return 4;
+    else if(name == "float64") return 8;
+    else if(name == "string") return 8;
+    else if(name == "pointer") return 8;
+    else if(name == "void") return 0;
     else
     {
-        SilentNode* s = findStruct(scope,name);
-        if(s != NULL)
-        {
-            return s->structure->size;
-        }
+        SilentNode* s = getNode(scope,name,SilentNodeType::structure);
+        if(s != NULL) return s->structure->size;
     }
     return -1;
 }
@@ -172,10 +73,7 @@ uint64 getLocalPos(NodeList* scope)
 {
     uint64 scopeSize = scope->size();
     uint64 lastPos = 1;
-    if(scopeSize == 0)
-    {
-        return 0;
-    }
+    if(scopeSize == 0) return 0;
     else
     {
 
@@ -208,12 +106,13 @@ SilentNode* SilentParseVar(
     }
     else if(node->variable->type == SilentDataType::structType)
     {
-        node->variable->typePtr = findStruct(scope, tokens[*i].value);
+        node->variable->typePtr = 
+        getNode(scope, tokens[*i].value,SilentNodeType::structure);
     }
     node->variable->localPos = getLocalPos(scope);
     *i += 1;
 
-    if(checkAccessibleIdentifier(scope, tokens[*i].value))
+    if(getNode(scope,tokens[*i].value,SilentNodeType::variable) != NULL)
     {
         std::cout << "Error on line "<<tokens[*i].line <<":\n";
         std::cout <<"Identifier "<<tokens[*i].value.data()<<" already in use\n";
@@ -305,6 +204,11 @@ SilentNode* SilentParseStruct(NodeList* scope, TokenList tokens, uint64* i)
 #endif
     accessibleScope.push_back(*node);
     return node;
+}
+
+SilentNode* SilentParseFunction(TokenList tokens, uint64* i)
+{
+    *i+=1;
 }
 
 NodeList* Silent::SilentParse(TokenList tokens)
