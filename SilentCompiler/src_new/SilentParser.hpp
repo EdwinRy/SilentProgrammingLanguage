@@ -49,7 +49,7 @@ namespace Silent
     typedef struct SilentVariable
     {
         SilentDataType type;
-        SilentNode* typePtr;
+        unsigned long long typePtr;
         bool initialised;
         unsigned long long localPos;
         unsigned long long size;
@@ -64,6 +64,9 @@ namespace Silent
     typedef struct SilentFunction
     {
         bool initialised;
+        unsigned long long returnTypePtr;
+        unsigned long long returnSize;
+        SilentDataType returnType;
     }SilentFunction;
 
     std::vector<SilentNode>* SilentParse(

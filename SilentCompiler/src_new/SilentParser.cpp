@@ -11,16 +11,29 @@ NodeList accessibleScope;
 std::vector<uint64> scopeBreaks;
 uint64 currentPos;
 
-SilentNode* getNode(NodeList* scope, std::string name, SilentNodeType type)
+uint64 getNode(NodeList* scope, std::string name, SilentNodeType type)
 {
     for(uint64 i = 0; i < scope->size(); i++)
     {
         if((*scope)[i].type == type)
         {
-            if((*scope)[i].name == name) return &(*scope)[i];
+            if((*scope)[i].name == name) return i;
         }
     }
-    return NULL;
+    return -1;
+}
+
+uint64 getAccessibleNode(std::string name, SilentNodeType type)
+{
+    //Scan from the end to get the closest variable
+    for(uint64 i = accessibleScope.size()-1; i >= 0; i--)
+    {
+        if(accessibleScope[i].type == type)
+        {
+            if(accessibleScope[i].name == name) return i;
+        }
+    }
+    return -1;
 }
 
 SilentDataType getType(NodeList* scope, std::string name)
@@ -40,8 +53,8 @@ SilentDataType getType(NodeList* scope, std::string name)
     else if(name == "void") return SilentDataType::null;
     else
     {
-        SilentNode* s = getNode(scope,name,SilentNodeType::structure);
-        if(s != NULL) return SilentDataType::structType;
+        if(getNode(scope,name,SilentNodeType::structure) != -1) 
+        {return SilentDataType::structType;}
     }
     return SilentDataType::undefined;
 }
@@ -63,8 +76,8 @@ uint64 getTypeSize(NodeList* scope, std::string name)
     else if(name == "void") return 0;
     else
     {
-        SilentNode* s = getNode(scope,name,SilentNodeType::structure);
-        if(s != NULL) return s->structure->size;
+        uint64 index = getNode(scope,name,SilentNodeType::structure);
+        if(index != -1) return (*scope)[index].structure->size;
     }
     return -1;
 }
@@ -108,11 +121,12 @@ SilentNode* SilentParseVar(
     {
         node->variable->typePtr = 
         getNode(scope, tokens[*i].value,SilentNodeType::structure);
+        
     }
     node->variable->localPos = getLocalPos(scope);
     *i += 1;
 
-    if(getNode(scope,tokens[*i].value,SilentNodeType::variable) != NULL)
+    if(getNode(scope,tokens[*i].value,SilentNodeType::variable) != -1)
     {
         std::cout << "Error on line "<<tokens[*i].line <<":\n";
         std::cout <<"Identifier "<<tokens[*i].value.data()<<" already in use\n";
@@ -206,9 +220,42 @@ SilentNode* SilentParseStruct(NodeList* scope, TokenList tokens, uint64* i)
     return node;
 }
 
-SilentNode* SilentParseFunction(TokenList tokens, uint64* i)
+NodeList* SilentParseParameters(NodeList* scope, TokenList tokens, uint64* i)
 {
-    *i+=1;
+
+}
+
+SilentNode* SilentParseFunction(NodeList* scope, TokenList tokens, uint64* i)
+{
+    SilentNode* node = new SilentNode();
+    node->function = new SilentFunction();
+    node->type = SilentNodeType::function;
+    *i += 1;
+
+    node->function->returnType = getType(scope,tokens[*i].value);
+    if(node->function->returnType == SilentDataType::undefined)
+    {
+        std::cout << "Error on line "<<tokens[*i].line <<":\n";
+        std::cout <<"Type "<<tokens[*i].value.data()<<" undefined\n";
+        exit(-1);
+    }
+
+    *i += 1;
+    if(getNode(scope,tokens[*i].value,SilentNodeType::function) != -1)
+    {
+        std::cout << "Error on line "<<tokens[*i].line <<":\n";
+        std::cout <<"Identifier "<<tokens[*i].value.data()<<" already in use\n";
+        exit(-1);
+    }
+    else node->name = tokens[*i].value;
+    *i += 1;
+
+    if(tokens[*i].value != "(")
+    {
+        std::cout << "Error on line "<< tokens[*i].line <<":\n";
+        std::cout << "Expected \"(\" for parameter declaration\n";
+        exit(-1);
+    }
 }
 
 NodeList* Silent::SilentParse(TokenList tokens)
