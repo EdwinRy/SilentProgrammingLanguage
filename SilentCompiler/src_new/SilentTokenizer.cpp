@@ -1,7 +1,8 @@
 #include "SilentTokenizer.hpp"
 using namespace Silent;
-
 typedef unsigned long long uint64;
+
+#define DEBUG 0
 
 std::string tokenizeString(std::string source, uint64* line, uint64* index)
 {
@@ -233,8 +234,9 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
                 }
             break;
         }
-        std::cout << token.line << ": " + token.value + "\n";
-        //printf("%i: %s\n",token.line, token.value.data());
+#if DEBUG
+        std::cout << token.line << (": " + token.value + "\n").data();
+#endif
         tokens->push_back(token);
     }
     return tokens;

@@ -4,8 +4,8 @@ int8 kek;
 
 struct sampleText
 {
-    int8 meme;
-    int8 y;
+    int64 meme;
+    int32 y;
 }
 
 sampleText var;

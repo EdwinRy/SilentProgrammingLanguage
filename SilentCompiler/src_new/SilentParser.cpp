@@ -60,6 +60,14 @@ SilentDataType getType(NodeList* scope, std::string name)
     {
         return SilentDataType::int32;
     }
+    else if(name == "uint32")
+    {
+        return SilentDataType::uint32;
+    }
+    else if(name == "int64")
+    {
+        return SilentDataType::int64;
+    }
     else if(name == "uint64")
     {
         return SilentDataType::uint64;
@@ -95,23 +103,108 @@ SilentDataType getType(NodeList* scope, std::string name)
     return SilentDataType::undefined;
 }
 
+uint64 getTypeSize(NodeList* scope, std::string name)
+{
+    if(name == "int8")
+    {
+        return 1;
+    }
+    else if(name == "uint8")
+    {
+        return 1;
+    }
+    else if(name == "int16")
+    {
+        return 2;
+    }
+    else if(name == "uint16")
+    {
+        return 2;
+    }
+    else if(name == "int32")
+    {
+        return 4;
+    }
+    else if(name == "uint32")
+    {
+        return 4;
+    }
+    else if(name == "int64")
+    {
+        return 8;
+    }
+    else if(name == "uint64")
+    {
+        return 8;
+    }
+    else if(name == "float32")
+    {
+        return 4;
+    }
+    else if(name == "float64")
+    {
+        return 8;
+    }
+    else if(name == "string")
+    {
+        return 8;
+    }
+    else if(name == "pointer")
+    {
+        return 8;
+    }
+    else if(name == "void")
+    {
+        return 0;
+    }
+    else
+    {
+        SilentNode* s = findStruct(scope,name);
+        if(s != NULL)
+        {
+            return s->structure->size;
+        }
+    }
+    return -1;
+}
+
+uint64 getLocalPos(NodeList* scope)
+{
+    uint64 scopeSize = scope->size();
+    if(scopeSize == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        SilentVariable* var = (*scope)[scopeSize-1].variable;
+        return var->localPos + var->size;
+    }
+}
+
 SilentNode* SilentParseVar(
     NodeList* scope,
     TokenList tokens,
     uint64* i,
-    SilentDataType type,
+    std::string type,
     bool init
 )
 {
     SilentNode* node = new SilentNode();
     node->variable = new SilentVariable();
     node->type = SilentNodeType::variable;
-    node->variable->type = type;
-
-    if(type == SilentDataType::structType)
+    node->variable->type = getType(&accessibleScope,type);
+    node->variable->size = getTypeSize(&accessibleScope,type);
+    if(node->variable->type == SilentDataType::undefined)
+    {
+        std::cout << "Error on line "<<tokens[*i].line <<":\n";
+        std::cout <<"Type "<<tokens[*i].value.data()<<" undefined\n";
+    }
+    else if(node->variable->type == SilentDataType::structType)
     {
         node->variable->typePtr = findStruct(scope, tokens[*i].value);
     }
+    node->variable->localPos = getLocalPos(scope);
     *i += 1;
 
     if(checkAccessibleIdentifier(scope, tokens[*i].value))
@@ -131,7 +224,9 @@ SilentNode* SilentParseVar(
             exit(-1);
         }
 #if DEBUG
-        std::cout << "declared variable " << node->name.data() << "\n";
+        std::cout << "Declared variable " << node->name.data() << "\n"
+        << "of size: " << node->variable->size << "\n"
+        << "at local position " << node->variable->localPos << "\n\n";
 #endif
         return node;
     }
@@ -173,12 +268,15 @@ SilentNode* SilentParseStruct(NodeList* scope, TokenList tokens, uint64* i)
     *i += 1;
     for(;tokens[*i].value != "}";*i+=1)
     {
-        SilentDataType type = getType(scope, tokens[*i].value);
-        if(type != SilentDataType::undefined)
+        if(getType(scope,tokens[*i].value) != SilentDataType::undefined)
         {
-            SilentNode* node = SilentParseVar(localScope,tokens,i,type,true);
-            localScope->push_back(*node);
-            delete node;
+            SilentNode* var = SilentParseVar(localScope,tokens,i,tokens[*i].value,true);
+            localScope->push_back(*var);
+            node->structure->size += var->variable->size;
+#if DEBUG
+            std::cout << "struct size " << node->structure->size << "\n";
+#endif
+            delete var;
         }
         else
         {
@@ -190,14 +288,16 @@ SilentNode* SilentParseStruct(NodeList* scope, TokenList tokens, uint64* i)
 
 #if DEBUG
     std::cout
-    << "structure " << node->name.data() << " declared with variables:\n";
+    << "structure " << node->name.data() << " of size: " << node->structure->size
+    << " declared with variables:\n";
 
     for(uint64 i = 0; i < localScope->size(); i++)
     {
         std::cout << i << ":" << (*localScope)[i].name.data() << "\n";
     }
+    std::cout << "\n";
 #endif
-
+    accessibleScope.push_back(*node);
     return node;
 }
 
@@ -221,8 +321,7 @@ NodeList* Silent::SilentParse(TokenList tokens)
 
         else if(tokens[i].type == SilentTokenType::Primitive)
         {
-            SilentDataType type = getType(globalScope, tokens[i].value);
-            SilentNode* node = SilentParseVar(globalScope,tokens,&i,type,true);
+            SilentNode* node = SilentParseVar(globalScope,tokens,&i,tokens[i].value,true);
             globalScope->push_back(*node);
             delete node;
         }
@@ -232,7 +331,7 @@ NodeList* Silent::SilentParse(TokenList tokens)
             SilentDataType type = getType(globalScope, tokens[i].value);
             if(type == SilentDataType::structType)
             {
-                SilentNode* node = SilentParseVar(globalScope,tokens,&i,type,true);
+                SilentNode* node = SilentParseVar(globalScope,tokens,&i,tokens[i].value,true);
                 globalScope->push_back(*node);
                 delete node;
             }
