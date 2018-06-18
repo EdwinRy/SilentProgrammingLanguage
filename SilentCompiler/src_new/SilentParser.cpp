@@ -171,13 +171,19 @@ uint64 getTypeSize(NodeList* scope, std::string name)
 uint64 getLocalPos(NodeList* scope)
 {
     uint64 scopeSize = scope->size();
+    uint64 lastPos = 1;
     if(scopeSize == 0)
     {
         return 0;
     }
     else
     {
-        SilentVariable* var = (*scope)[scopeSize-1].variable;
+
+        while((*scope)[scopeSize-lastPos].type == SilentNodeType::structure)
+        {
+            lastPos+=1;
+        }
+        SilentVariable* var = (*scope)[scopeSize-lastPos].variable;
         return var->localPos + var->size;
     }
 }

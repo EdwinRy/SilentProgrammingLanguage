@@ -9,3 +9,4 @@ struct sampleText
 }
 
 sampleText var;
+sampleText var1;
