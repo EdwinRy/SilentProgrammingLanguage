@@ -70,6 +70,11 @@ namespace Silent
         SilentDataType returnType;
     }SilentFunction;
 
+    typedef struct SilentOperant
+    {
+
+    }SilentOperant;
+
     std::vector<SilentNode*>* SilentParse(
         std::vector<Silent::SilentToken> tokens
     );

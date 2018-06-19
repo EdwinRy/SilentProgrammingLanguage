@@ -288,7 +288,7 @@ SilentNode* SilentParseFunction(NodePtrList* scope, TokenList tokens, uint64* i)
     }
     else
     {
-
+        node->function->initialised = true;
     }
 
 
