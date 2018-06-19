@@ -10,3 +10,5 @@ struct sampleText
 
 sampleText var;
 sampleText var1;
+
+func int8 meme();

@@ -1,6 +1,7 @@
 #include "SilentCompiler.hpp"
 #include "SilentTokenizer.hpp"
 #include "SilentParser.hpp"
+#include "SilentCleanup.hpp"
 #include <iostream>
 #include <string.h>
 #include <vector>
@@ -57,7 +58,9 @@ void SilentCompiler::Compile()
         this->source.assign(source,strlen(source)+1);
     }
     std::vector<SilentToken>* tokens = SilentTokenize(this->source);
-    std::vector<Silent::SilentNode>* nodes = SilentParse(*tokens);
+    std::vector<Silent::SilentNode*>* nodes = SilentParse(*tokens);
+    SilentFreeNodes(nodes);
+    std::cout << "Done!\n";
 }
 
 void SilentCompiler::SetSource(char* source)

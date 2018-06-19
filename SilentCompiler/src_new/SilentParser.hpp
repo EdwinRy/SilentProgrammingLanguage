@@ -48,28 +48,29 @@ namespace Silent
 
     typedef struct SilentVariable
     {
+        unsigned long long size;
         SilentDataType type;
-        unsigned long long typePtr;
+        SilentNode* typePtr;
         bool initialised;
         unsigned long long localPos;
-        unsigned long long size;
     }SilentVariable;
 
     typedef struct SilentStructure
     {
-        std::vector<SilentNode> variables;
         unsigned long long size;
+        std::vector<SilentNode*> variables;
     }SilentStructure;
 
     typedef struct SilentFunction
     {
+        std::vector<SilentNode*> parameters;
         bool initialised;
         unsigned long long returnTypePtr;
         unsigned long long returnSize;
         SilentDataType returnType;
     }SilentFunction;
 
-    std::vector<SilentNode>* SilentParse(
+    std::vector<SilentNode*>* SilentParse(
         std::vector<Silent::SilentToken> tokens
     );
 }

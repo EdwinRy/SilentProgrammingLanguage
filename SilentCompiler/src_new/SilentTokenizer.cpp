@@ -129,11 +129,11 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
                 token.value = "/";
             break;
             case '(':
-                token.type = SilentTokenType::ExpressionSymbol;
+                token.type = SilentTokenType::OpenParam;
                 token.value = "(";
             break;
             case ')':
-                token.type = SilentTokenType::ExpressionSymbol;
+                token.type = SilentTokenType::CloseParam;
                 token.value = ")";
             break;
             case '{':
