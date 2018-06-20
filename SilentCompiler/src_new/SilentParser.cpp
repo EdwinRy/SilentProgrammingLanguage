@@ -101,12 +101,36 @@ uint64 getLocalPos(NodePtrList* scope)
     }
 }
 
-SilentNode* SilentParseVar(
+std::string getNextToken()
+{
+    
+}
+void Silent::SilentParseExpression(
+    NodePtrList* scope, TokenList tokens, uint64* i, SilentOperand* operand
+)
+{
+    *i += 1;
+
+    if(operand->leftUsed)
+    {
+
+    }
+    else if(tokens[*i].value == "=")
+    {
+        SilentOperand* op = new SilentOperand();
+        op->type = SilentOperandType::Assign;
+        op->left = operand;
+        SilentParseExpression(scope,tokens,i,op);
+    }
+}
+
+SilentNode* Silent::SilentParseVar(
     NodePtrList* scope,
     TokenList tokens,
     uint64* i,
     std::string type,
-    bool init
+    bool init,
+    bool expectEnd
 )
 {
     SilentNode* node = new SilentNode();
@@ -142,10 +166,13 @@ SilentNode* SilentParseVar(
 
     if(init)
     {
-        if(tokens[*i].value != ";"){
-            std::cout << "Error on line "<<tokens[*i].line <<":\n";
-            std::cout << "Expected \";\" at the end of declaration\n";
-            exit(-1);
+        if(expectEnd)
+        {
+            if(tokens[*i].value != ";"){
+                std::cout << "Error on line "<<tokens[*i].line <<":\n";
+                std::cout << "Expected \";\" at the end of declaration\n";
+                exit(-1);
+            }
         }
 #if DEBUG
         std::cout << "Declared variable " << node->name.data() << "\n"
@@ -166,7 +193,7 @@ SilentNode* SilentParseVar(
     }
 }
 
-SilentNode* SilentParseStruct(NodePtrList* scope, TokenList tokens, uint64* i)
+SilentNode* Silent::SilentParseStruct(NodePtrList* scope, TokenList tokens, uint64* i)
 {
     SilentNode* node = new SilentNode();
     node->structure = new SilentStructure();
@@ -194,7 +221,9 @@ SilentNode* SilentParseStruct(NodePtrList* scope, TokenList tokens, uint64* i)
     {
         if(getType(scope,tokens[*i].value) != SilentDataType::undefined)
         {
-            SilentNode* var = SilentParseVar(localScope,tokens,i,tokens[*i].value,true);
+            SilentNode* var = SilentParseVar(
+                localScope, tokens, i, tokens[*i].value, true, true
+            );
             localScope->push_back(var);
             node->structure->size += var->variable->size;
 #if DEBUG
@@ -223,26 +252,42 @@ SilentNode* SilentParseStruct(NodePtrList* scope, TokenList tokens, uint64* i)
     return node;
 }
 
-NodePtrList* SilentParseParameters(
+void Silent::SilentParseParameters(
     SilentFunction* function,
     NodePtrList* scope,
     TokenList tokens,
     uint64* i
 )
 {
-    for(; tokens[*i].type != SilentTokenType::CloseParam; *i+=1)
+    //for(; tokens[*i].type != SilentTokenType::CloseParam; *i+=1)
+    while(true)
     {
         function->parameters.push_back(
             SilentParseVar(
                 &function->parameters,tokens,i,
-                tokens[*i].value,true
+                tokens[*i].value,true,false
             )
         );
+        if(tokens[*i].value == ",")
+        {
+            *i += 1;
+            continue;
+        }
+        else if(tokens[*i].type == SilentTokenType::CloseParam)
+        {
+            *i+=1;
+            break;
+        }
+        else
+        {
+            std::cout << "Error on line "<<tokens[*i].line <<":\n";
+            std::cout << "Invalid token when parsing parameters " 
+            << tokens[*i].value.data() << "\n";
+        }
     }
-    *i+=1;
 }
 
-SilentNode* SilentParseFunction(NodePtrList* scope, TokenList tokens, uint64* i)
+SilentNode* Silent::SilentParseFunction(NodePtrList* scope, TokenList tokens, uint64* i)
 {
     SilentNode* node = new SilentNode();
     node->function = new SilentFunction();
@@ -291,8 +336,11 @@ SilentNode* SilentParseFunction(NodePtrList* scope, TokenList tokens, uint64* i)
         node->function->initialised = true;
     }
 
+#if DEBUG
+    std::cout << "Declared function " << node->name.data() << "\n";
+#endif
 
-    
+    return node;
 }
 
 NodePtrList* Silent::SilentParse(TokenList tokens)
@@ -315,7 +363,9 @@ NodePtrList* Silent::SilentParse(TokenList tokens)
 
         else if(tokens[i].type == SilentTokenType::Primitive)
         {
-            SilentNode* node = SilentParseVar(globalScope,tokens,&i,tokens[i].value,true);
+            SilentNode* node = SilentParseVar(
+                globalScope,tokens,&i,tokens[i].value,true,true
+            );
             globalScope->push_back(node);
         }
 
@@ -324,7 +374,9 @@ NodePtrList* Silent::SilentParse(TokenList tokens)
             SilentDataType type = getType(globalScope, tokens[i].value);
             if(type == SilentDataType::structType)
             {
-                SilentNode* node = SilentParseVar(globalScope,tokens,&i,tokens[i].value,true);
+                SilentNode* node = SilentParseVar(
+                    globalScope,tokens,&i,tokens[i].value,true,true
+                );
                 globalScope->push_back(node);
                 //accessibleScope.push_back(node);
             }

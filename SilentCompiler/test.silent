@@ -11,4 +11,5 @@ struct sampleText
 sampleText var;
 sampleText var1;
 
-func int8 meme(int8 swag);
+func int8 meme(int8 swag, int16 memes);
+func int16 kek(int8 swag, int16 meme);
