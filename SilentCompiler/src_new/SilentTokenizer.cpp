@@ -101,31 +101,31 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
         switch(source[i])
         {
             case ';':
-                token.type = SilentTokenType::Symbol;
+                token.type = SilentTokenType::Semicolon;
                 token.value = ";";
             break;
             case ',':
-                token.type = SilentTokenType::Symbol;
+                token.type = SilentTokenType::Comma;
                 token.value = ",";
             break;
             case '=':
-                token.type = SilentTokenType::ExpressionSymbol;
+                token.type = SilentTokenType::Assign;
                 token.value = "=";
             break;
             case '+':
-                token.type = SilentTokenType::ExpressionSymbol;
+                token.type = SilentTokenType::Add;
                 token.value = "+";
             break;
             case '-':
-                token.type = SilentTokenType::ExpressionSymbol;
+                token.type = SilentTokenType::Subtract;
                 token.value = "-";
             break;
             case '*':
-                token.type = SilentTokenType::ExpressionSymbol;
+                token.type = SilentTokenType::Multiply;
                 token.value = "*";
             break;
             case '/':
-                token.type = SilentTokenType::ExpressionSymbol;
+                token.type = SilentTokenType::Divide;
                 token.value = "/";
             break;
             case '(':
@@ -145,7 +145,7 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
                 token.value = "}";
             break;
             case '\"':
-                token.type = SilentTokenType::StringValue;
+                token.type = SilentTokenType::String;
                 token.value = tokenizeString(source, &line, &i);
             break;
             default:

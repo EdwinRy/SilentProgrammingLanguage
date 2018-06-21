@@ -90,6 +90,7 @@ namespace Silent
     }SilentOperant;
 
 
+    /*
     void SilentParseExpression(
         std::vector<SilentNode*> *scope,
         std::vector<Silent::SilentToken> tokens,
@@ -124,6 +125,7 @@ namespace Silent
         std::vector<Silent::SilentToken> tokens, unsigned long long* i
     );
 
+    */
     std::vector<SilentNode*>* SilentParse(
         std::vector<Silent::SilentToken> tokens
     );

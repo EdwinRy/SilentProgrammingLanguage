@@ -3,6 +3,7 @@
 #include <vector>
 namespace Silent
 {
+    /*
     enum class SilentTokenType
     {
         Unrecognised,
@@ -19,6 +20,31 @@ namespace Silent
         CloseScope,
         OpenParam,
         CloseParam
+    };
+    */
+
+    enum class SilentTokenType
+    {
+        Unrecognised,
+        Identifier,
+        Number,
+        String,
+        OpenParam,
+        CloseParam,
+        OpenScope,
+        CloseScope,
+        Multiply,
+        Divide,
+        Add,
+        Subtract,
+        Semicolon,
+        Primitive,
+        Comma,
+        FullStop,
+        Assign,
+        Function,
+        Struct,
+        Return
     };
 
     typedef struct SilentToken

@@ -9,9 +9,9 @@ typedef std::vector<SilentNode*> NodePtrList;
 
 #define DEBUG 1
 
+
 NodePtrList accessibleScope;
-std::vector<uint64> scopeBreaks;
-uint64 currentPos;
+
 
 SilentNode* getNode(NodePtrList* scope, std::string name, SilentNodeType type)
 {
