@@ -101,28 +101,123 @@ uint64 getLocalPos(NodePtrList* scope)
     }
 }
 
-std::string getNextToken()
-{
-    
-}
-void Silent::SilentParseExpression(
-    NodePtrList* scope, TokenList tokens, uint64* i, SilentOperand* operand
-)
-{
-    *i += 1;
 
-    if(operand->leftUsed)
-    {
 
-    }
-    else if(tokens[*i].value == "=")
-    {
-        SilentOperand* op = new SilentOperand();
-        op->type = SilentOperandType::Assign;
-        op->left = operand;
-        SilentParseExpression(scope,tokens,i,op);
-    }
+SilentToken currentToken;
+TokenList* tokens;
+uint64 cursor;
+
+void nextToken()
+{
+    cursor += 1;
+    currentToken = (*tokens)[cursor];
 }
+
+bool acceptToken(SilentTokenType type)
+{
+    if(currentToken.type == type)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool expectToken(SilentTokenType type)
+{
+    if(acceptToken(type))
+    {
+        return true;
+    }
+    std::cout << "Error on line: " << currentToken.line << "\n";
+    std::cout << "Unexpected token \"" << currentToken.value.data() << "\"\n";
+    return false;
+}
+
+
+/*
+_________    Parse Expression
+_____        Parse Term
+_   _   _    Parse Factor
+2 * 3 + 4
+*/
+
+SilentOperand* parseFactor()
+{
+    if(acceptToken(SilentTokenType::Number))
+    {
+        SilentOperand* operand = new SilentOperand();
+        operand->type = SilentOperandType::Value;
+        operand->tokenData = new SilentToken;
+        *(operand->tokenData) = currentToken;
+        nextToken();
+        return operand;
+    }
+    else if(acceptToken(SilentTokenType::Identifier))
+    {
+        SilentOperand* operand = new SilentOperand();
+        operand->type = SilentOperandType::Identifier;
+        nextToken();
+        return operand;
+    }
+    std::cout << "Error on line: " << currentToken.line << "\n";
+    std::cout << "Syntax error: " << currentToken.value.data() << "\n";
+    return NULL;
+}
+
+SilentOperand* parseTerm()
+{
+    SilentOperand* operand = new SilentOperand();
+    SilentOperand* temp;
+    operand->left = parseFactor();
+
+    while(true)
+    {
+        if(acceptToken(SilentTokenType::Multiply))
+        {
+            operand->type = SilentOperandType::Multiply;
+            nextToken();
+            operand->right = parseFactor();
+            temp = operand;
+            operand = new SilentOperand();
+            operand->left = temp;
+        }
+        else if(acceptToken(SilentTokenType::Divide))
+        {
+            operand->type = SilentOperandType::Divide;
+            nextToken();
+            operand->right = parseFactor();
+            temp = operand;
+            operand = new SilentOperand();
+            operand->left = temp;
+        }
+    }
+    return operand;
+}
+
+void parseExpression()
+{
+    if(currentToken.type == SilentTokenType::Add ||
+        currentToken.type == SilentTokenType::Subtract
+    )
+    {
+        nextToken();
+    }
+
+    parseTerm();
+
+    while(currentToken.type == SilentTokenType::Add ||
+        currentToken.type == SilentTokenType::Subtract
+    )
+    {
+        nextToken();
+        parseTerm();
+    }
+
+}
+
+
+
+
 
 SilentNode* Silent::SilentParseVar(
     NodePtrList* scope,
@@ -183,12 +278,13 @@ SilentNode* Silent::SilentParseVar(
     }
     else
     {
+        /*
         if(tokens[*i].type != SilentTokenType::ExpressionSymbol)
         {
             std::cout << "Error on line "<<tokens[*i].line <<":\n";
             std::cout<<"Expected an expression for the variable declaration\n";
             exit(-1);
-        }
+        }*/
         //Add Expression parse
     }
 }

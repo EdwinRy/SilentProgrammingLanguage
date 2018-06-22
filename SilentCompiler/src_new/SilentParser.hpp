@@ -39,7 +39,8 @@ namespace Silent
         Multiply,
         Divide,
         FunctionCall,
-        Value
+        Value,
+        Identifier
     };
 
     typedef struct SilentVariable SilentVariable;
@@ -84,13 +85,16 @@ namespace Silent
     typedef struct SilentOperand
     {
         SilentOperandType type;
-        bool leftUsed;
         SilentOperand *left, *right;
-        SilentNode* data;
+        union
+        {
+            SilentNode* nodeData;
+            SilentToken* tokenData;
+            SilentVariable* varData;
+        };
     }SilentOperant;
 
 
-    /*
     void SilentParseExpression(
         std::vector<SilentNode*> *scope,
         std::vector<Silent::SilentToken> tokens,
@@ -125,7 +129,6 @@ namespace Silent
         std::vector<Silent::SilentToken> tokens, unsigned long long* i
     );
 
-    */
     std::vector<SilentNode*>* SilentParse(
         std::vector<Silent::SilentToken> tokens
     );
