@@ -8,7 +8,7 @@ typedef std::vector<Silent::SilentToken*> TokenPtrList;
 //typedef std::vector<SilentNode> NodeList;
 typedef std::vector<SilentNode*> NodePtrList;
 
-#define DEBUG 0
+#define DEBUG 1
 
 
 NodePtrList accessibleScope;
@@ -103,20 +103,19 @@ uint64 getLocalPos(NodePtrList* scope)
 }
 
 
-
-SilentToken currentToken;
+SilentToken ct; //current token
 TokenList* tokensPtr;
 uint64 cursor;
 
 void nextToken()
 {
     cursor += 1;
-    currentToken = (*tokensPtr)[cursor];
+ ct = (*tokensPtr)[cursor];
 }
 
 bool acceptToken(SilentTokenType type)
 {
-    if(currentToken.type == type)
+    if(ct.type == type)
     {
         return true;
     }
@@ -129,8 +128,8 @@ bool expectToken(SilentTokenType type)
     {
         return true;
     }
-    std::cout << "Error on line: " << currentToken.line << "\n";
-    std::cout << "Unexpected token \"" << currentToken.value.data() << "\"\n";
+    std::cout << "Error on line: " << ct.line << "\n";
+    std::cout << "Unexpected token \"" << ct.value.data() << "\"\n";
     return false;
 }
 
@@ -138,14 +137,14 @@ SilentOperand* parseExpression();
 SilentOperand* parseFactor()
 {
 #if DEBUG
-    std::cout << currentToken.value.data() << "\n";
+    std::cout << ct.value.data() << "\n";
 #endif
     if(acceptToken(SilentTokenType::Number))
     {
         SilentOperand* operand = new SilentOperand();
         operand->type = SilentOperandType::Value;
         operand->tokenData = new SilentToken;
-        *(operand->tokenData) = currentToken;
+        *(operand->tokenData) = ct;
         nextToken();
         return operand;
     }
@@ -164,8 +163,8 @@ SilentOperand* parseFactor()
         nextToken();
         return operand;
     }
-    std::cout << "Error on line: " << currentToken.line << "\n";
-    std::cout << "Syntax error: " << currentToken.value.data() << "\n";
+    std::cout << "Error on line: " << ct.line << "\n";
+    std::cout << "Syntax error: " << ct.value.data() << "\n";
     nextToken();
     return NULL;
 }
@@ -252,8 +251,6 @@ SilentOperand* parseExpression()
 
 SilentNode* Silent::SilentParseVar(
     NodePtrList* scope,
-    TokenList tokens,
-    uint64* i,
     std::string type,
     bool init,
     bool expectEnd
@@ -267,35 +264,36 @@ SilentNode* Silent::SilentParseVar(
 
     if(node->variable->type == SilentDataType::undefined)
     {
-        std::cout << "Error on line "<<tokens[*i].line <<":\n";
-        std::cout <<"Type "<<tokens[*i].value.data()<<" undefined\n";
+        std::cout << "Error on line "<< ct.line << ":\n";
+        std::cout << "Type "<< ct.value.data() << " undefined\n";
     }
 
 
     else if(node->variable->type == SilentDataType::structType)
     {
         node->variable->typePtr = 
-        getNode(scope, tokens[*i].value,SilentNodeType::structure);
+        getNode(scope, ct.value,SilentNodeType::structure);
         
     }
     node->variable->localPos = getLocalPos(scope);
-    *i += 1;
+    nextToken();
 
-    if(getNode(scope,tokens[*i].value,SilentNodeType::variable) != NULL)
+    if(getNode(scope, ct.value,SilentNodeType::variable) != NULL)
     {
-        std::cout << "Error on line "<<tokens[*i].line <<":\n";
-        std::cout <<"Identifier "<<tokens[*i].value.data()<<" already in use\n";
+        std::cout << "Error on line " << ct.line << ":\n";
+        std::cout 
+        <<"Identifier "<< ct.value.data() <<" already in use\n";
         exit(-1);
     }
-    else node->name = tokens[*i].value;
-    *i += 1;
+    else node->name = ct.value;
+    nextToken();
 
     if(init)
     {
         if(expectEnd)
         {
-            if(tokens[*i].value != ";"){
-                std::cout << "Error on line "<<tokens[*i].line <<":\n";
+            if (ct.value != ";"){
+                std::cout << "Error on line "<< ct.line <<":\n";
                 std::cout << "Expected \";\" at the end of declaration\n";
                 exit(-1);
             }
@@ -320,36 +318,36 @@ SilentNode* Silent::SilentParseVar(
     }
 }
 
-SilentNode* Silent::SilentParseStruct(NodePtrList* scope, TokenList tokens, uint64* i)
+SilentNode* Silent::SilentParseStruct(NodePtrList* scope)
 {
     SilentNode* node = new SilentNode();
     node->structure = new SilentStructure();
     node->type = SilentNodeType::structure;
     NodePtrList* localScope = &(node->structure->variables);
-    *i += 1;
+    nextToken();
 
-    if(getType(scope, tokens[*i].value) != SilentDataType::undefined)
+    if(getType(scope, ct.value) != SilentDataType::undefined)
     {
-        std::cout << "Error on line "<<tokens[*i].line <<":\n";
-        std::cout<<"Identifier "<<tokens[*i].value.data()<<" already in use \n";
+        std::cout << "Error on line "<< ct.line <<":\n";
+        std::cout << "Identifier " << ct.value.data() << " already in use \n";
         exit(-1);
     }
-    else node->name = tokens[*i].value;
-    *i += 1;
+    else node->name = ct.value;
+    nextToken();
 
-    if(tokens[*i].value != "{")
+    if(ct.value != "{")
     {
-        std::cout << "Error on line "<< tokens[*i].line <<":\n";
+        std::cout << "Error on line "<< ct.line <<":\n";
         std::cout << "Expected struct declaration\n";
         exit(-1);
     }
-    *i += 1;
-    for(;tokens[*i].value != "}";*i+=1)
+    nextToken();
+    for(; ct.value != "}"; nextToken())
     {
-        if(getType(scope,tokens[*i].value) != SilentDataType::undefined)
+        if(getType(scope, ct.value) != SilentDataType::undefined)
         {
             SilentNode* var = SilentParseVar(
-                localScope, tokens, i, tokens[*i].value, true, true
+                localScope, ct.value, true, true
             );
             localScope->push_back(var);
             node->structure->size += var->variable->size;
@@ -359,15 +357,16 @@ SilentNode* Silent::SilentParseStruct(NodePtrList* scope, TokenList tokens, uint
         }
         else
         {
-            std::cout << "Error on line "<<tokens[*i].line <<":\n";
-            std::cout<<"Use of non-existing type "<<tokens[*i].value.data()<<"\n";
+            std::cout << "Error on line "<< ct.line << ":\n";
+            std::cout << "Use of non-existing type " << ct.value.data() << "\n";
             exit(-1);
         }
     }
 
 #if DEBUG
     std::cout
-    << "structure " << node->name.data() << " of size: " << node->structure->size
+    << "structure " << node->name.data() << " of size: " 
+    << node->structure->size
     << " declared with variables:\n";
 
     for(uint64 i = 0; i < localScope->size(); i++)
@@ -381,80 +380,74 @@ SilentNode* Silent::SilentParseStruct(NodePtrList* scope, TokenList tokens, uint
 
 void Silent::SilentParseParameters(
     SilentFunction* function,
-    NodePtrList* scope,
-    TokenList tokens,
-    uint64* i
+    NodePtrList* scope
 )
 {
-    //for(; tokens[*i].type != SilentTokenType::CloseParam; *i+=1)
     while(true)
     {
         function->parameters.push_back(
-            SilentParseVar(
-                &function->parameters,tokens,i,
-                tokens[*i].value,true,false
-            )
+            SilentParseVar(&function->parameters,ct.value,true,false)
         );
-        if(tokens[*i].value == ",")
+        if(ct.value == ",")
         {
-            *i += 1;
+            nextToken();
             continue;
         }
-        else if(tokens[*i].type == SilentTokenType::CloseParam)
+        else if(ct.type == SilentTokenType::CloseParam)
         {
-            *i+=1;
+            nextToken();
             break;
         }
         else
         {
-            std::cout << "Error on line "<<tokens[*i].line <<":\n";
+            std::cout << "Error on line " << ct.line << ":\n";
             std::cout << "Invalid token when parsing parameters " 
-            << tokens[*i].value.data() << "\n";
+            << ct.value.data() << "\n";
         }
     }
 }
 
-SilentNode* Silent::SilentParseFunction(NodePtrList* scope, TokenList tokens, uint64* i)
+SilentNode* Silent::SilentParseFunction(NodePtrList* scope)
 {
     SilentNode* node = new SilentNode();
     node->function = new SilentFunction();
     node->type = SilentNodeType::function;
-    *i += 1;
+    nextToken();
 
-    node->function->returnType = getType(scope,tokens[*i].value);
+    node->function->returnType = getType(scope, ct.value);
     if(node->function->returnType == SilentDataType::undefined)
     {
-        std::cout << "Error on line "<<tokens[*i].line <<":\n";
-        std::cout <<"Type "<<tokens[*i].value.data()<<" undefined\n";
+        std::cout << "Error on line "<< ct.line <<":\n";
+        std::cout <<"Type "<< ct.value.data()<<" undefined\n";
         exit(-1);
     }
 
-    *i += 1;
-    if(getNode(scope, tokens[*i].value, SilentNodeType::function) != NULL)
+    nextToken();
+    if(getNode(scope, ct.value, SilentNodeType::function) != NULL)
     {
-        std::cout << "Error on line "<<tokens[*i].line <<":\n";
-        std::cout <<"Identifier "<<tokens[*i].value.data()<<" already in use\n";
+        std::cout << "Error on line "<< ct.line <<":\n";
+        std::cout <<"Identifier "<< ct.value.data()<<" already in use\n";
         exit(-1);
     }
-    else node->name = tokens[*i].value;
-    *i += 1;
+    else node->name = ct.value;
+    nextToken();
 
-    if(tokens[*i].type != SilentTokenType::OpenParam)
+    if(ct.type != SilentTokenType::OpenParam)
     {
-        std::cout << "Error on line "<< tokens[*i].line <<":\n";
+        std::cout << "Error on line "<< ct.line <<":\n";
         std::cout << "Expected \"(\" for parameter declaration\n";
         exit(-1);
     }
 
-    *i += 1;
-    SilentParseParameters(node->function,scope,tokens,i);
+    nextToken();
+    SilentParseParameters(node->function,scope);
 
-    if(tokens[*i].type != SilentTokenType::OpenScope)
+    if(ct.type != SilentTokenType::OpenScope)
     {
         node->function->initialised = false;
-        if(tokens[*i].value != ";")
+        if(ct.value != ";")
         {
-            std::cout << "Error on line "<< tokens[*i].line <<":\n";
+            std::cout << "Error on line "<< ct.line <<":\n";
             std::cout << "Expected \";\" at the end of uninitialised function\n";
         }
     }
@@ -472,64 +465,66 @@ SilentNode* Silent::SilentParseFunction(NodePtrList* scope, TokenList tokens, ui
 
 NodePtrList* Silent::SilentParse(TokenList tokens)
 {
+    /*
     cursor = 0;
-    currentToken = tokens[cursor];
+    ct = tokens[cursor];
     tokensPtr = &tokens;
     SilentPrintTree(parseExpression());
-    /*
+    */
+    
     NodePtrList* globalScope = new NodePtrList();
     //Look for function, struct and variable declarations
     for(uint64 i = 0; i < tokens.size(); i++)
     {
         if(tokens[i].type == SilentTokenType::Struct)
         {
-            SilentNode* node = SilentParseStruct(globalScope, tokens, &i);
+            SilentNode* node = SilentParseStruct(globalScope);
             globalScope->push_back(node);
         }
 
         else if(tokens[i].type == SilentTokenType::Function)
         {
-            SilentNode* node = SilentParseFunction(globalScope,tokens,&i);
+            SilentNode* node = SilentParseFunction(globalScope);
             globalScope->push_back(node);
         }
 
         else if(tokens[i].type == SilentTokenType::Primitive)
         {
             SilentNode* node = SilentParseVar(
-                globalScope,tokens,&i,tokens[i].value,true,true
+                globalScope,ct.value,true,true
             );
             globalScope->push_back(node);
         }
 
         else if(tokens[i].type == SilentTokenType::Identifier)
         {
-            SilentDataType type = getType(globalScope, tokens[i].value);
+            SilentDataType type = getType(globalScope, ct.value);
             if(type == SilentDataType::structType)
             {
                 SilentNode* node = SilentParseVar(
-                    globalScope,tokens,&i,tokens[i].value,true,true
+                    globalScope,ct.value,true,true
                 );
                 globalScope->push_back(node);
                 //accessibleScope.push_back(node);
             }
             else
             {
-                std::cout << "Error on line "<<tokens[i].line <<":\n";
+                std::cout << "Error on line " << ct.line <<":\n";
                 std::cout
                 << "Use of undefined type "
-                << tokens[i].value.data() <<"\n";
+                << ct.value.data() <<"\n";
                 exit(-1);
             }
         }
 
         else
         {
-            std::cout << "Error on line "<<tokens[i].line <<":\n";
+            std::cout << "Error on line "<< ct.line << ":\n";
             std::cout
             << "Unexpected token in the global scope "
-            << tokens[i].value.data() <<"\n";
+            << ct.value.data() <<"\n";
             exit(-1);
         }
     }
-    return globalScope;*/
+    return globalScope;
 }

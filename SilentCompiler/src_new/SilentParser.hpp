@@ -104,30 +104,19 @@ namespace Silent
 
     SilentNode* SilentParseVar(
         std::vector<SilentNode*> *scope,
-        std::vector<Silent::SilentToken> tokens,
-        unsigned long long* i,
         std::string type,
         bool init,
         bool expectEnd
     );
 
-    SilentNode* SilentParseStruct(
-        std::vector<SilentNode*> *scope,
-        std::vector<Silent::SilentToken> tokens,
-        unsigned long long* i
-    );
+    SilentNode* SilentParseStruct(std::vector<SilentNode*> *scope);
 
     void SilentParseParameters(
         SilentFunction* function,
-        std::vector<SilentNode*> *scope,
-        std::vector<Silent::SilentToken> tokens,
-        unsigned long long* i
+        std::vector<SilentNode*> *scope
     );
 
-    SilentNode* SilentParseFunction(
-        std::vector<SilentNode*> *scope, 
-        std::vector<Silent::SilentToken> tokens, unsigned long long* i
-    );
+    SilentNode* SilentParseFunction(std::vector<SilentNode*> *scope);
 
     std::vector<SilentNode*>* SilentParse(
         std::vector<Silent::SilentToken> tokens
