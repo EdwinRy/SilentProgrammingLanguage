@@ -59,7 +59,7 @@ void SilentCompiler::Compile()
     }
     std::vector<SilentToken>* tokens = SilentTokenize(this->source);
     std::vector<Silent::SilentNode*>* nodes = SilentParse(*tokens);
-    SilentFreeNodes(nodes);
+    //SilentFreeNodes(nodes);
     std::cout << "Done!\n";
 }
 

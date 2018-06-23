@@ -1,4 +1,5 @@
 #include "SilentParser.hpp"
+#include "SilentCodeGen.hpp"
 using namespace Silent;
 typedef unsigned long long uint64;
 typedef unsigned int uint32;
@@ -7,7 +8,7 @@ typedef std::vector<Silent::SilentToken*> TokenPtrList;
 //typedef std::vector<SilentNode> NodeList;
 typedef std::vector<SilentNode*> NodePtrList;
 
-#define DEBUG 1
+#define DEBUG 0
 
 
 NodePtrList accessibleScope;
@@ -104,13 +105,13 @@ uint64 getLocalPos(NodePtrList* scope)
 
 
 SilentToken currentToken;
-TokenList* tokens;
+TokenList* tokensPtr;
 uint64 cursor;
 
 void nextToken()
 {
     cursor += 1;
-    currentToken = (*tokens)[cursor];
+    currentToken = (*tokensPtr)[cursor];
 }
 
 bool acceptToken(SilentTokenType type)
@@ -133,16 +134,12 @@ bool expectToken(SilentTokenType type)
     return false;
 }
 
-
-/*
-_________    Parse Expression
-_____        Parse Term
-_   _   _    Parse Factor
-2 * 3 + 4
-*/
-
+SilentOperand* parseExpression();
 SilentOperand* parseFactor()
 {
+#if DEBUG
+    std::cout << currentToken.value.data() << "\n";
+#endif
     if(acceptToken(SilentTokenType::Number))
     {
         SilentOperand* operand = new SilentOperand();
@@ -159,8 +156,17 @@ SilentOperand* parseFactor()
         nextToken();
         return operand;
     }
+    else if(acceptToken(SilentTokenType::OpenParam))
+    {
+        nextToken();
+        SilentOperand* operand = parseExpression();
+        expectToken(SilentTokenType::CloseParam);
+        nextToken();
+        return operand;
+    }
     std::cout << "Error on line: " << currentToken.line << "\n";
     std::cout << "Syntax error: " << currentToken.value.data() << "\n";
+    nextToken();
     return NULL;
 }
 
@@ -190,34 +196,59 @@ SilentOperand* parseTerm()
             operand = new SilentOperand();
             operand->left = temp;
         }
+        else
+        {
+            break;
+        }
     }
-    return operand;
+    temp = operand->left;
+    delete operand;
+    return temp;
 }
 
-void parseExpression()
+SilentOperand* parseExpression()
 {
-    if(currentToken.type == SilentTokenType::Add ||
-        currentToken.type == SilentTokenType::Subtract
+    
+    if(acceptToken(SilentTokenType::Add) ||
+        acceptToken(SilentTokenType::Subtract)
     )
     {
         nextToken();
     }
 
-    parseTerm();
-
-    while(currentToken.type == SilentTokenType::Add ||
-        currentToken.type == SilentTokenType::Subtract
-    )
+    SilentOperand* operand = new SilentOperand();
+    SilentOperand* temp;
+    operand->left = parseTerm();
+    while(true)
     {
-        nextToken();
-        parseTerm();
+        if(acceptToken(SilentTokenType::Add))
+        {
+            operand->type = SilentOperandType::Add;
+            nextToken();
+            operand->right = parseTerm();
+            temp = operand;
+            operand = new SilentOperand();
+            operand->left = temp;
+            
+        }
+        else if(acceptToken(SilentTokenType::Subtract))
+        {
+            operand->type = SilentOperandType::Subtract;
+            nextToken();
+            operand->right = parseTerm();
+            temp = operand;
+            operand = new SilentOperand();
+            operand->left = temp;
+        }
+        else
+        {
+            break;
+        }
     }
-
+    temp = operand->left;
+    delete operand;
+    return temp;
 }
-
-
-
-
 
 SilentNode* Silent::SilentParseVar(
     NodePtrList* scope,
@@ -441,6 +472,11 @@ SilentNode* Silent::SilentParseFunction(NodePtrList* scope, TokenList tokens, ui
 
 NodePtrList* Silent::SilentParse(TokenList tokens)
 {
+    cursor = 0;
+    currentToken = tokens[cursor];
+    tokensPtr = &tokens;
+    SilentPrintTree(parseExpression());
+    /*
     NodePtrList* globalScope = new NodePtrList();
     //Look for function, struct and variable declarations
     for(uint64 i = 0; i < tokens.size(); i++)
@@ -495,5 +531,5 @@ NodePtrList* Silent::SilentParse(TokenList tokens)
             exit(-1);
         }
     }
-    return globalScope;
+    return globalScope;*/
 }
