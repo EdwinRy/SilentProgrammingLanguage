@@ -21,6 +21,9 @@ std::string getOperandType(SilentOperandType type)
         case SilentOperandType::Divide:
             return "Divide";
         break;
+        case SilentOperandType::Identifier:
+            return "id";
+        break;
     }
 }
 
