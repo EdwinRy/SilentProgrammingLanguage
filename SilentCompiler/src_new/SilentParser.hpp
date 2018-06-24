@@ -9,7 +9,8 @@ namespace Silent
     {
         variable,
         structure,
-        function
+        function,
+        scope
     };
 
     enum class SilentDataType
@@ -46,6 +47,7 @@ namespace Silent
     typedef struct SilentVariable SilentVariable;
     typedef struct SilentStructure SilentStructure;
     typedef struct SilentFunction SilentFunction;
+    typedef struct SilentOperand SilentOperand;
     typedef struct SilentNode
     {
         SilentNodeType type;
@@ -63,6 +65,7 @@ namespace Silent
         unsigned long long size;
         SilentDataType type;
         SilentNode* typePtr;
+        SilentOperand* expresion;
         bool initialised;
         unsigned long long localPos;
     }SilentVariable;
@@ -115,6 +118,8 @@ namespace Silent
         SilentFunction* function,
         std::vector<SilentNode*> *scope
     );
+
+    SilentNode* SilentParseScope();
 
     SilentNode* SilentParseFunction(std::vector<SilentNode*> *scope);
 
