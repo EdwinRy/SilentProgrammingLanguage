@@ -1,8 +1,5 @@
-src = src/SilentASM.c
+src = src/SilentASM2.c
 out = bin/SilentASM
 
 all:
 	gcc $(src) -o $(out)
-
-testvm:
-	cp out.test ../SilentVM/out.test
