@@ -48,6 +48,7 @@ namespace Silent
     typedef struct SilentStructure SilentStructure;
     typedef struct SilentFunction SilentFunction;
     typedef struct SilentOperand SilentOperand;
+    typedef struct SilentScope SilentScope;
     typedef struct SilentNode
     {
         SilentNodeType type;
@@ -57,6 +58,8 @@ namespace Silent
             SilentVariable* variable;
             SilentStructure* structure;
             SilentFunction* function;
+            SilentOperand* expresion;
+            SilentScope* scope;
         };
     }SilentNode;
 
@@ -76,6 +79,11 @@ namespace Silent
         std::vector<SilentNode*> variables;
     }SilentStructure;
 
+    typedef struct SilentScope
+    {
+        std::vector<SilentNode*> nodes;
+    }SilentScope;
+
     typedef struct SilentFunction
     {
         std::vector<SilentNode*> parameters;
@@ -83,6 +91,7 @@ namespace Silent
         unsigned long long returnTypePtr;
         unsigned long long returnSize;
         SilentDataType returnType;
+        SilentScope* scope;
     }SilentFunction;
 
     typedef struct SilentOperand
@@ -119,7 +128,7 @@ namespace Silent
         std::vector<SilentNode*> *scope
     );
 
-    SilentNode* SilentParseScope();
+    SilentNode* SilentParseScope(std::vector<SilentNode*> *scope);
 
     SilentNode* SilentParseFunction(std::vector<SilentNode*> *scope);
 

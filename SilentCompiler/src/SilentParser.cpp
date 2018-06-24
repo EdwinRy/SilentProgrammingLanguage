@@ -427,21 +427,28 @@ void Silent::SilentParseParameters(
     }
 }
 
-SilentNode* Silent::SilentParseScope()
+SilentNode* Silent::SilentParseScope(NodePtrList* scope)
 {
-    SilentNode* node = new SilentNode();
+    SilentNode* newScope = new SilentNode();
+    newScope->type = SilentNodeType::scope;
+    newScope->scope = new SilentScope();
     
     while(!acceptToken(SilentTokenType::CloseScope))
     {
         if(acceptToken(SilentTokenType::Primitive))
         {
-
+            SilentNode* node = SilentParseVar(
+                &newScope->scope->nodes,ct.value,false,true
+            );
+            newScope->scope->nodes.push_back(node);
         }
         else if(acceptToken(SilentTokenType::Identifier))
         {
 
         }
     }
+    nextToken();
+    return newScope;
 }
 
 SilentNode* Silent::SilentParseFunction(NodePtrList* scope)
@@ -469,23 +476,21 @@ SilentNode* Silent::SilentParseFunction(NodePtrList* scope)
     else node->name = ct.value;
     nextToken();
 
-    if(ct.type != SilentTokenType::OpenParam)
+    if(!acceptToken(SilentTokenType::OpenParam))
     {
-        std::cout << "Error on line "<< ct.line <<":\n";
-        std::cout << "Expected \"(\" for parameter declaration\n";
+        errorMsg("Expected \"(\" for parameter declaration");
         exit(-1);
     }
 
     nextToken();
     SilentParseParameters(node->function,scope);
 
-    if(ct.type != SilentTokenType::OpenScope)
+    if(!acceptToken(SilentTokenType::OpenScope))
     {
         node->function->initialised = false;
-        if(ct.value != ";")
+        if(!acceptToken(SilentTokenType::Semicolon))
         {
-            std::cout << "Error on line "<< ct.line <<":\n";
-            std::cout << "Expected \";\" at the end of uninitialised function\n";
+            errorMsg("Expected \";\" at the end of uninitialised function");
         }
         nextToken();
     }
@@ -493,10 +498,7 @@ SilentNode* Silent::SilentParseFunction(NodePtrList* scope)
     {
         node->function->initialised = true;
         nextToken();
-        while(true)
-        {
-            if(acceptToken )
-        }
+        node->function->scope = SilentParseScope(scope);
     }
 
 #if DEBUG
