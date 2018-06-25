@@ -34,7 +34,9 @@ int main(int argc, char** argv)
 		//Push8,
 		//-51,-52,-52,-52,-52,-52,0,64,
 		Alloc,4,0,0,0,0,0,0,0,
-		Alloc,4,0,0,0,0,0,0,0,
+		Push,5,9,0,0,0,
+		
+		GetPtr,
 		//Pop,
 		Halt
 	};

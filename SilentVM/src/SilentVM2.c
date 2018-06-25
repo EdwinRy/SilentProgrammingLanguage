@@ -147,7 +147,7 @@ void silentVMStart(SilentVM* vm)
 
 	char* 				program = vm->program;
 	char* 				stack 	= vm->memory->stack;
-	//SilentVector*		heap	= vm->memory->heap;
+	SilentVector*		heap	= vm->memory->heap;
 	SilentVector* 		stackT  = vm->memory->stackTypes;
 	//SilentVector*		stackF	= vm->memory->stackFrame;
 
@@ -381,81 +381,62 @@ void silentVMStart(SilentVM* vm)
             break;
 
             case LoadPtr:
+				//get pointer
+				sp -= 8;
+                memcpy(&tempPtr, stack + sp, 8);
                 switch(program[++pc])
                 {
                     case INT8:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 1);
                         sp += 1;
                         SilentPushBack(stackT,dt + INT8);
                     break;
                     case UINT8:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 1);
                         sp += 1;
                         SilentPushBack(stackT,dt + UINT8);
                     break;
                     case INT16:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 2);
                         sp += 2;
                         SilentPushBack(stackT,dt + INT16);
                     break;
                     case UINT16:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 2);
                         sp += 2;
                         SilentPushBack(stackT,dt + UINT16);
                     break;
                     case INT32:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 4);
                         sp += 4;
                         SilentPushBack(stackT,dt + INT32);
                     break;
                     case UINT32:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 4);
                         sp += 4;
                         SilentPushBack(stackT,dt + UINT32);
                     break;
                     case INT64:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 8);
                         sp += 8;
                         SilentPushBack(stackT,dt + INT64);
                     break;
                     case UINT64:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 8);
                         sp += 8;
                         SilentPushBack(stackT,dt + UINT64);
                     break;
                     case FLOAT32:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 4);
                         sp += 4;
                         SilentPushBack(stackT,dt + FLOAT32);
                     break;
                     case FLOAT64:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 8);
                         sp += 8;
                         SilentPushBack(stackT,dt + FLOAT64);
                     break;
                     case POINTER:
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
                         memcpy(stack + sp, tempPtr, 8);
                         sp += 8;
                         SilentPushBack(stackT,dt + POINTER);
@@ -463,8 +444,7 @@ void silentVMStart(SilentVM* vm)
 
                     case UNDEFINED:
                         memcpy(&reg.l, program + ++pc, 8);
-                        sp -= 8;
-                        memcpy(&tempPtr, stack + sp, 8);
+						pc += 7;
                         memcpy(stack + sp, tempPtr, reg.l);
                         sp += reg.l;
                         SilentPushBack(stackT, dt + UNDEFINED);
@@ -473,6 +453,39 @@ void silentVMStart(SilentVM* vm)
                     break;
                 }
             break;
+
+			case StorePtr:
+				//Get pointer
+				sp -= 8;
+				memcpy(&tempPtr, stack + sp, 8);
+				SilentPopBack(stackT);
+				reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+				if(reg.c != 0)
+                {
+					sp -= reg.c;
+					memcpy(&tempPtr, stack + sp, reg.c);
+					SilentPopBack(stackT);
+                }
+                else
+                {
+					//get data size
+					sp -= 8;
+					memcpy(&reg.l, stackT->data + (stackT->ptr-9), 8);
+					//store data
+					sp -= reg.l;
+					memcpy(&tempPtr, stack + sp, reg.l);
+					SilentPopMultiple(stackT,10);
+                }
+			break;
+
+			case GetPtr:
+
+				sp -= 8;
+				memcpy(reg.l, stack + sp, 8);
+				SilentPopBack(stackT);
+				tempPtr = ((SilentMemoryBlock*)heap->data)[reg.l].data;
+				
+			break;
 /*
 			case StorePtr1:
 				*sp -= 8;
