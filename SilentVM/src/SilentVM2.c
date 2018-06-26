@@ -384,6 +384,7 @@ void silentVMStart(SilentVM* vm)
 				//get pointer
 				sp -= 8;
                 memcpy(&tempPtr, stack + sp, 8);
+				SilentPopBack(stackT);
                 switch(program[++pc])
                 {
                     case INT8:
@@ -441,7 +442,11 @@ void silentVMStart(SilentVM* vm)
                         sp += 8;
                         SilentPushBack(stackT,dt + POINTER);
                     break;
-
+					case POINTER_LOCATION:
+                        memcpy(stack + sp, tempPtr, 8);
+                        sp += 8;
+                        SilentPushBack(stackT,dt + POINTER_LOCATION);
+                    break;
                     case UNDEFINED:
                         memcpy(&reg.l, program + ++pc, 8);
 						pc += 7;
@@ -463,7 +468,7 @@ void silentVMStart(SilentVM* vm)
 				if(reg.c != 0)
                 {
 					sp -= reg.c;
-					memcpy(&tempPtr, stack + sp, reg.c);
+					memcpy(tempPtr, stack + sp, reg.c);
 					SilentPopBack(stackT);
                 }
                 else
@@ -473,79 +478,36 @@ void silentVMStart(SilentVM* vm)
 					memcpy(&reg.l, stackT->data + (stackT->ptr-9), 8);
 					//store data
 					sp -= reg.l;
-					memcpy(&tempPtr, stack + sp, reg.l);
+					memcpy(tempPtr, stack + sp, reg.l);
 					SilentPopMultiple(stackT,10);
                 }
 			break;
 
 			case GetPtr:
-
 				sp -= 8;
-				memcpy(reg.l, stack + sp, 8);
+				memcpy(&reg.l, stack + sp, 8);
 				SilentPopBack(stackT);
 				tempPtr = ((SilentMemoryBlock*)heap->data)[reg.l].data;
-				
-			break;
-/*
-			case StorePtr1:
-				*sp -= 8;
-				memcpy(&tempPtr, (long*)(stack + *sp + *fp), 8);
-				*sp -= 1;
-				memcpy(tempPtr, (char*)(stack + *sp + *fp), 1);
-				SilentPopMultiple(stackT, 2);
+				memcpy(stack + sp, &tempPtr, 8);
+				sp += 8;
+				SilentPushBack(stackT, dt + POINTER);
 			break;
 
-			case StorePtr2:
-				*sp -= 8;
-				memcpy(&tempPtr, (long*)(stack + *sp + *fp), 8);
-				*sp -= 2;
-				memcpy(tempPtr, (char*)(stack + *sp + *fp), 2);
-				SilentPopMultiple(stackT, 2);
+			case FreePtr:
+				sp -= 8;
+				memcpy(&tempPtr, stack + sp, 8);
+				free(tempPtr);
+				SilentPopBack(stackT);
 			break;
 
-			case StorePtr4:
-				*sp -= 8;
-				memcpy(&tempPtr, (long*)(stack + *sp + *fp), 8);
-				*sp -= 4;
-				memcpy(tempPtr, (char*)(stack + *sp + *fp), 4);
-				SilentPopMultiple(stackT, 2);
-			break;
-
-			case StorePtr8:
-				*sp -= 8;
-				memcpy(&tempPtr, (long*)(stack + *sp + *fp), 8);
-				*sp -= 8;
-				memcpy(tempPtr, (char*)(stack + *sp + *fp), 8);
-				SilentPopMultiple(stackT, 2);
-			break;
-
-			case StorePtrX:
-				reg.l = *(uint64*)(vm->program + (++vm->programCounter));
-				vm->programCounter += 7;
-				*sp -= 8;
-				memcpy(&tempPtr, (long*)(stack + *sp + *fp), 8);
-				*sp -= reg.l;
-				memcpy(tempPtr, (char*)(stack + *sp + *fp), reg.l);
-				SilentPopMultiple(stackT, 10);
-			break;
-
-			case FREE:
-				reg2.l = *((uint64*)(vm->program + ++vm->programCounter));
-				reg.l = *((long*)(stack + *fp + reg2.l));
-				vm->programCounter += 7;
+			case Free:
+				sp -= 8;
+				memcpy(&reg.l, stack + sp, 8);
+				SilentPopBack(stackT);
 				SilentFree(vm->gc, reg.l);
 			break;
 
-			case GetPtr:
-				reg2.l = *((uint64*)(vm->program + ++vm->programCounter));
-				reg.l = *((long*)(stack + *fp + reg2.l));
-				vm->programCounter += 7;
-				reg.l = (long)((SilentMemoryBlock*)heap->data)[reg.l].data;
-				memcpy(stack + *sp + *fp, &reg.l, 8);
-				*sp+=8;
-				SilentPushBack(stackT,&ds[POINTER]);
-			break;
-
+/*
 			case AddByte:
 				*sp-=1;
 				*(char*)(stack + (*sp-1) + *fp) += *(char*)(stack + *sp + *fp);
@@ -1198,6 +1160,7 @@ void SilentSweep(SilentGC* gc)
 		if(((SilentMemoryBlock*)(heap->data))[i].marked != markedByte-2)
 		{
 			((SilentMemoryBlock*)(heap->data))[i].occupied = 0;
+			printf("freeing a thing\n");
 			free(((SilentMemoryBlock*)(heap->data))[i].data);
 			mem->freeHeapSpace = 1;
 		}
@@ -1223,6 +1186,10 @@ void SilentMark(SilentGC* gc)
 				((SilentMemoryBlock*)(heap->data))[temp].marked = markedByte;
 				stackPtr += 8;
 				printf("Marked a thing\n");
+				if(((SilentMemoryBlock*)(heap->data))[temp].occupied == 0)
+				{
+					free(((SilentMemoryBlock*)(heap->data))[temp].data);
+				}
 			break;		
 			case UNDEFINED:
 				temp = *((long*)(stackT->data + i));
@@ -1269,6 +1236,7 @@ long SilentAlloc(SilentGC* gc, uint64 size)
 		SilentPushBack(heap, memBlock);
 		mem->heapPtr = heap->ptr/sizeof(SilentMemoryBlock);
 		printf("Alloc at %i\n",mem->heapPtr-1);
+		printf("alloc ptr: %lu\n",memBlock->data);
 		return mem->heapPtr-1;
 	}
 }

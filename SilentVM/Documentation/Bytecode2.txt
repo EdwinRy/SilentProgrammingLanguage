@@ -1,7 +1,9 @@
+<instruction> <parameters in code> (<parameters on stack>)
+
 Halt - stop the vm execution
 Goto x - change program counter to value of x 
-Sweep - 
-Call - 
+Sweep - Force the VM to perform making and sweeping
+Call x - Call subroutine at location x 
 Return - 
 LoadDll - 
 LoadDllFunc - 
