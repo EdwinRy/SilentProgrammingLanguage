@@ -182,6 +182,20 @@ void silentVMStart(SilentVM* vm)
 				SilentSweep(vm->gc);
 			break;
 
+			case Call:
+			break;
+
+			case Return:
+			break;
+
+			case LoadDll:
+			break;
+
+			case LoadDllFunc:
+			break;
+
+			case FreeDll:
+			break;
 
             case Push:
                 switch(program[++pc])
@@ -507,159 +521,414 @@ void silentVMStart(SilentVM* vm)
 				SilentFree(vm->gc, reg.l);
 			break;
 
+			case Add:
+				SilentPopBack(stackT);
+				switch(stackT->data[stackT->ptr-1])
+				{
+					case INT8:
+                    case UINT8:
+						sp--;
+                        stack[sp] += program[pc+1];
+                    break;
+                    case INT16:
+                    case UINT16:
+						sp -= 2;
+						(*(unsigned short*)(stack + sp-2)) +=
+						(*(unsigned short*)(stack + sp));
+                    break;
+                    case INT32:
+                    case UINT32:
+                        sp -= 4;
+						(*(unsigned int*)(stack + sp-4)) +=
+						(*(unsigned int*)(stack + sp));
+                    break;
+                    case INT64:
+                    case UINT64:
+					case POINTER:
+                        sp -= 8;
+						(*(uint64*)(stack + sp-8)) +=
+						(*(uint64*)(stack + sp));
+                    break;
+                    case FLOAT32:
+                        sp -= 4;
+						(*(float*)(stack + sp-4)) +=
+						(*(float*)(stack + sp));
+                    break;
+                    case FLOAT64:
+                        sp -= 8;
+						(*(double*)(stack + sp-8)) +=
+						(*(double*)(stack + sp));
+                    break;
+				}
+			break;
+
+			case Sub:
+				SilentPopBack(stackT);
+				switch(stackT->data[stackT->ptr-1])
+				{
+					case INT8:
+                    case UINT8:
+						sp--;
+                        stack[sp] -= program[pc+1];
+                    break;
+                    case INT16:
+                    case UINT16:
+						sp -= 2;
+						(*(unsigned short*)(stack + sp-2)) -=
+						(*(unsigned short*)(stack + sp));
+                    break;
+                    case INT32:
+                    case UINT32:
+                        sp -= 4;
+						(*(unsigned int*)(stack + sp-4)) -=
+						(*(unsigned int*)(stack + sp));
+                    break;
+                    case INT64:
+                    case UINT64:
+					case POINTER:
+                        sp -= 8;
+						(*(uint64*)(stack + sp-8)) -=
+						(*(uint64*)(stack + sp));
+                    break;
+                    case FLOAT32:
+                        sp -= 4;
+						(*(float*)(stack + sp-4)) -=
+						(*(float*)(stack + sp));
+                    break;
+                    case FLOAT64:
+                        sp -= 8;
+						(*(double*)(stack + sp-8)) -=
+						(*(double*)(stack + sp));
+                    break;
+				}
+			break;
+
+			case Mul:
+				SilentPopBack(stackT);
+				switch(stackT->data[stackT->ptr-1])
+				{
+					case INT8:
+                    case UINT8:
+						sp--;
+                        stack[sp] *= program[pc+1];
+                    break;
+                    case INT16:
+                    case UINT16:
+						sp -= 2;
+						(*(unsigned short*)(stack + sp-2)) *=
+						(*(unsigned short*)(stack + sp));
+                    break;
+                    case INT32:
+                    case UINT32:
+                        sp -= 4;
+						(*(unsigned int*)(stack + sp-4)) *=
+						(*(unsigned int*)(stack + sp));
+                    break;
+                    case INT64:
+                    case UINT64:
+					case POINTER:
+                        sp -= 8;
+						(*(uint64*)(stack + sp-8)) *=
+						(*(uint64*)(stack + sp));
+                    break;
+                    case FLOAT32:
+                        sp -= 4;
+						(*(float*)(stack + sp-4)) *=
+						(*(float*)(stack + sp));
+                    break;
+                    case FLOAT64:
+                        sp -= 8;
+						(*(double*)(stack + sp-8)) *=
+						(*(double*)(stack + sp));
+                    break;
+				}
+			break;
+
+			case Div:
+				SilentPopBack(stackT);
+				switch(stackT->data[stackT->ptr-1])
+				{
+					case INT8:
+						sp--;
+						(*(char*)(stack + sp-1)) /=
+						(*(char*)(stack + sp));
+					break;
+                    case UINT8:
+						sp--;
+						(*(unsigned char*)(stack + sp-1)) /=
+						(*(unsigned char*)(stack + sp));
+                    break;
+                    case INT16:
+						sp -= 2;
+						(*(short*)(stack + sp-2)) /=
+						(*(short*)(stack + sp));
+					break;
+                    case UINT16:
+						sp -= 2;
+						(*(unsigned short*)(stack + sp-2)) /=
+						(*(unsigned short*)(stack + sp));
+                    break;
+                    case INT32:
+						sp -= 4;
+						(*(int*)(stack + sp-4)) /=
+						(*(int*)(stack + sp));
+					break;
+                    case UINT32:
+                        sp -= 4;
+						(*(unsigned int*)(stack + sp-4)) /=
+						(*(unsigned int*)(stack + sp));
+                    break;
+                    case INT64:
+						sp -= 8;
+						(*(int64*)(stack + sp-8)) /=
+						(*(int64*)(stack + sp));
+					break;
+                    case UINT64:
+					case POINTER:
+                        sp -= 8;
+						(*(uint64*)(stack + sp-8)) /=
+						(*(uint64*)(stack + sp));
+                    break;
+                    case FLOAT32:
+                        sp -= 4;
+						(*(float*)(stack + sp-4)) /=
+						(*(float*)(stack + sp));
+                    break;
+                    case FLOAT64:
+                        sp -= 8;
+						(*(double*)(stack + sp-8)) /=
+						(*(double*)(stack + sp));
+                    break;
+				}
+			break;
+
+			case Convert:
+			break;
+
+			case SmallerThan:
+				SilentPopBack(stackT);
+				SilentPopBack(stackT);
+				switch(stackT->data[stackT->ptr])
+				{
+					case INT8:
+						sp-=2;
+						reg.c = (*(char*)(stack + sp)) <
+						(*(char*)(stack + sp+1));
+					break;
+                    case UINT8:
+						sp-=2;
+						reg.c = (*(unsigned char*)(stack + sp)) <
+						(*(unsigned char*)(stack + sp+1));
+                    break;
+                    case INT16:
+						sp -= 4;
+						reg.c = (*(short*)(stack + sp)) <
+						(*(short*)(stack + sp+2));
+					break;
+                    case UINT16:
+						sp -= 4;
+						reg.c = (*(unsigned short*)(stack + sp)) <
+						(*(unsigned short*)(stack + sp+2));
+                    break;
+                    case INT32:
+						sp -= 8;
+						reg.c = (*(int*)(stack + sp)) <
+						(*(int*)(stack + sp+4));
+					break;
+                    case UINT32:
+                        sp -= 8;
+						reg.c = (*(unsigned int*)(stack + sp)) <
+						(*(unsigned int*)(stack + sp+4));
+                    break;
+                    case INT64:
+						sp -= 16;
+						reg.c = (*(int64*)(stack + sp)) <
+						(*(int64*)(stack + sp+8));
+					break;
+                    case UINT64:
+					case POINTER:
+                        sp -= 16;
+						reg.c = (*(uint64*)(stack + sp)) <
+						(*(uint64*)(stack + sp+8));
+                    break;
+                    case FLOAT32:
+                        sp -= 8;
+						reg.c = (*(float*)(stack + sp)) <
+						(*(float*)(stack + sp+4));
+                    break;
+                    case FLOAT64:
+                        sp -= 16;
+						reg.c = (*(double*)(stack + sp)) <
+						(*(double*)(stack + sp+8));
+                    break;
+				}
+				stack[sp++] = reg.c;
+				SilentPushBack(stackT, dt + UINT8);
+			break;
+
+			case LargerThan:
+				SilentPopBack(stackT);
+				SilentPopBack(stackT);
+				switch(stackT->data[stackT->ptr])
+				{
+					case INT8:
+						sp-=2;
+						reg.c = (*(char*)(stack + sp)) >
+						(*(char*)(stack + sp+1));
+					break;
+                    case UINT8:
+						sp-=2;
+						reg.c = (*(unsigned char*)(stack + sp)) >
+						(*(unsigned char*)(stack + sp+1));
+                    break;
+                    case INT16:
+						sp -= 4;
+						reg.c = (*(short*)(stack + sp)) >
+						(*(short*)(stack + sp+2));
+					break;
+                    case UINT16:
+						sp -= 4;
+						reg.c = (*(unsigned short*)(stack + sp)) >
+						(*(unsigned short*)(stack + sp+2));
+                    break;
+                    case INT32:
+						sp -= 8;
+						reg.c = (*(int*)(stack + sp)) >
+						(*(int*)(stack + sp+4));
+					break;
+                    case UINT32:
+                        sp -= 8;
+						reg.c = (*(unsigned int*)(stack + sp)) >
+						(*(unsigned int*)(stack + sp+4));
+                    break;
+                    case INT64:
+						sp -= 16;
+						reg.c = (*(int64*)(stack + sp)) >
+						(*(int64*)(stack + sp+8));
+					break;
+                    case UINT64:
+					case POINTER:
+                        sp -= 16;
+						reg.c = (*(uint64*)(stack + sp)) >
+						(*(uint64*)(stack + sp+8));
+                    break;
+                    case FLOAT32:
+                        sp -= 8;
+						reg.c = (*(float*)(stack + sp)) >
+						(*(float*)(stack + sp+4));
+                    break;
+                    case FLOAT64:
+                        sp -= 16;
+						reg.c = (*(double*)(stack + sp)) >
+						(*(double*)(stack + sp+8));
+                    break;
+				}
+				stack[sp++] = reg.c;
+				SilentPushBack(stackT, dt + UINT8);
+			break;
+
+			case Equal:
+				SilentPopBack(stackT);
+				SilentPopBack(stackT);
+				switch(stackT->data[stackT->ptr])
+				{
+					case INT8:
+						sp-=2;
+						reg.c = (*(char*)(stack + sp)) ==
+						(*(char*)(stack + sp+1));
+					break;
+                    case UINT8:
+						sp-=2;
+						reg.c = (*(unsigned char*)(stack + sp)) ==
+						(*(unsigned char*)(stack + sp+1));
+                    break;
+                    case INT16:
+						sp -= 4;
+						reg.c = (*(short*)(stack + sp)) ==
+						(*(short*)(stack + sp+2));
+					break;
+                    case UINT16:
+						sp -= 4;
+						reg.c = (*(unsigned short*)(stack + sp)) ==
+						(*(unsigned short*)(stack + sp+2));
+                    break;
+                    case INT32:
+						sp -= 8;
+						reg.c = (*(int*)(stack + sp)) ==
+						(*(int*)(stack + sp+4));
+					break;
+                    case UINT32:
+                        sp -= 8;
+						reg.c = (*(unsigned int*)(stack + sp)) ==
+						(*(unsigned int*)(stack + sp+4));
+                    break;
+                    case INT64:
+						sp -= 16;
+						reg.c = (*(int64*)(stack + sp)) ==
+						(*(int64*)(stack + sp+8));
+					break;
+                    case UINT64:
+					case POINTER:
+                        sp -= 16;
+						reg.c = (*(uint64*)(stack + sp)) ==
+						(*(uint64*)(stack + sp+8));
+                    break;
+                    case FLOAT32:
+                        sp -= 8;
+						reg.c = (*(float*)(stack + sp)) ==
+						(*(float*)(stack + sp+4));
+                    break;
+                    case FLOAT64:
+                        sp -= 16;
+						reg.c = (*(double*)(stack + sp)) ==
+						(*(double*)(stack + sp+8));
+                    break;
+				}
+				stack[sp++] = reg.c;
+				SilentPushBack(stackT, dt + UINT8);
+			break;
+
+			case If:
+				sp--;
+				SilentPopBack(stackT);
+				if(stack[sp])
+				{
+					pc++;
+					pc = *((uint64*)(program + (pc)));
+					pc--;
+				}
+				else pc += 8;
+			break;
+
+			case IfNot:
+				sp--;
+				SilentPopBack(stackT);
+				if(!stack[sp])
+				{
+					pc++;
+					pc = *((uint64*)(program + (pc)));
+					pc--;
+				}
+				else pc += 8;
+			break;
+
+			case And:
+				sp--;
+				SilentPopBack(stackT);
+				stack[sp-1] = stack[sp-1] & stack[sp];
+			break;
+
+			case Or:
+				sp--;
+				SilentPopBack(stackT);
+				stack[sp-1] = stack[sp-1] | stack[sp];
+			break;
+
+			case Not:
+				stack[sp-1] = !stack[sp-1];
+			break;
+
 /*
-			case AddByte:
-				*sp-=1;
-				*(char*)(stack + (*sp-1) + *fp) += *(char*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case AddInt:
-				*sp-=4;
-				*(int*)(stack + (*sp-4) + *fp) += *(int*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-			
-			case AddShort:
-				*sp-=2;
-				*(short*)(stack+ (*sp-2) + *fp) += *(short*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case AddLong:
-				*sp-=8;
-				*(int64*)(stack+ (*sp-8) + *fp) += *(int64*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-			
-			case AddFloat:
-				*sp-=4;
-				*(float*)(stack+ (*sp-4) + *fp) += *(float*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case AddDouble:
-				*sp-=8;
-				*(double*)(stack+(*sp-8)+ *fp) += *(double*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-
-
-			case SubByte:
-				*sp-=1;
-				*(char*)(stack + (*sp-1) + *fp) -= *(char*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case SubShort:
-				*sp-=2;
-				*(short*)(stack + (*sp-2) + *fp) -= *(short*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case SubInt:
-				*sp-=4;
-				*(int*)(stack + (*sp-4) + *fp) -= *(int*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case SubLong:
-				*sp-=8;
-				*(int64*)(stack + (*sp-8) + *fp) -= *(int64*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-			
-			case SubFloat:
-				*sp-=4;
-				*(float*)(stack + (*sp-4) + *fp) -= *(float*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case SubDouble:
-				*sp-=8;
-				*(double*)(stack + (*sp-8) + *fp) -= *(double*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-			
-			
-			
-			case MulByte:
-				*sp-=1;
-				*(char*)(stack + (*sp-1) + *fp) *= *(char*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case MulShort:
-				*sp-=2;
-				*(short*)(stack + (*sp-1) + *fp) *= *(short*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case MulInt:
-				*sp-=4;
-				*(int*)(stack + (*sp-4) + *fp) *= *(int*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case MulLong:
-				*sp-=8;
-				*(int64*)(stack + (*sp-8) + *fp) *= *(int64*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case MulFloat:
-				*sp-=4;
-				*(float*)(stack + (*sp-4) + *fp) *= *(float*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case MulDouble:
-				*sp-=8;
-				*(double*)(stack + (*sp-8) + *fp) *= *(double*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-
-
-			case DivByte:
-				*sp-=1;
-				*(char*)(stack + (*sp-1) + *fp) /= *(char*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case DivShort:
-				*sp-=2;
-				*(short*)(stack + (*sp-2) + *fp) /= *(short*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case DivInt:
-				*sp-=4;
-				*(int*)(stack + (*sp-4) + *fp) /= *(int*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case DivLong:
-				*sp-=8;
-				*(int64*)(stack + (*sp-8) + *fp) /= *(int64*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case DivFloat:
-				*sp-=4;
-				*(float*)(stack + (*sp-4) + *fp) /= *(float*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-			case DivDouble:
-				*sp-=8;
-				*(double*)(stack + (*sp-8) + *fp) /= *(double*)(stack + *sp + *fp);
-				SilentPopBack(stackT);
-			break;
-
-
-
 			case ByteToShort:
 				memset(stack + *sp + *fp, 0, 1);
 				*sp += 1;
@@ -693,8 +962,6 @@ void silentVMStart(SilentVM* vm)
 				*sp += 8;
 				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
 			break;
-
-
 
 			case ShortToByte:
 				*sp-=1;
@@ -1101,42 +1368,7 @@ void silentVMStart(SilentVM* vm)
 					memory->stack[memory->stackPointer-1] = 0;
 				}
 			break;
-
-
-
-			case If:
-				*sp-=1;
-				SilentPopBack(stackT);
-				if(*(char*)(stack + *sp + *fp))
-				{
-					vm->programCounter++;
-					vm->programCounter = 
-					*((uint*)(vm->program + (vm->programCounter)));
-					vm->programCounter--;
-				}
-				else
-				{
-					vm->programCounter += 8;
-				}
-			break;
-
-
-			case IfNot:
-				*sp-=1;
-				SilentPopBack(stackT);
-				if(!(*(char*)(stack + *sp + *fp)))
-				{
-					vm->programCounter++;
-					vm->programCounter = 
-					*((uint*)(vm->program + (vm->programCounter)));
-					vm->programCounter--;
-				}
-				else
-				{
-					vm->programCounter += 8;
-				}
-			break;
-            */
+*/
 		}
 		pc++;
 	}

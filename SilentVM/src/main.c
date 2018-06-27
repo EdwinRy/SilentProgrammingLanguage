@@ -33,17 +33,9 @@ int main(int argc, char** argv)
 	{
 		//Push8,
 		//-51,-52,-52,-52,-52,-52,0,64,
-		Alloc,4,0,0,0,0,0,0,0,
-		Push,5,9,0,0,0,
-		LoadGlobal,11,0,0,0,0,0,0,0,0,
-		GetPtr,
-		StorePtr,
-		LoadGlobal,11,0,0,0,0,0,0,0,0,
-		GetPtr,
-		LoadPtr,5,
-		LoadGlobal,11,0,0,0,0,0,0,0,0,
-		Free,
-		Sweep,
+		Push,5,0,1,0,0,
+		Push,5,1,1,0,0,
+		Equal,
 		Halt
 	};
 
@@ -53,7 +45,7 @@ int main(int argc, char** argv)
 
 	silentVMStart(vm);
 
-	printf("stack %i\n",*((int*)(memory->stack)));
+	printf("stack %i\n",*((char*)(memory->stack)));
 	printf("stack Type %i\n",memory->stackTypes->data[0]);
 	printf("stack Type count %i\n",memory->stackTypes->ptr);
 
