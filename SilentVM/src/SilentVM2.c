@@ -4,6 +4,9 @@
 #include <string.h>
 #include <math.h>
 
+#define DEBUG 1
+#define STACK_OUTPUT 0
+
 typedef unsigned int uint;
 typedef unsigned long long uint64;
 typedef long long int64;
@@ -1370,6 +1373,51 @@ void silentVMStart(SilentVM* vm)
 			break;
 */
 		}
+
+#if STACK_OUTPUT
+		uint64 stackPos = 0;
+		for(uint i = 0; i < stackT->ptr; i++)
+		{
+			switch(stackT->data[i])
+			{
+				case INT8:
+				case UINT8:
+					printf("%i, ", stack[stackPos]);
+					stackPos++;
+				break;
+				case INT16:
+				case UINT16:
+					memcpy(&reg.s, stack + stackPos, 2);
+					printf("%i, ", reg.s);
+					stackPos += 2;
+				break;
+				case INT32:
+				case UINT32:
+					memcpy(&reg.i, stack + stackPos, 4);
+					printf("%i, ",reg.i);
+					stackPos += 4;
+				break;
+				case INT64:
+				case UINT64:
+				case POINTER:
+					memcpy(&reg.l, stack + stackPos, 8);
+					printf("%lli, ",reg.i);
+					stackPos += 8;
+				break;
+				case FLOAT32:
+					memcpy(&reg.f, stack + stackPos, 4);
+					printf("%f, ",reg.f);
+					stackPos += 4;
+				break;
+				case FLOAT64:
+					memcpy(&reg.d, stack + stackPos, 8);
+					printf("%f, ",reg.d);
+					stackPos += 8;
+				break;
+			}
+		}
+		printf("\n");
+#endif
 		pc++;
 	}
 }
