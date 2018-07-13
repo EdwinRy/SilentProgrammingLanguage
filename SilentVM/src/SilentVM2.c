@@ -152,7 +152,9 @@ void silentVMStart(SilentVM* vm)
 	char* 				stack 	= vm->memory->stack;
 	SilentVector*		heap	= vm->memory->heap;
 	SilentVector* 		stackT  = vm->memory->stackTypes;
-	//SilentVector*		stackF	= vm->memory->stackFrame;
+	SilentVector*		stackF	= vm->memory->stackFrame;
+
+	SilentVector*		callPos = SilentCreateVector(16, 8);
 
     
     uint64 sp = 0; //stack pointer
@@ -186,9 +188,25 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Call:
+				//Get pointer to the subroutine
+				memcpy(&reg.l, program + pc, 8);
+				pc += 8;
+				//Get total size of arguments
+				memcpy(&reg2.l, program + pc, 8);
+				pc += 7;
+
+				//save return address
+				SilentPushBack(callPos, &pc);
+				//save frame pointer
+				SilentPushBack(stackF, &fp);
+				fp = 0;
+
+				//Go to subroutine
+				
 			break;
 
 			case Return:
+
 			break;
 
 			case LoadDll:
