@@ -180,6 +180,10 @@ void silentVMStart(SilentVM* vm)
 				pc++;
 				pc = *((uint64*)(program + (pc)));
 				pc--;
+				#if DEBUG
+					printf("Goto\n");
+					printf("pc: %i\n",pc);
+				#endif
 			break;
 
 			case Sweep:
@@ -188,6 +192,7 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Call:
+				pc++;
 				//Get pointer to the subroutine
 				memcpy(&reg.l, program + pc, 8);
 				pc += 8;
@@ -195,18 +200,34 @@ void silentVMStart(SilentVM* vm)
 				memcpy(&reg2.l, program + pc, 8);
 				pc += 7;
 
+
 				//save return address
 				SilentPushBack(callPos, &pc);
 				//save frame pointer
 				SilentPushBack(stackF, &fp);
-				fp = 0;
-
+				fp = sp - reg2.l;
 				//Go to subroutine
-				
+				pc = reg.l-1;
+
+				#if DEBUG
+					printf("Call\n");
+					printf("pc: %i\n",pc);
+					printf("fp: %i\n",fp);
+					printf("arg size: %i\n", reg2.l);
+				#endif
 			break;
 
 			case Return:
+				SilentPopBack(callPos);
+				memcpy(&pc, callPos->data + callPos->ptr, 8);
+				SilentPopBack(stackF);
+				memcpy(&fp, stackF->data + stackF->ptr, 8);
 
+				#if DEBUG
+					printf("Return\n");
+					printf("pc: %i\n",pc);
+					printf("fp: %i\n",fp);
+				#endif
 			break;
 
 			case LoadDll:
@@ -296,6 +317,10 @@ void silentVMStart(SilentVM* vm)
                         SilentPushBack(stackT, dt + UNDEFINED);
                     break;
                 }
+				#if DEBUG
+					printf("push\n");
+					printf("sp: %i\n",sp);
+				#endif
             break;
 
             case Pop:
@@ -341,6 +366,13 @@ void silentVMStart(SilentVM* vm)
 					//load data
                     memcpy(stack + sp, stack + fp + reg2.l, reg.c);
                     sp += reg.c;
+					#if DEBUG
+						printf("Load\n");
+						printf("sp: %i\n",sp);
+						printf("size: %i\n",reg.c);
+						printf("position: %i\n", reg2.l);
+						printf("data: %i\n", *(int*)(stack+sp-4));
+					#endif
                 }
                 else
                 {
@@ -1437,6 +1469,13 @@ void silentVMStart(SilentVM* vm)
 		printf("\n");
 #endif
 		pc++;
+		#if DEBUG
+			printf("\tpc: %i\n",pc);
+			printf("\tstack: %i\n",*(int*)(stack+sp-4));
+			printf("\tstack val: %i\n",stackT->data[stackT->ptr-1]);
+			printf("\tstack count: %i\n",stackT->ptr);
+			printf("\tstack size: %i\n",sp);
+		#endif
 	}
 }
 
