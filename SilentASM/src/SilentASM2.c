@@ -8,6 +8,40 @@ typedef unsigned int uint;
 typedef unsigned long long uint64;
 typedef long long int64;
 
+typedef enum SilentDataType
+{
+	INT8 = 0,
+	UINT8,
+    INT16,
+	UINT16,
+    INT32,
+	UINT32,
+	INT64,
+    UINT64,
+    FLOAT32,
+    FLOAT64,
+    POINTER,
+    POINTER_LOCATION,
+	UNDEFINED,
+	UNDEFINED_END
+}dataType;
+
+dataType dt[] = {
+    INT8,
+    UINT8,
+    INT16,
+    UINT16,
+    INT32,
+    UINT32,
+    INT64,
+    UINT64,
+    FLOAT32,
+    FLOAT64,
+    POINTER,
+    POINTER_LOCATION,
+    UNDEFINED,
+};
+
 typedef enum SilentBytecode
 {
 	Halt = 0,
@@ -18,7 +52,7 @@ typedef enum SilentBytecode
 	LoadDll,
 	LoadDllFunc,
 	FreeDll,
-	Push,
+	PushData,
 	Pop,
 	Store,
 	Load,
@@ -74,6 +108,7 @@ char* assemble(char* inFile)
     uint64 iIndex = 0; //instruction index
 
     char tempChar;
+    char* tempPtr;
 
     while(size != -1)
     {
@@ -171,9 +206,255 @@ char* assemble(char* inFile)
             free(label);
         }
 
-        if(strcmp(instructions[0],"halt "))
+        if(strcmp(instructions[0],"halt") == 0)
         {
-            tempChar = (Halt);
+            tempChar = (char)Halt;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"goto") == 0)
+        {
+            tempChar = (char)Goto;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"sweep") == 0)
+        {
+            tempChar = (char)Sweep;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"call") == 0)
+        {
+        }
+
+        if(strcmp(instructions[0],"return") == 0)
+        {
+            tempChar = (char)Return;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"loaddll") == 0)
+        {
+        }
+
+        if(strcmp(instructions[0],"loaddllfunc") == 0)
+        {
+        }
+
+        if(strcmp(instructions[0],"freedll") == 0)
+        {
+        }
+
+        if(strcmp(instructions[0],"push") == 0)
+        {
+            tempChar = (char)PushData;
+            SilentPushBack(program, &tempChar);
+            if(strcmp(instructions[1][0],"int8") == 0)
+            {
+                SilentPushBack(program, &dt[0]);
+                char temp = (char)atoi(instructions[2]);
+                SilentPushBack(program, &temp);
+            }
+            else if(strcmp(instructions[1][0],"uint8") == 0)
+            {
+                SilentPushBack(program, &dt[1]);
+                unsigned char temp = (unsigned char)atoi(instructions[2]);
+                SilentPushBack(program, &temp);
+            }
+            else if(strcmp(instructions[1][0],"int16") == 0)
+            {
+                SilentPushBack(program, &dt[2]);
+                short temp = (short)atoi(instructions[2]);
+                SilentPushMultiple(program, 2, temp);
+            }
+            else if(strcmp(instructions[1][0],"uint16") == 0)
+            {
+                SilentPushBack(program, &dt[3]);
+                unsigned short temp = (unsigned short)atoi(instructions[2]);
+                SilentPushMultiple(program, 2, temp);
+            }
+            else if(strcmp(instructions[1][0],"int32") == 0)
+            {
+                SilentPushBack(program, &dt[4]);
+                int temp = (int)atoi(instructions[2]);
+                SilentPushMultiple(program, 4, temp);
+            }
+            else if(strcmp(instructions[1][0],"uint32") == 0)
+            {
+                SilentPushBack(program, &dt[5]);
+                unsigned int temp = (unsigned int)atoi(instructions[2]);
+                SilentPushMultiple(program, 4, temp);
+            }
+            else if(strcmp(instructions[1][0],"int64") == 0)
+            {
+                SilentPushBack(program, &dt[6]);
+                long long temp = (long long)atol(instructions[2]);
+                SilentPushMultiple(program, 8, temp);
+            }
+            else if(strcmp(instructions[1][0],"uint64") == 0)
+            {
+                SilentPushBack(program, &dt[7]);
+                unsigned long long temp = (unsigned long long)atol(instructions[2]);
+                SilentPushMultiple(program, 8, temp);
+            }
+            else if(strcmp(instructions[1][0],"float32") == 0)
+            {
+                SilentPushBack(program, &dt[8]);
+                float temp = (float)atof(instructions[2]);
+                SilentPushMultiple(program, 4, temp);
+            }
+            else if(strcmp(instructions[1][0],"float64") == 0)
+            {
+                SilentPushBack(program, &dt[9]);
+                double temp = (double)atof(instructions[2]);
+                SilentPushMultiple(program, 8, temp);
+            }
+            else if(strcmp(instructions[1][0],"ptr") == 0)
+            {
+                SilentPushBack(program, &dt[10]);
+                uint64 temp = (uint64)atol(instructions[2]);
+                SilentPushMultiple(program, 8, temp);
+            }
+        }
+
+        if(strcmp(instructions[0],"pop") == 0)
+        {
+            tempChar = (char)Pop;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"store") == 0)
+        {
+            tempChar = (char)Store;
+            SilentPushBack(program, &tempChar);
+            uint64 temp = (uint64)atol(instructions[1]);
+            SilentPushMultiple(program, 8, temp);
+        }
+
+        if(strcmp(instructions[0],"load") == 0)
+        {
+        }
+
+        if(strcmp(instructions[0],"storeglobal") == 0)
+        {
+            tempChar = (char)Store;
+            SilentPushBack(program, &tempChar);
+            uint64 temp = (uint64)atol(instructions[1]);
+            SilentPushMultiple(program, 8, temp);
+        }
+
+        if(strcmp(instructions[0],"loadglobal") == 0)
+        {
+        }
+
+        if(strcmp(instructions[0],"alloc") == 0)
+        {
+            tempChar = (char)Alloc;
+            SilentPushBack(program, &tempChar);
+            uint64 temp = (uint64)atol(instructions[1]);
+            SilentPushMultiple(program, 8, temp);
+        }
+
+        if(strcmp(instructions[0],"loadptr") == 0)
+        {
+        }
+
+        if(strcmp(instructions[0],"storeptr") == 0)
+        {
+        }
+
+        if(strcmp(instructions[0],"freeptr") == 0)
+        {
+            tempChar = (char)FreePtr;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"free") == 0)
+        {
+            tempChar = (char)Free;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"getptr") == 0)
+        {
+            tempChar = (char)GetPtr;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"add") == 0)
+        {
+            tempChar = (char)Add;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"sub") == 0)
+        {
+            tempChar = (char)Sub;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"mul") == 0)
+        {
+            tempChar = (char)Mul;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"div") == 0)
+        {
+            tempChar = (char)Div;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"Convert") == 0)
+        {
+        }
+
+        if(strcmp(instructions[0],"smallerthan") == 0)
+        {
+            tempChar = (char)SmallerThan;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"largerthan") == 0)
+        {
+            tempChar = (char)LargerThan;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"equal") == 0)
+        {
+            tempChar = (char)Equal;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"if") == 0)
+        {
+            tempChar = (char)If;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"ifn") == 0)
+        {
+            tempChar = (char)IfNot;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"and") == 0)
+        {
+            tempChar = (char)And;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"or") == 0)
+        {
+            tempChar = (char)Or;
+            SilentPushBack(program, &tempChar);
+        }
+
+        if(strcmp(instructions[0],"not") == 0)
+        {
+            tempChar = (char)Not;
             SilentPushBack(program, &tempChar);
         }
 
