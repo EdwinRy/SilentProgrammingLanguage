@@ -396,13 +396,13 @@ void silentVMStart(SilentVM* vm)
                 pc += 7;
                 if(reg.c != 0)
                 {
-                    memcpy(program + reg2.l, stack + (sp -= reg.c), reg.c);
+                    memcpy(stack + reg2.l, stack + (sp -= reg.c), reg.c);
                     SilentPopBack(stackT);
                 }
                 else
                 {
                     memcpy(&reg.l, stackT->data + (stackT->ptr-9), 8);
-                    memcpy(program + reg2.l, stack + (sp -= reg.l), reg.l);
+                    memcpy(stack + reg2.l, stack + (sp -= reg.l), reg.l);
                     SilentPopMultiple(stackT,10);
                 }
             break;

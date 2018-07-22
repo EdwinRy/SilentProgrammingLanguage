@@ -1,8 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <ctype.h>
 #include "SilentVector.h"
+#include <iostream>
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;
@@ -88,13 +87,8 @@ typedef struct SilentLabel
 char* assemble(char* inFile, char* outFile)
 {
     SilentVector* program = SilentCreateVector(100,1);
-    //SilentVector* labels = SilentCreateVector(100,sizeof(SilentLabel));
-    //SilentVector* aLabels = SilentCreateVector(100,sizeof(SilentLabel));
-
-    SilentLabel labels[10000];
-    uint64 labelIndex = 0;
-    SilentLabel aLabels[10000];
-    uint64 alabelIndex = 0;
+    SilentVector* labels = SilentCreateVector(100,sizeof(SilentLabel));
+    SilentVector* aLabels = SilentCreateVector(100,sizeof(SilentLabel));
 
     FILE* fileStream;
     fileStream = fopen(inFile,"r");
@@ -126,7 +120,7 @@ char* assemble(char* inFile, char* outFile)
             size = getline(&line, &s, fileStream);
             continue;
         }
-        printf("%s\n",line);
+
         //Parse line
         for(uint64 i = 0; i < size; i++)
         {
@@ -141,7 +135,6 @@ char* assemble(char* inFile, char* outFile)
                     line[i+charCount] == ':'
                 )
                 {
-                    printf("here\n");
                     buffer[charCount] = line[i+charCount];
                     charCount++;
                 }
@@ -207,17 +200,17 @@ char* assemble(char* inFile, char* outFile)
             }
         }
 
-
         if(instructions[0][size-2] == ':')
         {
-            SilentLabel label;
-            label.index = program->ptr;
-            label.label = malloc(size-2);
-            memcpy(label.label, instructions[0], size-2);
-            label.label[size-2] = '\0';
-            labels[labelIndex] = label;
-            printf("label %s on index %i\n", label.label, label.index);
-            labelIndex+=1;
+            SilentLabel* label = malloc(sizeof(SilentLabel));
+            label->index = program->ptr;
+            label->label = malloc(size-2);
+            memcpy(label->label, instructions[0], size-2);
+            label->label[size-2] = '\0';
+            tempPtr = label->label;
+            SilentPushBack(labels, label);
+            printf("label %s on index %i\n", label->label, label->index);
+            free(label);
         }
 
         if(strcmp(instructions[0],"halt") == 0)
@@ -228,20 +221,17 @@ char* assemble(char* inFile, char* outFile)
 
         if(strcmp(instructions[0],"goto") == 0)
         {
-            
             tempChar = (char)Goto;
             SilentPushBack(program, &tempChar);
-
-
-            SilentLabel alabel;
-            alabel.index = program->ptr;
-            alabel.label = malloc(size-2);
-            memcpy(alabel.label, instructions[0], size-2);
-            alabel.label[size-2] = '\0';
-            aLabels[alabelIndex] = alabel;
-            alabelIndex+=1;
-            printf("awaiting label %s at index %i\n", alabel.label, alabel.index);
-
+/*
+            SilentLabel* label = malloc(sizeof(SilentLabel));
+            label->index = program->ptr;
+            label->label = malloc(size-2);
+            memcpy(label->label, instructions[1], size-2);
+            label->label[size-2] = '\0';
+            SilentPushBack(aLabels,label);
+            free(label);
+*/
             uint64 temp = 0;
             SilentPushMultiple(program, 8, &temp);
         }
@@ -707,13 +697,16 @@ char* assemble(char* inFile, char* outFile)
     }
 
     //Link labels
-    for(uint64 i = 0; i < alabelIndex; i++)
+    SilentLabel* label2;
+    memcpy(label2, labels->data, sizeof(SilentLabel));
+    printf("%i\n",labels->dataSize);
+    printf("%i\n",labels->ptr);
+
+    for(uint64 i = 0; i < aLabels->ptr; i++)
     {
-        printf("%s\n",aLabels[0]);
-        //for(uint64 j = 0; j < labelIndex; j++)
-        //{
-        //    printf("\t%s\n",labels[labelIndex]);
-        //}
+        for(uint64 j = 0; j < labels->ptr; j++)
+        {
+        }
     }
 
     //Write to file

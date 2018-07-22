@@ -1,4 +1,4 @@
-src = src/SilentASM2.c
+src = src/*.c
 out = bin/SilentASM
 
 all:

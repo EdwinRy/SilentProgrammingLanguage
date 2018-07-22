@@ -1,0 +1,40 @@
+goto main
+
+ret0:
+push uint32 00
+return
+
+ret1:
+push uint32 11
+return
+
+fib:
+
+load uint32 00
+push uint32 00
+equals
+if ret0
+
+load uint32 0
+push uint32 1
+equals
+if ret1
+
+load uint32 0
+push uint32 1
+sub
+call fib
+
+load uint32 0
+push uint32 2
+sub
+call fib
+
+add
+store 0
+return
+
+
+main:
+push uint32 4
+call fib
