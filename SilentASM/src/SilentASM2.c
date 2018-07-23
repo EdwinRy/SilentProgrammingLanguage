@@ -108,7 +108,7 @@ char* assemble(char* inFile, char* outFile)
     size = getline(&line, &s, fileStream);
 
     char buffer[1000];
-    char** instructions = malloc(sizeof(char*)*100);
+    char** instructions = malloc(sizeof(char*)*50);
     uint64 iIndex = 0; //instruction index
 
     char tempChar;
@@ -123,7 +123,7 @@ char* assemble(char* inFile, char* outFile)
             size = getline(&line, &s, fileStream);
             continue;
         }
-        printf("%s",line);
+        printf("l %s",line);
         //Parse line
         for(uint64 i = 0; i < size; i++)
         {
@@ -143,9 +143,30 @@ char* assemble(char* inFile, char* outFile)
                     buffer[charCount] = line[i+charCount];
                     charCount++;
                 }
-                instructions[iIndex] =  malloc(charCount+1);
-                memcpy(instructions[iIndex], buffer, charCount);
-                instructions[iIndex][charCount+1] = '\0';
+                printf("s %i\n", size);
+                printf("c %i\n", charCount);
+                printf("c %c\n", buffer[charCount-1]);
+                printf("b %s\n", buffer);
+                if(size-1 == charCount && buffer[charCount-1] == ':')
+                {
+                    printf("here1\n");
+                    printf("s %i\n",size-1);
+                    printf("c %i\n",charCount);
+                    instructions[iIndex] = malloc(charCount+1);
+                    printf("ptr %i\n",instructions[iIndex]);
+                    memcpy(instructions[iIndex], buffer, charCount);
+                    instructions[iIndex][charCount+1] = '\0';
+                    printf("d %s\n", instructions[iIndex]);
+                }
+                else
+                {
+                    printf("here2\n");
+                    instructions[iIndex] =  malloc(charCount+1);
+                    printf("here\n");
+                    memcpy(instructions[iIndex], buffer, charCount);
+                    instructions[iIndex][charCount] = '\0';
+                    printf("d %s\n", instructions[iIndex]);
+                }
                 i += charCount;
                 iIndex++;
             }
@@ -224,6 +245,8 @@ char* assemble(char* inFile, char* outFile)
         {
             program[pc++] = (char)Halt;
         }
+
+        //printf("l %s\n",instructions[0]);
 
         if(strcmp(instructions[0],"goto") == 0)
         {
