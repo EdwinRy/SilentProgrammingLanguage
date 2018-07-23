@@ -1,17 +1,17 @@
 goto main
 
 ret0:
-push uint32 00
+push uint32 0
 return
 
 ret1:
-push uint32 11
+push uint32 1
 return
 
 fib:
 
-load uint32 00
-push uint32 00
+load uint32 0
+push uint32 0
 equals
 if ret0
 

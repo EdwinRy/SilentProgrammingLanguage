@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "SilentVector.h"
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;
@@ -87,14 +86,12 @@ typedef struct SilentLabel
 
 char* assemble(char* inFile, char* outFile)
 {
-    SilentVector* program = SilentCreateVector(100,1);
-    //SilentVector* labels = SilentCreateVector(100,sizeof(SilentLabel));
-    //SilentVector* aLabels = SilentCreateVector(100,sizeof(SilentLabel));
-
-    SilentLabel labels[10000];
+    char* program = malloc(10000);
+    uint64 pc = 0;
+    SilentLabel* labels = malloc(10000);
     uint64 labelIndex = 0;
-    SilentLabel aLabels[10000];
-    uint64 alabelIndex = 0;
+    SilentLabel* aLabels = malloc(10000);
+    uint64 aLabelIndex = 0;
 
     FILE* fileStream;
     fileStream = fopen(inFile,"r");
@@ -110,8 +107,8 @@ char* assemble(char* inFile, char* outFile)
     uint64 size = 0;
     size = getline(&line, &s, fileStream);
 
-    char buffer[10000];
-    char* instructions[5];
+    char buffer[1000];
+    char* instructions[10];
     uint64 iIndex = 0; //instruction index
 
     char tempChar;
@@ -126,13 +123,15 @@ char* assemble(char* inFile, char* outFile)
             size = getline(&line, &s, fileStream);
             continue;
         }
-        printf("%s\n",line);
+        printf("%s",line);
         //Parse line
         for(uint64 i = 0; i < size; i++)
         {
             if(isdigit(line[i]) || isalpha(line[i]))
             {
                 uint64 charCount = 0;
+                buffer[charCount] = line[i+charCount];
+                charCount+=1;
                 char* value;
 
                 while(
@@ -141,12 +140,11 @@ char* assemble(char* inFile, char* outFile)
                     line[i+charCount] == ':'
                 )
                 {
-                    printf("here\n");
                     buffer[charCount] = line[i+charCount];
                     charCount++;
                 }
 
-                instructions[iIndex] = malloc(charCount+1);
+                instructions[iIndex] = malloc(charCount);
                 memcpy(instructions[iIndex],buffer,charCount);
                 instructions[iIndex][charCount] = '\0';
                 i += charCount;
@@ -207,11 +205,13 @@ char* assemble(char* inFile, char* outFile)
             }
         }
 
-
+        printf("1 %s\n",instructions[0]);
+        printf("2 %s\n",instructions[1]);
+        printf("3 %s\n",instructions[2]);
         if(instructions[0][size-2] == ':')
         {
             SilentLabel label;
-            label.index = program->ptr;
+            label.index = pc;
             label.label = malloc(size-2);
             memcpy(label.label, instructions[0], size-2);
             label.label[size-2] = '\0';
@@ -222,52 +222,44 @@ char* assemble(char* inFile, char* outFile)
 
         if(strcmp(instructions[0],"halt") == 0)
         {
-            tempChar = (char)Halt;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Halt;
         }
 
         if(strcmp(instructions[0],"goto") == 0)
         {
-            
-            tempChar = (char)Goto;
-            SilentPushBack(program, &tempChar);
-
-
-            SilentLabel alabel;
-            alabel.index = program->ptr;
-            alabel.label = malloc(size-2);
-            memcpy(alabel.label, instructions[0], size-2);
-            alabel.label[size-2] = '\0';
-            aLabels[alabelIndex] = alabel;
-            alabelIndex+=1;
-            printf("awaiting label %s at index %i\n", alabel.label, alabel.index);
-
+            program[pc++] = (char)Goto;
+            aLabels[aLabelIndex].index = pc;
+            aLabels[aLabelIndex].label = malloc(size-2);
+            memcpy(aLabels[aLabelIndex].label, instructions[1], size-2);
+            aLabels[aLabelIndex].label[size-2] = '\0';
+            printf("awaiting label %s at index %i\n", aLabels[aLabelIndex].label, aLabels[aLabelIndex].index);
+            aLabelIndex++;
             uint64 temp = 0;
-            SilentPushMultiple(program, 8, &temp);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
         }
 
         if(strcmp(instructions[0],"sweep") == 0)
         {
-            tempChar = (char)Sweep;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Sweep;
         }
 
         if(strcmp(instructions[0],"call") == 0)
         {
-            tempChar = (char)Sweep;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Call;
             //Sub name
             uint64 temp = 0;
-            SilentPushMultiple(program, 8, &temp);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
             //Arg size
             temp = (uint64)atol(instructions[2]);
-            SilentPushMultiple(program, 8, &temp);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
         }
 
         if(strcmp(instructions[0],"return") == 0)
         {
-            tempChar = (char)Return;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Return;
         }
 
         if(strcmp(instructions[0],"loaddll") == 0)
@@ -284,73 +276,83 @@ char* assemble(char* inFile, char* outFile)
 
         if(strcmp(instructions[0],"push") == 0)
         {
-            tempChar = (char)PushData;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)PushData;
             if(strcmp(instructions[1],"int8") == 0)
             {
-                SilentPushBack(program, &dt[0]);
+                program[pc++] = INT8;
                 char temp = (char)atoi(instructions[2]);
-                SilentPushBack(program, &temp);
+                memcpy(program + pc, &temp, 1);
+                pc+=1;
             }
             else if(strcmp(instructions[1],"uint8") == 0)
             {
-                SilentPushBack(program, &dt[1]);
+                program[pc++] = UINT8;
                 unsigned char temp = (unsigned char)atoi(instructions[2]);
-                SilentPushBack(program, &temp);
+                memcpy(program + pc, &temp, 1);
+                pc+=1;
             }
             else if(strcmp(instructions[1],"int16") == 0)
             {
-                SilentPushBack(program, &dt[2]);
+                program[pc++] = INT16;
                 short temp = (short)atoi(instructions[2]);
-                SilentPushMultiple(program, 2, &temp);
+                memcpy(program + pc, &temp, 2);
+                pc+=2;
             }
             else if(strcmp(instructions[1],"uint16") == 0)
             {
-                SilentPushBack(program, &dt[3]);
+                program[pc++] = UINT16;
                 unsigned short temp = (unsigned short)atoi(instructions[2]);
-                SilentPushMultiple(program, 2, &temp);
+                memcpy(program + pc, &temp, 2);
+                pc+=2;
             }
             else if(strcmp(instructions[1],"int32") == 0)
             {
-                SilentPushBack(program, &dt[4]);
+                program[pc++] = INT32;
                 int temp = (int)atoi(instructions[2]);
-                SilentPushMultiple(program, 4, &temp);
+                memcpy(program + pc, &temp, 4);
+                pc+=4;
             }
             else if(strcmp(instructions[1],"uint32") == 0)
             {
-                SilentPushBack(program, &dt[5]);
+                program[pc++] = UINT32;
                 unsigned int temp = (unsigned int)atoi(instructions[2]);
-                SilentPushMultiple(program, 4, &temp);
+                memcpy(program + pc, &temp, 4);
+                pc+=4;
             }
             else if(strcmp(instructions[1],"int64") == 0)
             {
-                SilentPushBack(program, &dt[6]);
+                program[pc++] = INT64;
                 long long temp = (long long)atol(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"uint64") == 0)
             {
-                SilentPushBack(program, &dt[7]);
+                program[pc++] = UINT64;
                 unsigned long long temp = (unsigned long long)atol(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"float32") == 0)
             {
-                SilentPushBack(program, &dt[8]);
+                program[pc++] = FLOAT32;
                 float temp = (float)atof(instructions[2]);
-                SilentPushMultiple(program, 4, &temp);
+                memcpy(program + pc, &temp, 4);
+                pc+=4;
             }
             else if(strcmp(instructions[1],"float64") == 0)
             {
-                SilentPushBack(program, &dt[9]);
+                program[pc++] = FLOAT64;
                 double temp = (double)atof(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"ptr") == 0)
             {
-                SilentPushBack(program, &dt[10]);
+                program[pc++] = POINTER;
                 uint64 temp = (uint64)atol(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else
             {
@@ -360,231 +362,251 @@ char* assemble(char* inFile, char* outFile)
 
         if(strcmp(instructions[0],"pop") == 0)
         {
-            tempChar = (char)Pop;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Pop;
         }
 
         if(strcmp(instructions[0],"store") == 0)
         {
-            tempChar = (char)Store;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Store;
             uint64 temp = (uint64)atol(instructions[1]);
-            SilentPushMultiple(program, 8, &temp);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
         }
 
         if(strcmp(instructions[0],"load") == 0)
         {
-            tempChar = (char)Load;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Load;
             if(strcmp(instructions[1],"int8") == 0)
             {
-                SilentPushBack(program, &dt[0]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = INT8;
+                char temp = (char)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 1);
+                pc+=1;
             }
             else if(strcmp(instructions[1],"uint8") == 0)
             {
-                SilentPushBack(program, &dt[1]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = UINT8;
+                unsigned char temp = (unsigned char)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 1);
+                pc+=1;
             }
             else if(strcmp(instructions[1],"int16") == 0)
             {
-                SilentPushBack(program, &dt[2]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = INT16;
+                short temp = (short)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 2);
+                pc+=2;
             }
             else if(strcmp(instructions[1],"uint16") == 0)
             {
-                SilentPushBack(program, &dt[3]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = UINT16;
+                unsigned short temp = (unsigned short)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 2);
+                pc+=2;
             }
             else if(strcmp(instructions[1],"int32") == 0)
             {
-                SilentPushBack(program, &dt[4]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = INT32;
+                int temp = (int)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 4);
+                pc+=4;
             }
             else if(strcmp(instructions[1],"uint32") == 0)
             {
-                SilentPushBack(program, &dt[5]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = UINT32;
+                unsigned int temp = (unsigned int)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 4);
+                pc+=4;
             }
             else if(strcmp(instructions[1],"int64") == 0)
             {
-                SilentPushBack(program, &dt[6]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = INT64;
+                long long temp = (long long)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"uint64") == 0)
             {
-                SilentPushBack(program, &dt[7]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = UINT64;
+                unsigned long long temp = (unsigned long long)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"float32") == 0)
             {
-                SilentPushBack(program, &dt[8]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = FLOAT32;
+                float temp = (float)atof(instructions[2]);
+                memcpy(program + pc, &temp, 4);
+                pc+=4;
             }
             else if(strcmp(instructions[1],"float64") == 0)
             {
-                SilentPushBack(program, &dt[9]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = FLOAT64;
+                double temp = (double)atof(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"ptr") == 0)
             {
-                SilentPushBack(program, &dt[10]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = POINTER;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
+            }
+            else
+            {
+                printf("Invalid type on line: %i\n",currentLine);
             }
         }
 
         if(strcmp(instructions[0],"storeglobal") == 0)
         {
-            tempChar = (char)Store;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)StoreGlobal;
             uint64 temp = (uint64)atol(instructions[1]);
-            SilentPushMultiple(program, 8, &temp);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
         }
 
         if(strcmp(instructions[0],"loadglobal") == 0)
         {
-            tempChar = (char)LoadGlobal;
-            SilentPushBack(program, &tempChar);
-            if(strcmp(instructions[1],"int8") == 0)
+            program[pc++] = (char)LoadGlobal;
+             if(strcmp(instructions[1],"int8") == 0)
             {
-                SilentPushBack(program, &dt[0]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = INT8;
+                char temp = (char)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 1);
+                pc+=1;
             }
             else if(strcmp(instructions[1],"uint8") == 0)
             {
-                SilentPushBack(program, &dt[1]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = UINT8;
+                unsigned char temp = (unsigned char)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 1);
+                pc+=1;
             }
             else if(strcmp(instructions[1],"int16") == 0)
             {
-                SilentPushBack(program, &dt[2]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = INT16;
+                short temp = (short)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 2);
+                pc+=2;
             }
             else if(strcmp(instructions[1],"uint16") == 0)
             {
-                SilentPushBack(program, &dt[3]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = UINT16;
+                unsigned short temp = (unsigned short)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 2);
+                pc+=2;
             }
             else if(strcmp(instructions[1],"int32") == 0)
             {
-                SilentPushBack(program, &dt[4]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = INT32;
+                int temp = (int)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 4);
+                pc+=4;
             }
             else if(strcmp(instructions[1],"uint32") == 0)
             {
-                SilentPushBack(program, &dt[5]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = UINT32;
+                unsigned int temp = (unsigned int)atoi(instructions[2]);
+                memcpy(program + pc, &temp, 4);
+                pc+=4;
             }
             else if(strcmp(instructions[1],"int64") == 0)
             {
-                SilentPushBack(program, &dt[6]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = INT64;
+                long long temp = (long long)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"uint64") == 0)
             {
-                SilentPushBack(program, &dt[7]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = UINT64;
+                unsigned long long temp = (unsigned long long)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"float32") == 0)
             {
-                SilentPushBack(program, &dt[8]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = FLOAT32;
+                float temp = (float)atof(instructions[2]);
+                memcpy(program + pc, &temp, 4);
+                pc+=4;
             }
             else if(strcmp(instructions[1],"float64") == 0)
             {
-                SilentPushBack(program, &dt[9]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = FLOAT64;
+                double temp = (double)atof(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"ptr") == 0)
             {
-                SilentPushBack(program, &dt[10]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = POINTER;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
+            }
+            else
+            {
+                printf("Invalid type on line: %i\n",currentLine);
             }
         }
 
         if(strcmp(instructions[0],"alloc") == 0)
         {
-            tempChar = (char)Alloc;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Alloc;
             uint64 temp = (uint64)atoi(instructions[1]);
-            SilentPushMultiple(program, 8, &temp);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
         }
 
         if(strcmp(instructions[0],"loadptr") == 0)
         {
-            tempChar = (char)LoadPtr;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)LoadPtr;
             if(strcmp(instructions[1],"int8") == 0)
             {
-                SilentPushBack(program, &dt[0]);
+                program[pc++] = INT8;
             }
             else if(strcmp(instructions[1],"uint8") == 0)
             {
-                SilentPushBack(program, &dt[1]);
+                program[pc++] = UINT8;
             }
             else if(strcmp(instructions[1],"int16") == 0)
             {
-                SilentPushBack(program, &dt[2]);
+                program[pc++] = INT16;
             }
             else if(strcmp(instructions[1],"uint16") == 0)
             {
-                SilentPushBack(program, &dt[3]);
+                program[pc++] = UINT16;
             }
             else if(strcmp(instructions[1],"int32") == 0)
             {
-                SilentPushBack(program, &dt[4]);
+                program[pc++] = INT32;
             }
             else if(strcmp(instructions[1],"uint32") == 0)
             {
-                SilentPushBack(program, &dt[5]);
+                program[pc++] = UINT32;
             }
             else if(strcmp(instructions[1],"int64") == 0)
             {
-                SilentPushBack(program, &dt[6]);
+                program[pc++] = INT64;
             }
             else if(strcmp(instructions[1],"uint64") == 0)
             {
-                SilentPushBack(program, &dt[7]);
+                program[pc++] = UINT64;
             }
             else if(strcmp(instructions[1],"float32") == 0)
             {
-                SilentPushBack(program, &dt[8]);
+                program[pc++] = FLOAT32;
             }
             else if(strcmp(instructions[1],"float64") == 0)
             {
-                SilentPushBack(program, &dt[9]);
+                program[pc++] = FLOAT64;
             }
             else if(strcmp(instructions[1],"ptr") == 0)
             {
-                SilentPushBack(program, &dt[10]);
-            }
-            else if(strcmp(instructions[1],"str") == 0)
-            {
-                SilentPushBack(program, &dt[12]);
-                uint64 temp = (uint64)atoi(instructions[2]);
-                SilentPushMultiple(program, 8, &temp);
+                program[pc++] = POINTER;
             }
             else
             {
@@ -594,51 +616,43 @@ char* assemble(char* inFile, char* outFile)
 
         if(strcmp(instructions[0],"storeptr") == 0)
         {
-            tempChar = (char)StorePtr;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)StorePtr;
         }
 
         if(strcmp(instructions[0],"getptr") == 0)
         {
-            tempChar = (char)GetPtr;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)GetPtr;
         }
 
         if(strcmp(instructions[0],"freeptr") == 0)
         {
-            tempChar = (char)FreePtr;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)FreePtr;
         }
 
         if(strcmp(instructions[0],"free") == 0)
         {
-            tempChar = (char)Free;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Free;
         }
 
 
         if(strcmp(instructions[0],"add") == 0)
         {
-            tempChar = (char)Add;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Add;
         }
 
         if(strcmp(instructions[0],"sub") == 0)
         {
-            tempChar = (char)Sub;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Sub;
         }
 
         if(strcmp(instructions[0],"mul") == 0)
         {
-            tempChar = (char)Mul;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Mul;
         }
 
         if(strcmp(instructions[0],"div") == 0)
         {
-            tempChar = (char)Div;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Div;
         }
 
         if(strcmp(instructions[0],"Convert") == 0)
@@ -647,54 +661,48 @@ char* assemble(char* inFile, char* outFile)
 
         if(strcmp(instructions[0],"smallerthan") == 0)
         {
-            tempChar = (char)SmallerThan;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)SmallerThan;
         }
 
         if(strcmp(instructions[0],"largerthan") == 0)
         {
-            tempChar = (char)LargerThan;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)LargerThan;
         }
 
         if(strcmp(instructions[0],"equal") == 0)
         {
-            tempChar = (char)Equal;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Equal;
         }
 
         if(strcmp(instructions[0],"if") == 0)
         {
-            tempChar = (char)If;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)If;
             uint64 temp = 0;
-            SilentPushMultiple(program, 8, &temp);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
         }
 
         if(strcmp(instructions[0],"ifn") == 0)
         {
-            tempChar = (char)IfNot;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)IfNot;
             uint64 temp = 0;
-            SilentPushMultiple(program, 8, &temp);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
         }
 
         if(strcmp(instructions[0],"and") == 0)
         {
-            tempChar = (char)And;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)And;
         }
 
         if(strcmp(instructions[0],"or") == 0)
         {
-            tempChar = (char)Or;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Or;
         }
 
         if(strcmp(instructions[0],"not") == 0)
         {
-            tempChar = (char)Not;
-            SilentPushBack(program, &tempChar);
+            program[pc++] = (char)Not;
         }
 
         currentLine += 1;
@@ -707,19 +715,23 @@ char* assemble(char* inFile, char* outFile)
     }
 
     //Link labels
-    for(uint64 i = 0; i < alabelIndex; i++)
+    for(uint64 i = 0; i < aLabelIndex; i++)
     {
         printf("%s\n",aLabels[0]);
-        //for(uint64 j = 0; j < labelIndex; j++)
-        //{
-        //    printf("\t%s\n",labels[labelIndex]);
-        //}
+        for(uint64 j = 0; j < labelIndex; j++)
+        {
+           printf("\t%s\n",labels[labelIndex]);
+        }
     }
 
     //Write to file
     FILE* out = fopen(outFile,"wb");
-    fwrite(program->data, 1, program->ptr, out);
+    fwrite(program, 1, pc, out);
     fclose(out);
+
+    free(program);
+    free(labels);
+    free(aLabels);
 }
 
 int main(int argc, const char** argv)

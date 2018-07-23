@@ -2,12 +2,13 @@
 #include <ctype.h>
 #include "SilentVector.h"
 #include <iostream>
+#include <vector>
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;
 typedef long long int64;
 
-typedef enum SilentDataType
+enum class SilentDataType
 {
 	INT8 = 0,
 	UINT8,
@@ -23,25 +24,9 @@ typedef enum SilentDataType
     POINTER_LOCATION,
 	UNDEFINED,
 	UNDEFINED_END
-}dataType;
-
-dataType dt[] = {
-    INT8,
-    UINT8,
-    INT16,
-    UINT16,
-    INT32,
-    UINT32,
-    INT64,
-    UINT64,
-    FLOAT32,
-    FLOAT64,
-    POINTER,
-    POINTER_LOCATION,
-    UNDEFINED,
 };
 
-typedef enum SilentBytecode
+enum class SilentBytecode
 {
 	Halt = 0,
 	Goto,
@@ -80,12 +65,13 @@ typedef enum SilentBytecode
 
 typedef struct SilentLabel
 {
-    char* label;
+    std::string label;
     uint64 index;
 }SilentLabel;
 
 char* assemble(char* inFile, char* outFile)
 {
+    std::vector<char> program = std::vector<char>();
     SilentVector* program = SilentCreateVector(100,1);
     SilentVector* labels = SilentCreateVector(100,sizeof(SilentLabel));
     SilentVector* aLabels = SilentCreateVector(100,sizeof(SilentLabel));
