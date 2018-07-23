@@ -108,7 +108,7 @@ char* assemble(char* inFile, char* outFile)
     size = getline(&line, &s, fileStream);
 
     char buffer[1000];
-    char* instructions[10];
+    char** instructions = malloc(sizeof(char*)*100);
     uint64 iIndex = 0; //instruction index
 
     char tempChar;
@@ -143,13 +143,13 @@ char* assemble(char* inFile, char* outFile)
                     buffer[charCount] = line[i+charCount];
                     charCount++;
                 }
-
-                instructions[iIndex] = malloc(charCount);
-                memcpy(instructions[iIndex],buffer,charCount);
-                instructions[iIndex][charCount] = '\0';
+                instructions[iIndex] =  malloc(charCount+1);
+                memcpy(instructions[iIndex], buffer, charCount);
+                instructions[iIndex][charCount+1] = '\0';
                 i += charCount;
                 iIndex++;
             }
+
 
             if(line[i] == '\"')
             {
@@ -205,9 +205,9 @@ char* assemble(char* inFile, char* outFile)
             }
         }
 
-        printf("1 %s\n",instructions[0]);
-        printf("2 %s\n",instructions[1]);
-        printf("3 %s\n",instructions[2]);
+        //printf("1 %s\n",instructions[0]);
+        //printf("2 %s\n",instructions[1]);
+        //printf("3 %s\n",instructions[2]);
         if(instructions[0][size-2] == ':')
         {
             SilentLabel label;
@@ -732,6 +732,7 @@ char* assemble(char* inFile, char* outFile)
     free(program);
     free(labels);
     free(aLabels);
+    free(instructions);
 }
 
 int main(int argc, const char** argv)
