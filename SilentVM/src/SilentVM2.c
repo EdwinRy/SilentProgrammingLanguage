@@ -218,6 +218,26 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Return:
+				/*
+				pc++;
+				//Number of return values
+				memcpy(&reg.l, program + pc, 8);
+				pc += 8;
+				reg2.l = 0;
+				for(uint64 i = 0; i < reg.l; i++)
+				{
+					SilentPopBack(stackT);
+					reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+					if(reg.c != 0)
+					{
+						reg2.l += reg.c;
+					}
+					else
+					{
+
+					}
+				}
+				*/
 				SilentPopBack(callPos);
 				memcpy(&pc, callPos->data + callPos->ptr, 8);
 				SilentPopBack(stackF);

@@ -1,40 +1,31 @@
-goto main
+long int fac(int n)
+{
+    if (n >= 1)
+        return n*multiplyNumbers(n-1);
+    else
+        return 1;
+}
+int main()
+{
+    int n = 5;
+    fac(5);
+    return 0;
+}
 
-ret0:
-push uint32 0
-return
+
+goto main
 
 ret1:
 push uint32 1
 return
 
-fib:
-
+fac:
 load uint32 0
 push uint32 0
-equals
-if ret0
+largerthan
+ifn ret1
 
-load uint32 0
-push uint32 1
-equals
-if ret1
-
-load uint32 0
-push uint32 1
-sub
-call fib
-
-load uint32 0
-push uint32 2
-sub
-call fib
-
-add
-store 0
-return
 
 
 main:
-push uint32 4
-call fib
+push uint32 5
