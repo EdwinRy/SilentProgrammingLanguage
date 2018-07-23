@@ -3,6 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#define DEBUG 0
+
 typedef unsigned int uint;
 typedef unsigned long long uint64;
 typedef long long int64;
@@ -108,7 +110,7 @@ char* assemble(char* inFile, char* outFile)
     size = getline(&line, &s, fileStream);
 
     char buffer[1000];
-    char** instructions = malloc(sizeof(char*)*50);
+    char** instructions = malloc(sizeof(char*)*5);
     uint64 iIndex = 0; //instruction index
 
     char tempChar;
@@ -123,56 +125,38 @@ char* assemble(char* inFile, char* outFile)
             size = getline(&line, &s, fileStream);
             continue;
         }
-        printf("l %s",line);
+        #if DEBUG
+            printf("l %s",line);
+        #endif
         //Parse line
         for(uint64 i = 0; i < size; i++)
         {
             if(isdigit(line[i]) || isalpha(line[i]))
             {
                 uint64 charCount = 0;
-                buffer[charCount] = line[i+charCount];
+                buffer[0] = line[i+charCount];
                 charCount+=1;
                 char* value;
 
                 while(
-                    isalpha(line[i+charCount]) || 
+                    (isalpha(line[i+charCount]) || 
                     isdigit(line[i+charCount]) || 
-                    line[i+charCount] == ':'
+                    line[i+charCount] == ':') && charCount < size
                 )
                 {
                     buffer[charCount] = line[i+charCount];
                     charCount++;
                 }
-                printf("s %i\n", size);
-                printf("c %i\n", charCount);
-                printf("c %c\n", buffer[charCount-1]);
-                printf("b %s\n", buffer);
-                if(size-1 == charCount && buffer[charCount-1] == ':')
-                {
-                    printf("here1\n");
-                    printf("s %i\n",size-1);
-                    printf("c %i\n",charCount);
-                    instructions[iIndex] = malloc(charCount+1);
-                    printf("ptr %i\n",instructions[iIndex]);
-                    memcpy(instructions[iIndex], buffer, charCount);
-                    instructions[iIndex][charCount+1] = '\0';
-                    printf("d %s\n", instructions[iIndex]);
-                }
-                else
-                {
-                    printf("here2\n");
-                    instructions[iIndex] =  malloc(charCount+1);
-                    printf("here\n");
-                    memcpy(instructions[iIndex], buffer, charCount);
-                    instructions[iIndex][charCount] = '\0';
-                    printf("d %s\n", instructions[iIndex]);
-                }
+
+                instructions[iIndex] = malloc(charCount+5);
+                memcpy(instructions[iIndex], buffer, charCount);
+                instructions[iIndex][charCount] = '\0';
                 i += charCount;
                 iIndex++;
             }
 
 
-            if(line[i] == '\"')
+            else if(line[i] == '\"')
             {
                 i++; 
                 uint64 count;
@@ -226,9 +210,6 @@ char* assemble(char* inFile, char* outFile)
             }
         }
 
-        //printf("1 %s\n",instructions[0]);
-        //printf("2 %s\n",instructions[1]);
-        //printf("3 %s\n",instructions[2]);
         if(instructions[0][size-2] == ':')
         {
             SilentLabel label;
@@ -237,7 +218,9 @@ char* assemble(char* inFile, char* outFile)
             memcpy(label.label, instructions[0], size-2);
             label.label[size-2] = '\0';
             labels[labelIndex] = label;
-            printf("label %s on index %i\n", label.label, label.index);
+            #if DEBUG
+                printf("label %s on index %i\n", label.label, label.index);
+            #endif
             labelIndex+=1;
         }
 
@@ -255,7 +238,9 @@ char* assemble(char* inFile, char* outFile)
             aLabels[aLabelIndex].label = malloc(size-2);
             memcpy(aLabels[aLabelIndex].label, instructions[1], size-2);
             aLabels[aLabelIndex].label[size-2] = '\0';
-            printf("awaiting label %s at index %i\n", aLabels[aLabelIndex].label, aLabels[aLabelIndex].index);
+            #if DEBUG
+                printf("awaiting label %s at index %i\n", aLabels[aLabelIndex].label, aLabels[aLabelIndex].index);
+            #endif
             aLabelIndex++;
             uint64 temp = 0;
             memcpy(program + pc, &temp, 8);
@@ -273,6 +258,14 @@ char* assemble(char* inFile, char* outFile)
             //Sub name
             uint64 temp = 0;
             memcpy(program + pc, &temp, 8);
+            aLabels[aLabelIndex].index = pc;
+            aLabels[aLabelIndex].label = malloc(size-2);
+            memcpy(aLabels[aLabelIndex].label, instructions[1], size-2);
+            aLabels[aLabelIndex].label[size-2] = '\0';
+            #if DEBUG
+                printf("awaiting label %s at index %i\n", aLabels[aLabelIndex].label, aLabels[aLabelIndex].index);
+            #endif            
+            aLabelIndex++;
             pc+=8;
             //Arg size
             temp = (uint64)atol(instructions[2]);
@@ -700,6 +693,14 @@ char* assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"if") == 0)
         {
             program[pc++] = (char)If;
+            aLabels[aLabelIndex].index = pc;
+            aLabels[aLabelIndex].label = malloc(size-2);
+            memcpy(aLabels[aLabelIndex].label, instructions[1], size-2);
+            aLabels[aLabelIndex].label[size-2] = '\0';
+            #if DEBUG
+                printf("awaiting label %s at index %i\n", aLabels[aLabelIndex].label, aLabels[aLabelIndex].index);
+            #endif
+            aLabelIndex++;
             uint64 temp = 0;
             memcpy(program + pc, &temp, 8);
             pc+=8;
@@ -708,6 +709,14 @@ char* assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"ifn") == 0)
         {
             program[pc++] = (char)IfNot;
+            aLabels[aLabelIndex].index = pc;
+            aLabels[aLabelIndex].label = malloc(size-2);
+            memcpy(aLabels[aLabelIndex].label, instructions[1], size-2);
+            aLabels[aLabelIndex].label[size-2] = '\0';
+            #if DEBUG
+                printf("awaiting label %s at index %i\n", aLabels[aLabelIndex].label, aLabels[aLabelIndex].index);
+            #endif
+            aLabelIndex++;
             uint64 temp = 0;
             memcpy(program + pc, &temp, 8);
             pc+=8;
@@ -740,10 +749,23 @@ char* assemble(char* inFile, char* outFile)
     //Link labels
     for(uint64 i = 0; i < aLabelIndex; i++)
     {
-        printf("%s\n",aLabels[0]);
+        #if DEBUG
+            printf("%s\n",aLabels[i].label);
+            printf("%i\n",aLabels[i].index);
+        #endif
         for(uint64 j = 0; j < labelIndex; j++)
         {
-           printf("\t%s\n",labels[labelIndex]);
+            #if DEBUG
+                printf("\t%s\n",labels[j].label);
+                printf("\t%i\n",labels[j].index);
+            #endif
+            if(strcmp(aLabels[i].label,labels[j].label) == 0)
+            {
+                #if DEBUG
+                    printf("found label\n");
+                #endif
+                memcpy(program + aLabels[i].index, &labels[j].index, 8);
+            }
         }
     }
 
