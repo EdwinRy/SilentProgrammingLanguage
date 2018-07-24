@@ -218,7 +218,7 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Return:
-				/*
+				
 				pc++;
 				//Number of return values
 				memcpy(&reg.l, program + pc, 8);
@@ -237,7 +237,7 @@ void silentVMStart(SilentVM* vm)
 
 					}
 				}
-				*/
+				
 				SilentPopBack(callPos);
 				memcpy(&pc, callPos->data + callPos->ptr, 8);
 				SilentPopBack(stackF);
