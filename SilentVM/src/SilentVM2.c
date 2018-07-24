@@ -129,7 +129,7 @@ void silentVMStart(SilentVM* vm)
 		long long l;
 		float f;
 		double d;
-	}reg, reg2;
+	}reg, reg2, reg3, reg4;
 
 	dataType dt[] = {
 		INT8,
@@ -154,7 +154,8 @@ void silentVMStart(SilentVM* vm)
 	SilentVector* 		stackT  = vm->memory->stackTypes;
 	SilentVector*		stackF	= vm->memory->stackFrame;
 
-	SilentVector*		callPos = SilentCreateVector(16, 8);
+	SilentVector*		callPos = SilentCreateVector(32, 8);
+	SilentVector*		saveStackT = SilentCreateVector(32, 8);
 
     
     uint64 sp = 0; //stack pointer
@@ -179,11 +180,11 @@ void silentVMStart(SilentVM* vm)
 			case Goto:
 				pc++;
 				pc = *((uint64*)(program + (pc)));
-				pc--;
 				#if DEBUG
 					printf("Goto\n");
 					printf("pc: %i\n",pc);
 				#endif
+				pc--;
 			break;
 
 			case Sweep:
@@ -200,13 +201,37 @@ void silentVMStart(SilentVM* vm)
 				memcpy(&reg2.l, program + pc, 8);
 				pc += 7;
 
+				uint64 argumentSize = 0;
+				uint64 typeSize = 0;
+				for(uint64 i = 0; i < reg2.l; i++)
+				{
+					//SilentPopBack(stackT);
+					reg3.c = SilentGetTypeSize(stackT->data[stackT->ptr-typeSize-1]);
+					if(reg3.c != 0)
+					{
+						argumentSize += reg3.c;
+						typeSize += 1;
+					}
+					else
+					{
+						//get custom data size
+						uint64 datSize;
+						memcpy(&datSize, stackT->data + stackT->ptr -1, 8);
+						argumentSize += datSize;
+						typeSize += 10;
+					}
+				}
+				reg2.l = argumentSize;
 
 				//save return address
 				SilentPushBack(callPos, &pc);
 				//save frame pointer
 				SilentPushBack(stackF, &fp);
 				fp = sp - reg2.l;
-				//Go to subroutine
+				reg4.l = stackT->ptr-typeSize;
+				//save stack type pointer
+				SilentPushBack(saveStackT, &reg4.l);
+
 				pc = reg.l-1;
 
 				#if DEBUG
@@ -218,26 +243,44 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Return:
-				
 				pc++;
 				//Number of return values
 				memcpy(&reg.l, program + pc, 8);
-				pc += 8;
 				reg2.l = 0;
-				for(uint64 i = 0; i < reg.l; i++)
+
+				//Get return sizes
+				uint64 stackReturnSize = 0;
+				uint64 stackTReturnSize = 0;
+				uint64 returnValues = reg.l;
+				for(uint64 i = 0; i < returnValues; i++)
 				{
-					SilentPopBack(stackT);
-					reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+					//SilentPopBack(stackT);
+					reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-stackTReturnSize-1]);
 					if(reg.c != 0)
 					{
-						reg2.l += reg.c;
+						stackReturnSize += reg.c;
+						stackTReturnSize += 1;
 					}
 					else
 					{
-
+						//get custom data size
+						memcpy(&reg2.l, stackT->data + stackT->ptr -1, 8);
+						stackReturnSize += reg.l;
+						stackTReturnSize += 10;
 					}
 				}
-				
+				//Move memory
+				memmove(stack + fp, stack + sp - stackReturnSize, stackReturnSize);
+				sp = fp + stackReturnSize;
+				SilentPopBack(saveStackT);
+				uint64 oldStackT = 0; 
+				memcpy(&oldStackT, saveStackT->data + saveStackT->ptr,8);
+				memmove(
+					stackT->data + oldStackT, 
+					stackT->data + stackT->ptr - stackTReturnSize,
+					stackTReturnSize
+				);
+				stackT->ptr = oldStackT + stackTReturnSize;
 				SilentPopBack(callPos);
 				memcpy(&pc, callPos->data + callPos->ptr, 8);
 				SilentPopBack(stackF);
@@ -633,6 +676,9 @@ void silentVMStart(SilentVM* vm)
 						(*(double*)(stack + sp));
                     break;
 				}
+				#if DEBUG
+					printf("Add\n");
+				#endif
 			break;
 
 			case Sub:
@@ -674,6 +720,9 @@ void silentVMStart(SilentVM* vm)
 						(*(double*)(stack + sp));
                     break;
 				}
+				#if DEBUG
+					printf("Sub\n");
+				#endif
 			break;
 
 			case Mul:
@@ -715,6 +764,9 @@ void silentVMStart(SilentVM* vm)
 						(*(double*)(stack + sp));
                     break;
 				}
+				#if DEBUG
+					printf("Mul\n");
+				#endif
 			break;
 
 			case Div:
@@ -773,6 +825,9 @@ void silentVMStart(SilentVM* vm)
 						(*(double*)(stack + sp));
                     break;
 				}
+				#if DEBUG
+					printf("Div\n");
+				#endif
 			break;
 
 			case Convert:

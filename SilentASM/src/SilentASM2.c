@@ -27,22 +27,6 @@ typedef enum SilentDataType
 	UNDEFINED_END
 }dataType;
 
-dataType dt[] = {
-    INT8,
-    UINT8,
-    INT16,
-    UINT16,
-    INT32,
-    UINT32,
-    INT64,
-    UINT64,
-    FLOAT32,
-    FLOAT64,
-    POINTER,
-    POINTER_LOCATION,
-    UNDEFINED,
-};
-
 typedef enum SilentBytecode
 {
 	Halt = 0,
@@ -255,7 +239,7 @@ char* assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"call") == 0)
         {
             program[pc++] = (char)Call;
-            //Sub name
+            //label name
             uint64 temp = 0;
             memcpy(program + pc, &temp, 8);
             aLabels[aLabelIndex].index = pc;
@@ -276,6 +260,9 @@ char* assemble(char* inFile, char* outFile)
         if(strcmp(instructions[0],"return") == 0)
         {
             program[pc++] = (char)Return;
+            uint64 temp = (uint64)atol(instructions[1]);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
         }
 
         if(strcmp(instructions[0],"loaddll") == 0)
@@ -395,70 +382,70 @@ char* assemble(char* inFile, char* outFile)
             if(strcmp(instructions[1],"int8") == 0)
             {
                 program[pc++] = INT8;
-                char temp = (char)atoi(instructions[2]);
-                memcpy(program + pc, &temp, 1);
-                pc+=1;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"uint8") == 0)
             {
                 program[pc++] = UINT8;
-                unsigned char temp = (unsigned char)atoi(instructions[2]);
-                memcpy(program + pc, &temp, 1);
-                pc+=1;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"int16") == 0)
             {
                 program[pc++] = INT16;
-                short temp = (short)atoi(instructions[2]);
-                memcpy(program + pc, &temp, 2);
-                pc+=2;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"uint16") == 0)
             {
                 program[pc++] = UINT16;
-                unsigned short temp = (unsigned short)atoi(instructions[2]);
-                memcpy(program + pc, &temp, 2);
-                pc+=2;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"int32") == 0)
             {
                 program[pc++] = INT32;
-                int temp = (int)atoi(instructions[2]);
-                memcpy(program + pc, &temp, 4);
-                pc+=4;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"uint32") == 0)
             {
                 program[pc++] = UINT32;
-                unsigned int temp = (unsigned int)atoi(instructions[2]);
-                memcpy(program + pc, &temp, 4);
-                pc+=4;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"int64") == 0)
             {
                 program[pc++] = INT64;
-                long long temp = (long long)atol(instructions[2]);
+                uint64 temp = (uint64)atol(instructions[2]);
                 memcpy(program + pc, &temp, 8);
                 pc+=8;
             }
             else if(strcmp(instructions[1],"uint64") == 0)
             {
                 program[pc++] = UINT64;
-                unsigned long long temp = (unsigned long long)atol(instructions[2]);
+                uint64 temp = (uint64)atol(instructions[2]);
                 memcpy(program + pc, &temp, 8);
                 pc+=8;
             }
             else if(strcmp(instructions[1],"float32") == 0)
             {
                 program[pc++] = FLOAT32;
-                float temp = (float)atof(instructions[2]);
-                memcpy(program + pc, &temp, 4);
-                pc+=4;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
             }
             else if(strcmp(instructions[1],"float64") == 0)
             {
                 program[pc++] = FLOAT64;
-                double temp = (double)atof(instructions[2]);
+                uint64 temp = (uint64)atol(instructions[2]);
                 memcpy(program + pc, &temp, 8);
                 pc+=8;
             }

@@ -1,5 +1,11 @@
 goto main
-push uint32 4
+
+add:
+add
+return 1
+
 main:
-push uint32 4
-call main 21
+push uint32 9
+push uint32 10
+call add 2
+halt
