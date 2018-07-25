@@ -173,6 +173,9 @@ void silentVMStart(SilentVM* vm)
 		switch(program[pc])
 		{
 			case Halt:
+				#if DEBUG
+					printf("halt\n");
+				#endif
                 running = 0;
 				vm->running = 0;
 			break;

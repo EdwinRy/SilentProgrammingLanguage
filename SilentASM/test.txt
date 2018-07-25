@@ -1,11 +1,19 @@
 goto main
+end:
+return 1
 
-add:
+c21:
+push uint32 21
+load uint32 0
+smallerthan
+if end
+
+push uint32 1
 add
+call c21 1
 return 1
 
 main:
-push uint32 9
-push uint32 10
-call add 2
+push uint32 19
+call c21 1
 halt
