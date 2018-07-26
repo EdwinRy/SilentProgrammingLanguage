@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "SilentVector.h"
+#include "SilentLib.h"
 #ifndef SILENT_VM
 #define SILENT_VM
 
@@ -13,6 +14,7 @@ typedef enum SilentBytecode
 	LoadDll,
 	LoadDllFunc,
 	FreeDll,
+	CallDllFunc,
 	Push,
 	Pop,
 	Store,
@@ -66,10 +68,26 @@ typedef struct SilentGC
     SilentMemory* memory;
 }SilentGC;
 
+typedef struct SilentDllProc
+{
+	char* procName;
+	LibFunc addr;
+}SilentDllProc;
+
+typedef struct SilentDll
+{
+	SilentDllProc* procs;
+	char* name;
+	unsigned long long count;
+	char occupied;
+}SilentDll;
+
 typedef struct SilentVM
 {
 	SilentMemory* 		memory;
 	SilentGC*			gc;
+	SilentDll*			dlls;
+	unsigned long long	dllCount;
 	char* 				program;
 	char 				running;
 }SilentVM;

@@ -297,12 +297,22 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case LoadDll:
+				//Get dll name size
+				pc++;
+				memcpy(&reg.l, program + pc, 8);
+				pc += 8;
+				//tempPtr = 
 			break;
 
 			case LoadDllFunc:
 			break;
 
 			case FreeDll:
+				//Get Dll location
+
+			break;
+
+			case CallDllFunc:
 			break;
 
             case Push:
