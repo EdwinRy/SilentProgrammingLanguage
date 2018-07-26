@@ -394,9 +394,6 @@ void silentVMStart(SilentVM* vm)
 				vm->memory->framePointer = fp;
 				vm->memory->stackPointer = sp;
 				vm->programCounter = pc;
-
-				printf("d %s\n",dlls[reg.l].procs[reg2.l].procName);
-
 				dlls[reg.l].procs[reg2.l].addr(vm);
 
 				fp = vm->memory->framePointer;
