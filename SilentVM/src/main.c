@@ -60,10 +60,6 @@ int main(int argc, char** argv)
 
 	silentVMStart(vm);
 
-	printf("stack %i\n",*((char*)(memory->stack)));
-	printf("stack Type %i\n",memory->stackTypes->data[0]);
-	printf("stack Type count %i\n",memory->stackTypes->ptr);
-
 	deleteSilentGC(gc);
 	deleteSilentMemory(memory);
 	//deleteSilentVM(vm);

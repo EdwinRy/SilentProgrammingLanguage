@@ -1,0 +1,7 @@
+loaddll "lib/silentLib.dll\0"
+loaddllfunc 0 "outputInt\0"
+push uint32 9
+push uint32 10
+add
+calldllfunc 0 0 1
+halt

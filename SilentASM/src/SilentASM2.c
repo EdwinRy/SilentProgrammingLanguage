@@ -37,6 +37,7 @@ typedef enum SilentBytecode
 	LoadDll,
 	LoadDllFunc,
 	FreeDll,
+	CallDllFunc,
 	PushData,
 	Pop,
 	Store,
@@ -94,11 +95,13 @@ char* assemble(char* inFile, char* outFile)
     size = getline(&line, &s, fileStream);
 
     char buffer[1000];
-    char** instructions = malloc(sizeof(char*)*5);
+    char** instructions = malloc(sizeof(char*)*10);
     uint64 iIndex = 0; //instruction index
 
     char tempChar;
     char* tempPtr;
+
+    uint64 strLength;
 
     while(size != -1)
     {
@@ -145,7 +148,7 @@ char* assemble(char* inFile, char* outFile)
                 i++; 
                 uint64 count;
                 buffer[0] = 's';
-                for(count = 1; line[i] != '\"'; count++)
+                for(count = 0; line[i] != '\"'; count++)
                 {
                     if(line[i] == '\\')
                     {
@@ -190,6 +193,7 @@ char* assemble(char* inFile, char* outFile)
                 instructions[iIndex] = malloc(count);
                 memcpy(instructions[iIndex], buffer, count);
                 i += count;
+                strLength = count;
                 iIndex += 1;
             }
         }
@@ -208,14 +212,14 @@ char* assemble(char* inFile, char* outFile)
             labelIndex+=1;
         }
 
-        if(strcmp(instructions[0],"halt") == 0)
+        else if(strcmp(instructions[0],"halt") == 0)
         {
             program[pc++] = (char)Halt;
         }
 
         //printf("l %s\n",instructions[0]);
 
-        if(strcmp(instructions[0],"goto") == 0)
+        else if(strcmp(instructions[0],"goto") == 0)
         {
             program[pc++] = (char)Goto;
             aLabels[aLabelIndex].index = pc;
@@ -231,12 +235,12 @@ char* assemble(char* inFile, char* outFile)
             pc+=8;
         }
 
-        if(strcmp(instructions[0],"sweep") == 0)
+        else if(strcmp(instructions[0],"sweep") == 0)
         {
             program[pc++] = (char)Sweep;
         }
 
-        if(strcmp(instructions[0],"call") == 0)
+        else if(strcmp(instructions[0],"call") == 0)
         {
             program[pc++] = (char)Call;
             //label name
@@ -257,7 +261,7 @@ char* assemble(char* inFile, char* outFile)
             pc+=8;
         }
 
-        if(strcmp(instructions[0],"return") == 0)
+        else if(strcmp(instructions[0],"return") == 0)
         {
             program[pc++] = (char)Return;
             uint64 temp = (uint64)atol(instructions[1]);
@@ -265,19 +269,50 @@ char* assemble(char* inFile, char* outFile)
             pc+=8;
         }
 
-        if(strcmp(instructions[0],"loaddll") == 0)
+        else if(strcmp(instructions[0],"loaddll") == 0)
         {
+            program[pc++] = (char)LoadDll;
+            memcpy(program + pc, &strLength, 8);
+            pc += 8;
+            memcpy(program + pc, instructions[1], strLength);
+            pc += strLength;
         }
 
-        if(strcmp(instructions[0],"loaddllfunc") == 0)
+        else if(strcmp(instructions[0],"loaddllfunc") == 0)
         {
+            program[pc++] = (char)LoadDllFunc;
+            uint64 temp = (uint64)atol(instructions[1]);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
+            memcpy(program + pc, &strLength, 8);
+            pc += 8;
+            memcpy(program + pc, instructions[2], strLength);
+            pc += strLength;
         }
 
-        if(strcmp(instructions[0],"freedll") == 0)
+        else if(strcmp(instructions[0],"freedll") == 0)
         {
+            program[pc++] = (char)FreeDll;
+            uint64 temp = (uint64)atol(instructions[1]);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
         }
 
-        if(strcmp(instructions[0],"push") == 0)
+        else if(strcmp(instructions[0],"calldllfunc") == 0)
+        {
+            program[pc++] = (char)CallDllFunc;
+            uint64 temp = (uint64)atol(instructions[1]);
+            memcpy(program + pc, &temp, 8);
+            pc += 8;
+            temp = (uint64)atol(instructions[2]);
+            memcpy(program + pc, &temp, 8);
+            pc += 8;
+            temp = (uint64)atol(instructions[3]);
+            memcpy(program + pc, &temp, 8);
+            pc += 8;
+        }
+
+        else if(strcmp(instructions[0],"push") == 0)
         {
             program[pc++] = (char)PushData;
             if(strcmp(instructions[1],"int8") == 0)
@@ -363,12 +398,12 @@ char* assemble(char* inFile, char* outFile)
             }
         }
 
-        if(strcmp(instructions[0],"pop") == 0)
+        else if(strcmp(instructions[0],"pop") == 0)
         {
             program[pc++] = (char)Pop;
         }
 
-        if(strcmp(instructions[0],"store") == 0)
+        else if(strcmp(instructions[0],"store") == 0)
         {
             program[pc++] = (char)Store;
             uint64 temp = (uint64)atol(instructions[1]);
@@ -376,7 +411,7 @@ char* assemble(char* inFile, char* outFile)
             pc+=8;
         }
 
-        if(strcmp(instructions[0],"load") == 0)
+        else if(strcmp(instructions[0],"load") == 0)
         {
             program[pc++] = (char)Load;
             if(strcmp(instructions[1],"int8") == 0)
@@ -462,7 +497,7 @@ char* assemble(char* inFile, char* outFile)
             }
         }
 
-        if(strcmp(instructions[0],"storeglobal") == 0)
+        else if(strcmp(instructions[0],"storeglobal") == 0)
         {
             program[pc++] = (char)StoreGlobal;
             uint64 temp = (uint64)atol(instructions[1]);
@@ -470,7 +505,7 @@ char* assemble(char* inFile, char* outFile)
             pc+=8;
         }
 
-        if(strcmp(instructions[0],"loadglobal") == 0)
+        else if(strcmp(instructions[0],"loadglobal") == 0)
         {
             program[pc++] = (char)Load;
             if(strcmp(instructions[1],"int8") == 0)
@@ -556,7 +591,7 @@ char* assemble(char* inFile, char* outFile)
             }
         }
 
-        if(strcmp(instructions[0],"alloc") == 0)
+        else if(strcmp(instructions[0],"alloc") == 0)
         {
             program[pc++] = (char)Alloc;
             uint64 temp = (uint64)atoi(instructions[1]);
@@ -564,7 +599,7 @@ char* assemble(char* inFile, char* outFile)
             pc+=8;
         }
 
-        if(strcmp(instructions[0],"loadptr") == 0)
+        else if(strcmp(instructions[0],"loadptr") == 0)
         {
             program[pc++] = (char)LoadPtr;
             if(strcmp(instructions[1],"int8") == 0)
@@ -617,67 +652,67 @@ char* assemble(char* inFile, char* outFile)
             }
         }
 
-        if(strcmp(instructions[0],"storeptr") == 0)
+        else if(strcmp(instructions[0],"storeptr") == 0)
         {
             program[pc++] = (char)StorePtr;
         }
 
-        if(strcmp(instructions[0],"getptr") == 0)
+        else if(strcmp(instructions[0],"getptr") == 0)
         {
             program[pc++] = (char)GetPtr;
         }
 
-        if(strcmp(instructions[0],"freeptr") == 0)
+        else if(strcmp(instructions[0],"freeptr") == 0)
         {
             program[pc++] = (char)FreePtr;
         }
 
-        if(strcmp(instructions[0],"free") == 0)
+        else if(strcmp(instructions[0],"free") == 0)
         {
             program[pc++] = (char)Free;
         }
 
 
-        if(strcmp(instructions[0],"add") == 0)
+        else if(strcmp(instructions[0],"add") == 0)
         {
             program[pc++] = (char)Add;
         }
 
-        if(strcmp(instructions[0],"sub") == 0)
+        else if(strcmp(instructions[0],"sub") == 0)
         {
             program[pc++] = (char)Sub;
         }
 
-        if(strcmp(instructions[0],"mul") == 0)
+        else if(strcmp(instructions[0],"mul") == 0)
         {
             program[pc++] = (char)Mul;
         }
 
-        if(strcmp(instructions[0],"div") == 0)
+        else if(strcmp(instructions[0],"div") == 0)
         {
             program[pc++] = (char)Div;
         }
 
-        if(strcmp(instructions[0],"Convert") == 0)
+        else if(strcmp(instructions[0],"Convert") == 0)
         {
         }
 
-        if(strcmp(instructions[0],"smallerthan") == 0)
+        else if(strcmp(instructions[0],"smallerthan") == 0)
         {
             program[pc++] = (char)SmallerThan;
         }
 
-        if(strcmp(instructions[0],"largerthan") == 0)
+        else if(strcmp(instructions[0],"largerthan") == 0)
         {
             program[pc++] = (char)LargerThan;
         }
 
-        if(strcmp(instructions[0],"equal") == 0)
+        else if(strcmp(instructions[0],"equal") == 0)
         {
             program[pc++] = (char)Equal;
         }
 
-        if(strcmp(instructions[0],"if") == 0)
+        else if(strcmp(instructions[0],"if") == 0)
         {
             program[pc++] = (char)If;
             aLabels[aLabelIndex].index = pc;
@@ -693,7 +728,7 @@ char* assemble(char* inFile, char* outFile)
             pc+=8;
         }
 
-        if(strcmp(instructions[0],"ifn") == 0)
+        else if(strcmp(instructions[0],"ifn") == 0)
         {
             program[pc++] = (char)IfNot;
             aLabels[aLabelIndex].index = pc;
@@ -709,19 +744,25 @@ char* assemble(char* inFile, char* outFile)
             pc+=8;
         }
 
-        if(strcmp(instructions[0],"and") == 0)
+        else if(strcmp(instructions[0],"and") == 0)
         {
             program[pc++] = (char)And;
         }
 
-        if(strcmp(instructions[0],"or") == 0)
+        else if(strcmp(instructions[0],"or") == 0)
         {
             program[pc++] = (char)Or;
         }
 
-        if(strcmp(instructions[0],"not") == 0)
+        else if(strcmp(instructions[0],"not") == 0)
         {
             program[pc++] = (char)Not;
+        }
+
+        else
+        {
+            printf("Invalid token on line %i\n", currentLine);
+            exit(-1);
         }
 
         currentLine += 1;

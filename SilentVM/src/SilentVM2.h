@@ -78,8 +78,8 @@ typedef struct SilentDll
 {
 	SilentDllProc* procs;
 	char* name;
+	void* addr;
 	unsigned long long count;
-	char occupied;
 }SilentDll;
 
 typedef struct SilentVM
@@ -89,6 +89,7 @@ typedef struct SilentVM
 	SilentDll*			dlls;
 	unsigned long long	dllCount;
 	char* 				program;
+	unsigned long long	programCounter;
 	char 				running;
 }SilentVM;
 

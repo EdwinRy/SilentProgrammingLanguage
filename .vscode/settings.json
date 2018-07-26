@@ -41,6 +41,8 @@
         "xmemory": "cpp",
         "xmemory0": "cpp",
         "xstddef": "cpp",
-        "xtr1common": "cpp"
+        "xtr1common": "cpp",
+        "silentvm2.h": "c",
+        "silentvm2.h\u0000tvm2.h": "c"
     }
 }

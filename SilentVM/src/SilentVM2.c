@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #define STACK_OUTPUT 0
 
 typedef unsigned int uint;
@@ -47,9 +47,11 @@ SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGC* gc)
 {
 	SilentVM* vm 		= malloc(sizeof(SilentVM));
 	vm->memory 			= memory;
+	vm->gc 				= gc;
+	vm->dlls 			= malloc(sizeof(SilentDll));
+	vm->dllCount		= 0;
 	vm->program 		= program;
 	vm->running 		= 0;
-	vm->gc = gc;
 	return vm;
 }
 
@@ -156,6 +158,8 @@ void silentVMStart(SilentVM* vm)
 
 	SilentVector*		callPos = SilentCreateVector(32, 8);
 	SilentVector*		saveStackT = SilentCreateVector(32, 8);
+
+	SilentDll*			dlls = vm->dlls;
 
     
     uint64 sp = 0; //stack pointer
@@ -297,22 +301,105 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case LoadDll:
-				//Get dll name size
+				//Get dll name
 				pc++;
 				memcpy(&reg.l, program + pc, 8);
 				pc += 8;
-				//tempPtr = 
+				tempPtr = program + pc;
+				pc += reg.l-1;
+				//Create dll
+				dlls[vm->dllCount].procs = malloc(sizeof(SilentDllProc));
+				dlls[vm->dllCount].name = malloc(reg.l);
+				memcpy(dlls[vm->dllCount].name, tempPtr, reg.l);
+				dlls[vm->dllCount].addr = SilentLoadLibrary(tempPtr);
+				dlls[vm->dllCount].count = 0;
+				vm->dllCount += 1;
+				do
+				{
+					tempPtr = realloc(dlls,(vm->dllCount+1)*sizeof(SilentDll));
+				}while(tempPtr == NULL);
+				dlls = (SilentDll*)tempPtr;
+				#if DEBUG
+				printf("LoadDll\n");
+				printf("addr %i\n",dlls[0].addr);
+				#endif
 			break;
 
 			case LoadDllFunc:
+				//Get dll index
+				pc++;
+				memcpy(&reg.l, program + pc, 8);
+				pc += 8;
+				SilentDll* dll = dlls + reg.l;
+				//Get proc name
+				memcpy(&reg2.l, program + pc, 8);
+				pc += 8;
+				dll->procs[dll->count].procName = malloc(reg2.l);
+				memcpy(dll->procs[dll->count].procName, program+pc, reg2.l);
+				pc += reg2.l-1;
+				
+				dll->procs[dll->count].addr = 
+				SilentLoadFunc(dll->addr, dll->procs[dll->count].procName);
+				dll->count += 1;
+				do
+				{
+					tempPtr = realloc(dll->procs,(dll->count+1)*sizeof(SilentDllProc));
+				}while(tempPtr == NULL);
+				dll->procs = (SilentDllProc*)tempPtr;
+				#if DEBUG
+				printf("Load dll func\n");
+				printf("addr %i\n",dlls[0].addr);
+				#endif
 			break;
 
 			case FreeDll:
-				//Get Dll location
-
+				pc++;
+				memcpy(&reg.l, program + pc, 8);
+				pc += 7;
+				SilentFreeLibrary(dlls[reg.l].addr);
 			break;
 
 			case CallDllFunc:
+				pc++;
+				//Dll index
+				memcpy(&reg.l, program + pc, 8);
+				pc += 8;
+				//Function index
+				memcpy(&reg2.l, program + pc, 8);
+				pc += 8;
+				//number of arguments index
+				memcpy(&reg3.l, program + pc, 8);
+				pc += 8;
+
+				uint64 argSize = 0;
+				for(uint64 i = 0; i < reg3.l; i++)
+				{
+					reg4.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+					if(reg4.c != 0)
+					{
+						argSize += reg4.c;
+						SilentPopBack(stackT);
+					}
+					else
+					{
+						uint64 dSize;
+						memcpy(&dSize, stackT->data + stackT->ptr -1, 8);
+						argSize += dSize;
+						SilentPopMultiple(stackT,10);
+					}
+				}
+				reg3.l = argSize;
+				sp -= argSize;
+
+				vm->memory->framePointer = fp;
+				vm->memory->stackPointer = sp;
+				vm->programCounter = pc;
+
+				dlls[reg.l].procs[reg2.l].addr(vm);
+
+				fp = vm->memory->framePointer;
+				sp = vm->memory->stackPointer;
+				pc = vm->programCounter;
 			break;
 
             case Push:
