@@ -1,7 +1,5 @@
 loaddll "lib/silentLib.dll\0"
-loaddllfunc 0 "outputInt\0"
-push uint32 9
-push uint32 10
-add
+loaddllfunc 0 "outputStr\0"
+push str "my nama jeff\0"
 calldllfunc 0 0 1
 halt

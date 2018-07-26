@@ -392,6 +392,14 @@ char* assemble(char* inFile, char* outFile)
                 memcpy(program + pc, &temp, 8);
                 pc+=8;
             }
+            else if(strcmp(instructions[1],"str") == 0)
+            {
+                program[pc++] = UNDEFINED;
+                memcpy(program + pc, &strLength, 8);
+                pc += 8;
+                memcpy(program + pc, instructions[2], strLength);
+                pc += strLength;
+            }
             else
             {
                 printf("Invalid type on line: %i\n",currentLine);

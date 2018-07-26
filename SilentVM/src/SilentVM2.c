@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-#define DEBUG 0
+#define DEBUG 1
 #define STACK_OUTPUT 0
 
 typedef unsigned int uint;
@@ -383,7 +383,7 @@ void silentVMStart(SilentVM* vm)
 					else
 					{
 						uint64 dSize;
-						memcpy(&dSize, stackT->data + stackT->ptr -1, 8);
+						memcpy(&dSize, stackT->data + stackT->ptr - 9, 8);
 						argSize += dSize;
 						SilentPopMultiple(stackT,10);
 					}
@@ -395,11 +395,13 @@ void silentVMStart(SilentVM* vm)
 				vm->memory->stackPointer = sp;
 				vm->programCounter = pc;
 
+				printf("d %s\n",dlls[reg.l].procs[reg2.l].procName);
+
 				dlls[reg.l].procs[reg2.l].addr(vm);
 
 				fp = vm->memory->framePointer;
 				sp = vm->memory->stackPointer;
-				pc = vm->programCounter;
+				pc = vm->programCounter-1;
 			break;
 
             case Push:
