@@ -279,10 +279,6 @@ char* assemble(char* inFile, char* outFile)
             temp = (uint64)atol(instructions[2]);
             memcpy(program + pc, &temp, 8);
             pc+=8;
-            //Arg size
-            temp = (uint64)atol(instructions[3]);
-            memcpy(program + pc, &temp, 8);
-            pc+=8;
         }
 
         else if(strcmp(instructions[0],"return") == 0)
