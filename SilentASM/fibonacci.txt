@@ -55,7 +55,7 @@ add
 return 1
 
 main:
-push uint32 40
-call fib 1
+push uint32 30
+call fib 1 4
 calldllfunc 0 0 1
 halt

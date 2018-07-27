@@ -275,8 +275,12 @@ char* assemble(char* inFile, char* outFile)
             #endif            
             aLabelIndex++;
             pc+=8;
-            //Arg size
+            //Arg count
             temp = (uint64)atol(instructions[2]);
+            memcpy(program + pc, &temp, 8);
+            pc+=8;
+            //Arg size
+            temp = (uint64)atol(instructions[3]);
             memcpy(program + pc, &temp, 8);
             pc+=8;
         }
