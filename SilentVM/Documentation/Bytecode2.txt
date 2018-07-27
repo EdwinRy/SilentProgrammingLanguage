@@ -1,13 +1,12 @@
 <instruction> <parameters in code> (<parameters on stack>)
-
 Halt - stop the vm execution
 Goto x - change program counter to value of x 
 Sweep - Force the VM to perform making and sweeping
-Call x - Call subroutine at location x 
-Return - 
-LoadDll - 
-LoadDllFunc - 
-FreeDll - 
+Call x y - Call subroutine at location x with y number of arguments
+Return x - Return x number of arguments to the calling subroutine
+LoadDll x - Load dll of path x
+LoadDllFunc x y - Load function of name y from dll at index x 
+FreeDll x - Free dll at index x
 Push x y - push y of type x on top of stack
 Pop - remove top item from the stack
 Store x - store top item from the stack at local x 
@@ -19,16 +18,16 @@ LoadPtr x - load data type x from pointer on the stack
 StorePtr - 
 FREE - 
 GetPtr - 
-Add - 
-Sub - 
-Mul - 
-Div - 
+Add (x) (y) - Add 2 values on the stack
+Sub (x) (y) - Subtract 2 values on the stack
+Mul (x) (y) - Multiply 2 values on the stack
+Div (x) (y) - Divide 2 values on the stack
 Convert - 
-SmallerThan - 
-LargerThan - 
-Equal - 
-If - 
-IfNot - 
-And - 
-Or - 
-Not -  
+SmallerThan (x) (y) - Compare 2 values on the stack (returns a byte)
+LargerThan (x) (y) - Compare 2 values on the stack (returns a byte)
+Equal (x) (y) - Compare 2 values on the stack (returns a byte)
+If (x) y - if the top stack element is 1, go to y
+IfNot (x) y - if the top stack element is 0, go to y
+And (x) (y) - Compare AND operation on 2 values on the stack
+Or (x) (y) - Compare OR operation on 2 values on the stack
+Not (x) -  Compare NOT on a value on the stack

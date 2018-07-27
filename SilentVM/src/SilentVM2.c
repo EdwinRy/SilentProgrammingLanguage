@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #define STACK_OUTPUT 0
 
 typedef unsigned int uint;
@@ -112,6 +112,7 @@ char SilentGetTypeSize(char type)
 		break;
 
 		case UNDEFINED:
+		case UNDEFINED_END:
 			return 0;
 		break;
 
@@ -147,6 +148,7 @@ void silentVMStart(SilentVM* vm)
 		POINTER,
 		POINTER_LOCATION,
 		UNDEFINED,
+		UNDEFINED_END
 	};
 
 
@@ -542,7 +544,7 @@ void silentVMStart(SilentVM* vm)
 					memcpy(&reg.l, program + ++pc, 8);
 					pc += 8;
 					SilentPushMultiple(stackT,8,&reg.l);
-					SilentPushBack(stackT, dt + UNDEFINED);
+					SilentPushBack(stackT, dt + UNDEFINED_END);
 					//get position
 					memcpy(&reg2.l, program + pc, 8);
 					//load data
@@ -587,7 +589,7 @@ void silentVMStart(SilentVM* vm)
 					memcpy(&reg.l, program + ++pc, 8);
 					pc += 8;
 					SilentPushMultiple(stackT,8,&reg.l);
-					SilentPushBack(stackT, dt + UNDEFINED);
+					SilentPushBack(stackT, dt + UNDEFINED_END);
 					//get position
 					memcpy(&reg2.l, program + pc, 8);
 					//load data
@@ -683,7 +685,7 @@ void silentVMStart(SilentVM* vm)
 						sp += reg.l;
 						SilentPushBack(stackT, dt + UNDEFINED);
 						SilentPushMultiple(stackT, 8, &reg.l);
-						SilentPushBack(stackT, dt + UNDEFINED);
+						SilentPushBack(stackT, dt + UNDEFINED_END);
 					break;
 				}
 			break;

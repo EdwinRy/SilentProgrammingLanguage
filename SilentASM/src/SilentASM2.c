@@ -112,6 +112,26 @@ char* assemble(char* inFile, char* outFile)
             size = getline(&line, &s, fileStream);
             continue;
         }
+        //One line comment
+        if(line[0] == '/' && line[1] == '/')
+        {
+            currentLine += 1;
+            size = getline(&line, &s, fileStream);
+            continue;
+        }
+        //Multi-line comment
+        if(line[0] == '/' && line[1] == '*')
+        {
+            while(!(line[0] == '*' && line[1] == '/'))
+            {
+                currentLine += 1;
+                size = getline(&line, &s, fileStream);
+            }
+            currentLine += 1;
+            size = getline(&line, &s, fileStream);
+            continue;
+        }
+
         #if DEBUG
             printf("l %s",line);
         #endif
@@ -603,6 +623,16 @@ char* assemble(char* inFile, char* outFile)
                 memcpy(program + pc, &temp, 8);
                 pc+=8;
             }
+            else if(strcmp(instructions[1],"str") == 0)
+            {
+                program[pc++] = UNDEFINED;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &strLength, 8);
+                pc+=8;
+                temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &temp, 8);
+                pc+=8;
+            }
             else
             {
                 printf("Invalid type on line: %i\n",currentLine);
@@ -663,6 +693,13 @@ char* assemble(char* inFile, char* outFile)
             else if(strcmp(instructions[1],"ptr") == 0)
             {
                 program[pc++] = POINTER;
+            }
+            else if(strcmp(instructions[1],"str") == 0)
+            {
+                program[pc++] = UNDEFINED;
+                uint64 temp = (uint64)atol(instructions[2]);
+                memcpy(program + pc, &strLength, 8);
+                pc+=8;
             }
             else
             {
