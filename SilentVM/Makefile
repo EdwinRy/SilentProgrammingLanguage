@@ -7,6 +7,9 @@ flags = -Wall
 all:
 	$(compiler) $(standard) $(flags) $(source) -o $(output)
 
+release:
+	$(compiler) $(standard) $(flags) $(source) -O3 -o $(output)
+
 winLib:
 	gcc -shared -o lib/silentLib.dll lib/silentLib.c
 
