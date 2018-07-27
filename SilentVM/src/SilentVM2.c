@@ -13,46 +13,46 @@ typedef long long int64;
 
 typedef enum dataType
 {
-	INT8 = 0,
-	UINT8,
+    INT8 = 0,
+    UINT8,
     INT16,
-	UINT16,
+    UINT16,
     INT32,
-	UINT32,
-	INT64,
+    UINT32,
+    INT64,
     UINT64,
     FLOAT32,
     FLOAT64,
     POINTER,
     POINTER_LOCATION,
-	UNDEFINED,
-	UNDEFINED_END
+    UNDEFINED,
+    UNDEFINED_END
 }dataType;
 
 SilentMemory* createSilentMemory(
-	uint stackBufferSize, uint heapBufferSize
+    uint stackBufferSize, uint heapBufferSize
 )
 {
-	SilentMemory* memory 	= malloc(sizeof(SilentMemory));
-	memory->stack 			= malloc(stackBufferSize);
-	memory->stackSize		= stackBufferSize;
+    SilentMemory* memory 	= malloc(sizeof(SilentMemory));
+    memory->stack 			= malloc(stackBufferSize);
+    memory->stackSize		= stackBufferSize;
 
-	memory->heap			= SilentCreateVector(heapBufferSize, 8);
-	memory->stackTypes		= SilentCreateVector(stackBufferSize/4, 1);
-	memory->stackFrame		= SilentCreateVector(stackBufferSize/4, 8);
-	return memory; 
+    memory->heap			= SilentCreateVector(heapBufferSize, 8);
+    memory->stackTypes		= SilentCreateVector(stackBufferSize/4, 1);
+    memory->stackFrame		= SilentCreateVector(stackBufferSize/4, 8);
+    return memory; 
 }
 
 SilentVM* createSilentVM(SilentMemory* memory, char* program, SilentGC* gc)
 {
-	SilentVM* vm 		= malloc(sizeof(SilentVM));
-	vm->memory 			= memory;
-	vm->gc 				= gc;
-	vm->dlls 			= malloc(sizeof(SilentDll));
-	vm->dllCount		= 0;
-	vm->program 		= program;
-	vm->running 		= 0;
-	return vm;
+    SilentVM* vm 		= malloc(sizeof(SilentVM));
+    vm->memory 			= memory;
+    vm->gc 				= gc;
+    vm->dlls 			= malloc(sizeof(SilentDll));
+    vm->dllCount		= 0;
+    vm->program 		= program;
+    vm->running 		= 0;
+    return vm;
 }
 
 SilentGC* createSilentGC(SilentMemory* memory)
@@ -65,29 +65,29 @@ SilentGC* createSilentGC(SilentMemory* memory)
 //Delete program's allocated space
 void deleteSilentMemory(SilentMemory* memory)
 {
-	free(memory->stack);
-	SilentDeleteVector(memory->stackTypes);
-	SilentDeleteVector(memory->heap);
-	SilentDeleteVector(memory->stackFrame);
-	free(memory);
+    free(memory->stack);
+    SilentDeleteVector(memory->stackTypes);
+    SilentDeleteVector(memory->heap);
+    SilentDeleteVector(memory->stackFrame);
+    free(memory);
 }
 
 void deleteSilentVM(SilentVM* vm)
 {
-	if(vm->memory != NULL) deleteSilentMemory(vm->memory);
-	free(vm);
+    if(vm->memory != NULL) deleteSilentMemory(vm->memory);
+    free(vm);
 }
 
 void deleteSilentGC(SilentGC* gc)
 {
-	free(gc);
+    free(gc);
 }
 
 char SilentGetTypeSize(char type)
 {
-	switch(type)
-	{
-		case INT8:
+    switch(type)
+    {
+        case INT8:
         case UINT8:
             return 1;
         break;
@@ -118,48 +118,48 @@ char SilentGetTypeSize(char type)
         default:
             return -1;
         break;
-	}
+    }
 }
 
 void silentVMStart(SilentVM* vm)
 {
-	union Registers
-	{
-		char c;
-		short s;
-		int i;
-		long long l;
-		float f;
-		double d;
-	}reg, reg2, reg3, reg4;
+    union Registers
+    {
+        char c;
+        short s;
+        int i;
+        long long l;
+        float f;
+        double d;
+    }reg, reg2, reg3, reg4;
 
-	dataType dt[] = {
-		INT8,
-	    UINT8,
+    dataType dt[] = {
+        INT8,
+        UINT8,
         INT16,
-	    UINT16,
+        UINT16,
         INT32,
-	    UINT32,
-	    INT64,
+        UINT32,
+        INT64,
         UINT64,
         FLOAT32,
         FLOAT64,
         POINTER,
         POINTER_LOCATION,
-	    UNDEFINED,
-	};
+        UNDEFINED,
+    };
 
 
-	char* 				program = vm->program;
-	char* 				stack 	= vm->memory->stack;
-	SilentVector*		heap	= vm->memory->heap;
-	SilentVector* 		stackT  = vm->memory->stackTypes;
-	SilentVector*		stackF	= vm->memory->stackFrame;
+    char* 				program = vm->program;
+    char* 				stack 	= vm->memory->stack;
+    SilentVector*		heap	= vm->memory->heap;
+    SilentVector* 		stackT  = vm->memory->stackTypes;
+    SilentVector*		stackF	= vm->memory->stackFrame;
 
-	SilentVector*		callPos = SilentCreateVector(32, 8);
-	SilentVector*		saveStackT = SilentCreateVector(32, 8);
+    SilentVector*		callPos = SilentCreateVector(32, 8);
+    SilentVector*		saveStackT = SilentCreateVector(32, 8);
 
-	SilentDll*			dlls = vm->dlls;
+    SilentDll*			dlls = vm->dlls;
 
     
     uint64 sp = 0; //stack pointer
@@ -167,239 +167,239 @@ void silentVMStart(SilentVM* vm)
     //uint64 lp = 0; //local pointer
     uint64 pc = 0; //program counter
 
-	
+    
     vm->running = 1;
-	char* tempPtr;
+    char* tempPtr;
 
     char running = 1;
-	while(running)
-	{
-		switch(program[pc])
-		{
-			case Halt:
-				#if DEBUG
-					printf("halt\n");
-				#endif
+    while(running)
+    {
+        switch(program[pc])
+        {
+            case Halt:
+                #if DEBUG
+                    printf("halt\n");
+                #endif
                 running = 0;
-				vm->running = 0;
-			break;
-			
-			case Goto:
-				pc++;
-				pc = *((uint64*)(program + (pc)));
-				#if DEBUG
-					printf("Goto\n");
-					printf("pc: %i\n",pc);
-				#endif
-				pc--;
-			break;
+                vm->running = 0;
+            break;
+            
+            case Goto:
+                pc++;
+                pc = *((uint64*)(program + (pc)));
+                #if DEBUG
+                    printf("Goto\n");
+                    printf("pc: %i\n",pc);
+                #endif
+                pc--;
+            break;
 
-			case Sweep:
-				SilentMark(vm->gc);
-				SilentSweep(vm->gc);
-			break;
+            case Sweep:
+                SilentMark(vm->gc);
+                SilentSweep(vm->gc);
+            break;
 
-			case Call:
-				pc++;
-				//Get pointer to the subroutine
-				memcpy(&reg.l, program + pc, 8);
-				pc += 8;
-				//Get total size of arguments
-				memcpy(&reg2.l, program + pc, 8);
-				pc += 7;
+            case Call:
+                pc++;
+                //Get pointer to the subroutine
+                memcpy(&reg.l, program + pc, 8);
+                pc += 8;
+                //Get total size of arguments
+                memcpy(&reg2.l, program + pc, 8);
+                pc += 7;
 
-				uint64 argumentSize = 0;
-				uint64 typeSize = 0;
-				for(uint64 i = 0; i < reg2.l; i++)
-				{
-					//SilentPopBack(stackT);
-					reg3.c = SilentGetTypeSize(stackT->data[stackT->ptr-typeSize-1]);
-					if(reg3.c != 0)
-					{
-						argumentSize += reg3.c;
-						typeSize += 1;
-					}
-					else
-					{
-						//get custom data size
-						uint64 datSize;
-						memcpy(&datSize, stackT->data + stackT->ptr -1, 8);
-						argumentSize += datSize;
-						typeSize += 10;
-					}
-				}
-				reg2.l = argumentSize;
+                uint64 argumentSize = 0;
+                uint64 typeSize = 0;
+                for(uint64 i = 0; i < reg2.l; i++)
+                {
+                    //SilentPopBack(stackT);
+                    reg3.c = SilentGetTypeSize(stackT->data[stackT->ptr-typeSize-1]);
+                    if(reg3.c != 0)
+                    {
+                        argumentSize += reg3.c;
+                        typeSize += 1;
+                    }
+                    else
+                    {
+                        //get custom data size
+                        uint64 datSize;
+                        memcpy(&datSize, stackT->data + stackT->ptr -1, 8);
+                        argumentSize += datSize;
+                        typeSize += 10;
+                    }
+                }
+                reg2.l = argumentSize;
 
-				//save return address
-				SilentPushBack(callPos, &pc);
-				//save frame pointer
-				SilentPushBack(stackF, &fp);
-				fp = sp - reg2.l;
-				reg4.l = stackT->ptr-typeSize;
-				//save stack type pointer
-				SilentPushBack(saveStackT, &reg4.l);
+                //save return address
+                SilentPushBack(callPos, &pc);
+                //save frame pointer
+                SilentPushBack(stackF, &fp);
+                fp = sp - reg2.l;
+                reg4.l = stackT->ptr-typeSize;
+                //save stack type pointer
+                SilentPushBack(saveStackT, &reg4.l);
 
-				pc = reg.l-1;
+                pc = reg.l-1;
 
-				#if DEBUG
-					printf("Call\n");
-					printf("pc: %i\n",pc);
-					printf("fp: %i\n",fp);
-					printf("arg size: %i\n", reg2.l);
-				#endif
-			break;
+                #if DEBUG
+                    printf("Call\n");
+                    printf("pc: %i\n",pc);
+                    printf("fp: %i\n",fp);
+                    printf("arg size: %i\n", reg2.l);
+                #endif
+            break;
 
-			case Return:
-				pc++;
-				//Number of return values
-				memcpy(&reg.l, program + pc, 8);
-				reg2.l = 0;
+            case Return:
+                pc++;
+                //Number of return values
+                memcpy(&reg.l, program + pc, 8);
+                reg2.l = 0;
 
-				//Get return sizes
-				uint64 stackReturnSize = 0;
-				uint64 stackTReturnSize = 0;
-				uint64 returnValues = reg.l;
-				for(uint64 i = 0; i < returnValues; i++)
-				{
-					//SilentPopBack(stackT);
-					reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-stackTReturnSize-1]);
-					if(reg.c != 0)
-					{
-						stackReturnSize += reg.c;
-						stackTReturnSize += 1;
-					}
-					else
-					{
-						//get custom data size
-						memcpy(&reg2.l, stackT->data + stackT->ptr -1, 8);
-						stackReturnSize += reg.l;
-						stackTReturnSize += 10;
-					}
-				}
-				//Move memory
-				memmove(stack + fp, stack + sp - stackReturnSize, stackReturnSize);
-				sp = fp + stackReturnSize;
-				SilentPopBack(saveStackT);
-				uint64 oldStackT = 0; 
-				memcpy(&oldStackT, saveStackT->data + saveStackT->ptr,8);
-				memmove(
-					stackT->data + oldStackT, 
-					stackT->data + stackT->ptr - stackTReturnSize,
-					stackTReturnSize
-				);
-				stackT->ptr = oldStackT + stackTReturnSize;
-				SilentPopBack(callPos);
-				memcpy(&pc, callPos->data + callPos->ptr, 8);
-				SilentPopBack(stackF);
-				memcpy(&fp, stackF->data + stackF->ptr, 8);
+                //Get return sizes
+                uint64 stackReturnSize = 0;
+                uint64 stackTReturnSize = 0;
+                uint64 returnValues = reg.l;
+                for(uint64 i = 0; i < returnValues; i++)
+                {
+                    //SilentPopBack(stackT);
+                    reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-stackTReturnSize-1]);
+                    if(reg.c != 0)
+                    {
+                        stackReturnSize += reg.c;
+                        stackTReturnSize += 1;
+                    }
+                    else
+                    {
+                        //get custom data size
+                        memcpy(&reg2.l, stackT->data + stackT->ptr -1, 8);
+                        stackReturnSize += reg.l;
+                        stackTReturnSize += 10;
+                    }
+                }
+                //Move memory
+                memmove(stack + fp, stack + sp - stackReturnSize, stackReturnSize);
+                sp = fp + stackReturnSize;
+                SilentPopBack(saveStackT);
+                uint64 oldStackT = 0; 
+                memcpy(&oldStackT, saveStackT->data + saveStackT->ptr,8);
+                memmove(
+                    stackT->data + oldStackT, 
+                    stackT->data + stackT->ptr - stackTReturnSize,
+                    stackTReturnSize
+                );
+                stackT->ptr = oldStackT + stackTReturnSize;
+                SilentPopBack(callPos);
+                memcpy(&pc, callPos->data + callPos->ptr, 8);
+                SilentPopBack(stackF);
+                memcpy(&fp, stackF->data + stackF->ptr, 8);
 
-				#if DEBUG
-					printf("Return\n");
-					printf("pc: %i\n",pc);
-					printf("fp: %i\n",fp);
-				#endif
-			break;
+                #if DEBUG
+                    printf("Return\n");
+                    printf("pc: %i\n",pc);
+                    printf("fp: %i\n",fp);
+                #endif
+            break;
 
-			case LoadDll:
-				//Get dll name
-				pc++;
-				memcpy(&reg.l, program + pc, 8);
-				pc += 8;
-				tempPtr = program + pc;
-				pc += reg.l-1;
-				//Create dll
-				dlls[vm->dllCount].procs = malloc(sizeof(SilentDllProc));
-				dlls[vm->dllCount].name = malloc(reg.l);
-				memcpy(dlls[vm->dllCount].name, tempPtr, reg.l);
-				dlls[vm->dllCount].addr = SilentLoadLibrary(tempPtr);
-				dlls[vm->dllCount].count = 0;
-				vm->dllCount += 1;
-				do
-				{
-					tempPtr = realloc(dlls,(vm->dllCount+1)*sizeof(SilentDll));
-				}while(tempPtr == NULL);
-				dlls = (SilentDll*)tempPtr;
-				#if DEBUG
-				printf("LoadDll\n");
-				printf("addr %i\n",dlls[0].addr);
-				#endif
-			break;
+            case LoadDll:
+                //Get dll name
+                pc++;
+                memcpy(&reg.l, program + pc, 8);
+                pc += 8;
+                tempPtr = program + pc;
+                pc += reg.l-1;
+                //Create dll
+                dlls[vm->dllCount].procs = malloc(sizeof(SilentDllProc));
+                dlls[vm->dllCount].name = malloc(reg.l);
+                memcpy(dlls[vm->dllCount].name, tempPtr, reg.l);
+                dlls[vm->dllCount].addr = SilentLoadLibrary(tempPtr);
+                dlls[vm->dllCount].count = 0;
+                vm->dllCount += 1;
+                do
+                {
+                    tempPtr = realloc(dlls,(vm->dllCount+1)*sizeof(SilentDll));
+                }while(tempPtr == NULL);
+                dlls = (SilentDll*)tempPtr;
+                #if DEBUG
+                printf("LoadDll\n");
+                printf("addr %i\n",dlls[0].addr);
+                #endif
+            break;
 
-			case LoadDllFunc:
-				//Get dll index
-				pc++;
-				memcpy(&reg.l, program + pc, 8);
-				pc += 8;
-				SilentDll* dll = dlls + reg.l;
-				//Get proc name
-				memcpy(&reg2.l, program + pc, 8);
-				pc += 8;
-				dll->procs[dll->count].procName = malloc(reg2.l);
-				memcpy(dll->procs[dll->count].procName, program+pc, reg2.l);
-				pc += reg2.l-1;
-				
-				dll->procs[dll->count].addr = 
-				SilentLoadFunc(dll->addr, dll->procs[dll->count].procName);
-				dll->count += 1;
-				do
-				{
-					tempPtr = realloc(dll->procs,(dll->count+1)*sizeof(SilentDllProc));
-				}while(tempPtr == NULL);
-				dll->procs = (SilentDllProc*)tempPtr;
-				#if DEBUG
-				printf("Load dll func\n");
-				printf("addr %i\n",dlls[0].addr);
-				#endif
-			break;
+            case LoadDllFunc:
+                //Get dll index
+                pc++;
+                memcpy(&reg.l, program + pc, 8);
+                pc += 8;
+                SilentDll* dll = dlls + reg.l;
+                //Get proc name
+                memcpy(&reg2.l, program + pc, 8);
+                pc += 8;
+                dll->procs[dll->count].procName = malloc(reg2.l);
+                memcpy(dll->procs[dll->count].procName, program+pc, reg2.l);
+                pc += reg2.l-1;
+                
+                dll->procs[dll->count].addr = 
+                SilentLoadFunc(dll->addr, dll->procs[dll->count].procName);
+                dll->count += 1;
+                do
+                {
+                    tempPtr = realloc(dll->procs,(dll->count+1)*sizeof(SilentDllProc));
+                }while(tempPtr == NULL);
+                dll->procs = (SilentDllProc*)tempPtr;
+                #if DEBUG
+                printf("Load dll func\n");
+                printf("addr %i\n",dlls[0].addr);
+                #endif
+            break;
 
-			case FreeDll:
-				pc++;
-				memcpy(&reg.l, program + pc, 8);
-				pc += 7;
-				SilentFreeLibrary(dlls[reg.l].addr);
-			break;
+            case FreeDll:
+                pc++;
+                memcpy(&reg.l, program + pc, 8);
+                pc += 7;
+                SilentFreeLibrary(dlls[reg.l].addr);
+            break;
 
-			case CallDllFunc:
-				pc++;
-				//Dll index
-				memcpy(&reg.l, program + pc, 8);
-				pc += 8;
-				//Function index
-				memcpy(&reg2.l, program + pc, 8);
-				pc += 8;
-				//number of arguments index
-				memcpy(&reg3.l, program + pc, 8);
-				pc += 8;
+            case CallDllFunc:
+                pc++;
+                //Dll index
+                memcpy(&reg.l, program + pc, 8);
+                pc += 8;
+                //Function index
+                memcpy(&reg2.l, program + pc, 8);
+                pc += 8;
+                //number of arguments index
+                memcpy(&reg3.l, program + pc, 8);
+                pc += 8;
 
-				uint64 argSize = 0;
-				for(uint64 i = 0; i < reg3.l; i++)
-				{
-					reg4.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
-					if(reg4.c != 0)
-					{
-						argSize += reg4.c;
-						SilentPopBack(stackT);
-					}
-					else
-					{
-						uint64 dSize;
-						memcpy(&dSize, stackT->data + stackT->ptr - 9, 8);
-						argSize += dSize;
-						SilentPopMultiple(stackT,10);
-					}
-				}
-				reg3.l = argSize;
-				sp -= argSize;
+                uint64 argSize = 0;
+                for(uint64 i = 0; i < reg3.l; i++)
+                {
+                    reg4.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+                    if(reg4.c != 0)
+                    {
+                        argSize += reg4.c;
+                        SilentPopBack(stackT);
+                    }
+                    else
+                    {
+                        uint64 dSize;
+                        memcpy(&dSize, stackT->data + stackT->ptr - 9, 8);
+                        argSize += dSize;
+                        SilentPopMultiple(stackT,10);
+                    }
+                }
+                reg3.l = argSize;
+                sp -= argSize;
 
-				vm->memory->framePointer = fp;
-				vm->memory->stackPointer = sp;
-				vm->programCounter = pc;
-				dlls[reg.l].procs[reg2.l].addr(vm);
+                vm->memory->framePointer = fp;
+                vm->memory->stackPointer = sp;
+                vm->programCounter = pc;
+                dlls[reg.l].procs[reg2.l].addr(vm);
 
-				fp = vm->memory->framePointer;
-				sp = vm->memory->stackPointer;
-				pc = vm->programCounter-1;
-			break;
+                fp = vm->memory->framePointer;
+                sp = vm->memory->stackPointer;
+                pc = vm->programCounter-1;
+            break;
 
             case Push:
                 switch(program[++pc])
@@ -479,10 +479,10 @@ void silentVMStart(SilentVM* vm)
                         SilentPushBack(stackT, dt + UNDEFINED);
                     break;
                 }
-				#if DEBUG
-					printf("push\n");
-					printf("sp: %i\n",sp);
-				#endif
+                #if DEBUG
+                    printf("push\n");
+                    printf("sp: %i\n",sp);
+                #endif
             break;
 
             case Pop:
@@ -522,30 +522,30 @@ void silentVMStart(SilentVM* vm)
                 reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
                 if(reg.c != 0)
                 {
-					//get position
-					memcpy(&reg2.l, program + ++pc, 8);
+                    //get position
+                    memcpy(&reg2.l, program + ++pc, 8);
                     pc += 7;
-					//load data
+                    //load data
                     memcpy(stack + sp, stack + fp + reg2.l, reg.c);
                     sp += reg.c;
-					#if DEBUG
-						printf("Load\n");
-						printf("sp: %i\n",sp);
-						printf("size: %i\n",reg.c);
-						printf("position: %i\n", reg2.l);
-						printf("data: %i\n", *(int*)(stack+sp-4));
-					#endif
+                    #if DEBUG
+                        printf("Load\n");
+                        printf("sp: %i\n",sp);
+                        printf("size: %i\n",reg.c);
+                        printf("position: %i\n", reg2.l);
+                        printf("data: %i\n", *(int*)(stack+sp-4));
+                    #endif
                 }
                 else
                 {
-					//get type size
+                    //get type size
                     memcpy(&reg.l, program + ++pc, 8);
                     pc += 8;
                     SilentPushMultiple(stackT,8,&reg.l);
                     SilentPushBack(stackT, dt + UNDEFINED);
-					//get position
-					memcpy(&reg2.l, program + pc, 8);
-					//load data
+                    //get position
+                    memcpy(&reg2.l, program + pc, 8);
+                    //load data
                     memcpy(stack + sp, stack + fp + reg2.l, reg.l);
                     sp += reg.l;
                     pc += 7;
@@ -574,23 +574,23 @@ void silentVMStart(SilentVM* vm)
                 reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
                 if(reg.c != 0)
                 {
-					//get position
+                    //get position
                     memcpy(&reg2.l, program + ++pc, 8);
                     pc += 7;
-					//load data
+                    //load data
                     memcpy(stack + sp, stack + reg2.l, reg.c);
                     sp += reg.c;
                 }
                 else
                 {
-					//get type size
+                    //get type size
                     memcpy(&reg.l, program + ++pc, 8);
                     pc += 8;
                     SilentPushMultiple(stackT,8,&reg.l);
                     SilentPushBack(stackT, dt + UNDEFINED);
-					//get position
-					memcpy(&reg2.l, program + pc, 8);
-					//load data
+                    //get position
+                    memcpy(&reg2.l, program + pc, 8);
+                    //load data
                     memcpy(stack + sp, stack + reg2.l, reg.l);
                     sp += reg.l;
                     pc += 7;
@@ -598,22 +598,22 @@ void silentVMStart(SilentVM* vm)
             break;
 
             case Alloc:
-				//get alloc size
+                //get alloc size
                 memcpy(&reg.l, program + ++pc, 8);
                 pc += 7;
-				//allocate space
+                //allocate space
                 reg2.l = SilentAlloc(vm->gc, reg.l);
-				//push pointer location
+                //push pointer location
                 memcpy(stack + sp, &reg2.l, 8);
                 sp += 8;
                 SilentPushBack(stackT, dt + POINTER_LOCATION);
             break;
 
             case LoadPtr:
-				//get pointer
-				sp -= 8;
+                //get pointer
+                sp -= 8;
                 memcpy(&tempPtr, stack + sp, 8);
-				SilentPopBack(stackT);
+                SilentPopBack(stackT);
                 switch(program[++pc])
                 {
                     case INT8:
@@ -671,14 +671,14 @@ void silentVMStart(SilentVM* vm)
                         sp += 8;
                         SilentPushBack(stackT,dt + POINTER);
                     break;
-					case POINTER_LOCATION:
+                    case POINTER_LOCATION:
                         memcpy(stack + sp, tempPtr, 8);
                         sp += 8;
                         SilentPushBack(stackT,dt + POINTER_LOCATION);
                     break;
                     case UNDEFINED:
                         memcpy(&reg.l, program + ++pc, 8);
-						pc += 7;
+                        pc += 7;
                         memcpy(stack + sp, tempPtr, reg.l);
                         sp += reg.l;
                         SilentPushBack(stackT, dt + UNDEFINED);
@@ -688,1066 +688,1066 @@ void silentVMStart(SilentVM* vm)
                 }
             break;
 
-			case StorePtr:
-				//Get pointer
-				sp -= 8;
-				memcpy(&tempPtr, stack + sp, 8);
-				SilentPopBack(stackT);
-				reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
-				if(reg.c != 0)
+            case StorePtr:
+                //Get pointer
+                sp -= 8;
+                memcpy(&tempPtr, stack + sp, 8);
+                SilentPopBack(stackT);
+                reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+                if(reg.c != 0)
                 {
-					sp -= reg.c;
-					memcpy(tempPtr, stack + sp, reg.c);
-					SilentPopBack(stackT);
+                    sp -= reg.c;
+                    memcpy(tempPtr, stack + sp, reg.c);
+                    SilentPopBack(stackT);
                 }
                 else
                 {
-					//get data size
-					sp -= 8;
-					memcpy(&reg.l, stackT->data + (stackT->ptr-9), 8);
-					//store data
-					sp -= reg.l;
-					memcpy(tempPtr, stack + sp, reg.l);
-					SilentPopMultiple(stackT,10);
+                    //get data size
+                    sp -= 8;
+                    memcpy(&reg.l, stackT->data + (stackT->ptr-9), 8);
+                    //store data
+                    sp -= reg.l;
+                    memcpy(tempPtr, stack + sp, reg.l);
+                    SilentPopMultiple(stackT,10);
                 }
-			break;
+            break;
 
-			case GetPtr:
-				sp -= 8;
-				memcpy(&reg.l, stack + sp, 8);
-				SilentPopBack(stackT);
-				tempPtr = ((SilentMemoryBlock*)heap->data)[reg.l].data;
-				memcpy(stack + sp, &tempPtr, 8);
-				sp += 8;
-				SilentPushBack(stackT, dt + POINTER);
-			break;
+            case GetPtr:
+                sp -= 8;
+                memcpy(&reg.l, stack + sp, 8);
+                SilentPopBack(stackT);
+                tempPtr = ((SilentMemoryBlock*)heap->data)[reg.l].data;
+                memcpy(stack + sp, &tempPtr, 8);
+                sp += 8;
+                SilentPushBack(stackT, dt + POINTER);
+            break;
 
-			case FreePtr:
-				sp -= 8;
-				memcpy(&tempPtr, stack + sp, 8);
-				free(tempPtr);
-				SilentPopBack(stackT);
-			break;
+            case FreePtr:
+                sp -= 8;
+                memcpy(&tempPtr, stack + sp, 8);
+                free(tempPtr);
+                SilentPopBack(stackT);
+            break;
 
-			case Free:
-				sp -= 8;
-				memcpy(&reg.l, stack + sp, 8);
-				SilentPopBack(stackT);
-				SilentFree(vm->gc, reg.l);
-			break;
+            case Free:
+                sp -= 8;
+                memcpy(&reg.l, stack + sp, 8);
+                SilentPopBack(stackT);
+                SilentFree(vm->gc, reg.l);
+            break;
 
-			case Add:
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr-1])
-				{
-					case INT8:
+            case Add:
+                SilentPopBack(stackT);
+                switch(stackT->data[stackT->ptr-1])
+                {
+                    case INT8:
                     case UINT8:
-						sp--;
+                        sp--;
                         stack[sp] += program[pc+1];
                     break;
                     case INT16:
                     case UINT16:
-						sp -= 2;
-						(*(unsigned short*)(stack + sp-2)) +=
-						(*(unsigned short*)(stack + sp));
+                        sp -= 2;
+                        (*(unsigned short*)(stack + sp-2)) +=
+                        (*(unsigned short*)(stack + sp));
                     break;
                     case INT32:
                     case UINT32:
                         sp -= 4;
-						(*(unsigned int*)(stack + sp-4)) +=
-						(*(unsigned int*)(stack + sp));
+                        (*(unsigned int*)(stack + sp-4)) +=
+                        (*(unsigned int*)(stack + sp));
                     break;
                     case INT64:
                     case UINT64:
-					case POINTER:
+                    case POINTER:
                         sp -= 8;
-						(*(uint64*)(stack + sp-8)) +=
-						(*(uint64*)(stack + sp));
+                        (*(uint64*)(stack + sp-8)) +=
+                        (*(uint64*)(stack + sp));
                     break;
                     case FLOAT32:
                         sp -= 4;
-						(*(float*)(stack + sp-4)) +=
-						(*(float*)(stack + sp));
+                        (*(float*)(stack + sp-4)) +=
+                        (*(float*)(stack + sp));
                     break;
                     case FLOAT64:
                         sp -= 8;
-						(*(double*)(stack + sp-8)) +=
-						(*(double*)(stack + sp));
+                        (*(double*)(stack + sp-8)) +=
+                        (*(double*)(stack + sp));
                     break;
-				}
-				#if DEBUG
-					printf("Add\n");
-				#endif
-			break;
+                }
+                #if DEBUG
+                    printf("Add\n");
+                #endif
+            break;
 
-			case Sub:
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr-1])
-				{
-					case INT8:
+            case Sub:
+                SilentPopBack(stackT);
+                switch(stackT->data[stackT->ptr-1])
+                {
+                    case INT8:
                     case UINT8:
-						sp--;
+                        sp--;
                         stack[sp] -= program[pc+1];
                     break;
                     case INT16:
                     case UINT16:
-						sp -= 2;
-						(*(unsigned short*)(stack + sp-2)) -=
-						(*(unsigned short*)(stack + sp));
+                        sp -= 2;
+                        (*(unsigned short*)(stack + sp-2)) -=
+                        (*(unsigned short*)(stack + sp));
                     break;
                     case INT32:
                     case UINT32:
                         sp -= 4;
-						(*(unsigned int*)(stack + sp-4)) -=
-						(*(unsigned int*)(stack + sp));
+                        (*(unsigned int*)(stack + sp-4)) -=
+                        (*(unsigned int*)(stack + sp));
                     break;
                     case INT64:
                     case UINT64:
-					case POINTER:
+                    case POINTER:
                         sp -= 8;
-						(*(uint64*)(stack + sp-8)) -=
-						(*(uint64*)(stack + sp));
+                        (*(uint64*)(stack + sp-8)) -=
+                        (*(uint64*)(stack + sp));
                     break;
                     case FLOAT32:
                         sp -= 4;
-						(*(float*)(stack + sp-4)) -=
-						(*(float*)(stack + sp));
+                        (*(float*)(stack + sp-4)) -=
+                        (*(float*)(stack + sp));
                     break;
                     case FLOAT64:
                         sp -= 8;
-						(*(double*)(stack + sp-8)) -=
-						(*(double*)(stack + sp));
+                        (*(double*)(stack + sp-8)) -=
+                        (*(double*)(stack + sp));
                     break;
-				}
-				#if DEBUG
-					printf("Sub\n");
-				#endif
-			break;
+                }
+                #if DEBUG
+                    printf("Sub\n");
+                #endif
+            break;
 
-			case Mul:
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr-1])
-				{
-					case INT8:
+            case Mul:
+                SilentPopBack(stackT);
+                switch(stackT->data[stackT->ptr-1])
+                {
+                    case INT8:
                     case UINT8:
-						sp--;
+                        sp--;
                         stack[sp] *= program[pc+1];
                     break;
                     case INT16:
                     case UINT16:
-						sp -= 2;
-						(*(unsigned short*)(stack + sp-2)) *=
-						(*(unsigned short*)(stack + sp));
+                        sp -= 2;
+                        (*(unsigned short*)(stack + sp-2)) *=
+                        (*(unsigned short*)(stack + sp));
                     break;
                     case INT32:
                     case UINT32:
                         sp -= 4;
-						(*(unsigned int*)(stack + sp-4)) *=
-						(*(unsigned int*)(stack + sp));
+                        (*(unsigned int*)(stack + sp-4)) *=
+                        (*(unsigned int*)(stack + sp));
                     break;
                     case INT64:
                     case UINT64:
-					case POINTER:
+                    case POINTER:
                         sp -= 8;
-						(*(uint64*)(stack + sp-8)) *=
-						(*(uint64*)(stack + sp));
+                        (*(uint64*)(stack + sp-8)) *=
+                        (*(uint64*)(stack + sp));
                     break;
                     case FLOAT32:
                         sp -= 4;
-						(*(float*)(stack + sp-4)) *=
-						(*(float*)(stack + sp));
+                        (*(float*)(stack + sp-4)) *=
+                        (*(float*)(stack + sp));
                     break;
                     case FLOAT64:
                         sp -= 8;
-						(*(double*)(stack + sp-8)) *=
-						(*(double*)(stack + sp));
+                        (*(double*)(stack + sp-8)) *=
+                        (*(double*)(stack + sp));
                     break;
-				}
-				#if DEBUG
-					printf("Mul\n");
-				#endif
-			break;
+                }
+                #if DEBUG
+                    printf("Mul\n");
+                #endif
+            break;
 
-			case Div:
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr-1])
-				{
-					case INT8:
-						sp--;
-						(*(char*)(stack + sp-1)) /=
-						(*(char*)(stack + sp));
-					break;
+            case Div:
+                SilentPopBack(stackT);
+                switch(stackT->data[stackT->ptr-1])
+                {
+                    case INT8:
+                        sp--;
+                        (*(char*)(stack + sp-1)) /=
+                        (*(char*)(stack + sp));
+                    break;
                     case UINT8:
-						sp--;
-						(*(unsigned char*)(stack + sp-1)) /=
-						(*(unsigned char*)(stack + sp));
+                        sp--;
+                        (*(unsigned char*)(stack + sp-1)) /=
+                        (*(unsigned char*)(stack + sp));
                     break;
                     case INT16:
-						sp -= 2;
-						(*(short*)(stack + sp-2)) /=
-						(*(short*)(stack + sp));
-					break;
+                        sp -= 2;
+                        (*(short*)(stack + sp-2)) /=
+                        (*(short*)(stack + sp));
+                    break;
                     case UINT16:
-						sp -= 2;
-						(*(unsigned short*)(stack + sp-2)) /=
-						(*(unsigned short*)(stack + sp));
+                        sp -= 2;
+                        (*(unsigned short*)(stack + sp-2)) /=
+                        (*(unsigned short*)(stack + sp));
                     break;
                     case INT32:
-						sp -= 4;
-						(*(int*)(stack + sp-4)) /=
-						(*(int*)(stack + sp));
-					break;
+                        sp -= 4;
+                        (*(int*)(stack + sp-4)) /=
+                        (*(int*)(stack + sp));
+                    break;
                     case UINT32:
                         sp -= 4;
-						(*(unsigned int*)(stack + sp-4)) /=
-						(*(unsigned int*)(stack + sp));
+                        (*(unsigned int*)(stack + sp-4)) /=
+                        (*(unsigned int*)(stack + sp));
                     break;
                     case INT64:
-						sp -= 8;
-						(*(int64*)(stack + sp-8)) /=
-						(*(int64*)(stack + sp));
-					break;
-                    case UINT64:
-					case POINTER:
                         sp -= 8;
-						(*(uint64*)(stack + sp-8)) /=
-						(*(uint64*)(stack + sp));
+                        (*(int64*)(stack + sp-8)) /=
+                        (*(int64*)(stack + sp));
+                    break;
+                    case UINT64:
+                    case POINTER:
+                        sp -= 8;
+                        (*(uint64*)(stack + sp-8)) /=
+                        (*(uint64*)(stack + sp));
                     break;
                     case FLOAT32:
                         sp -= 4;
-						(*(float*)(stack + sp-4)) /=
-						(*(float*)(stack + sp));
+                        (*(float*)(stack + sp-4)) /=
+                        (*(float*)(stack + sp));
                     break;
                     case FLOAT64:
                         sp -= 8;
-						(*(double*)(stack + sp-8)) /=
-						(*(double*)(stack + sp));
+                        (*(double*)(stack + sp-8)) /=
+                        (*(double*)(stack + sp));
                     break;
-				}
-				#if DEBUG
-					printf("Div\n");
-				#endif
-			break;
+                }
+                #if DEBUG
+                    printf("Div\n");
+                #endif
+            break;
 
-			case Convert:
-			break;
+            case Convert:
+            break;
 
-			case SmallerThan:
-				SilentPopBack(stackT);
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr])
-				{
-					case INT8:
-						sp-=2;
-						reg.c = (*(char*)(stack + sp)) <
-						(*(char*)(stack + sp+1));
-					break;
+            case SmallerThan:
+                SilentPopBack(stackT);
+                SilentPopBack(stackT);
+                switch(stackT->data[stackT->ptr])
+                {
+                    case INT8:
+                        sp-=2;
+                        reg.c = (*(char*)(stack + sp)) <
+                        (*(char*)(stack + sp+1));
+                    break;
                     case UINT8:
-						sp-=2;
-						reg.c = (*(unsigned char*)(stack + sp)) <
-						(*(unsigned char*)(stack + sp+1));
+                        sp-=2;
+                        reg.c = (*(unsigned char*)(stack + sp)) <
+                        (*(unsigned char*)(stack + sp+1));
                     break;
                     case INT16:
-						sp -= 4;
-						reg.c = (*(short*)(stack + sp)) <
-						(*(short*)(stack + sp+2));
-					break;
+                        sp -= 4;
+                        reg.c = (*(short*)(stack + sp)) <
+                        (*(short*)(stack + sp+2));
+                    break;
                     case UINT16:
-						sp -= 4;
-						reg.c = (*(unsigned short*)(stack + sp)) <
-						(*(unsigned short*)(stack + sp+2));
+                        sp -= 4;
+                        reg.c = (*(unsigned short*)(stack + sp)) <
+                        (*(unsigned short*)(stack + sp+2));
                     break;
                     case INT32:
-						sp -= 8;
-						reg.c = (*(int*)(stack + sp)) <
-						(*(int*)(stack + sp+4));
-					break;
+                        sp -= 8;
+                        reg.c = (*(int*)(stack + sp)) <
+                        (*(int*)(stack + sp+4));
+                    break;
                     case UINT32:
                         sp -= 8;
-						reg.c = (*(unsigned int*)(stack + sp)) <
-						(*(unsigned int*)(stack + sp+4));
+                        reg.c = (*(unsigned int*)(stack + sp)) <
+                        (*(unsigned int*)(stack + sp+4));
                     break;
                     case INT64:
-						sp -= 16;
-						reg.c = (*(int64*)(stack + sp)) <
-						(*(int64*)(stack + sp+8));
-					break;
-                    case UINT64:
-					case POINTER:
                         sp -= 16;
-						reg.c = (*(uint64*)(stack + sp)) <
-						(*(uint64*)(stack + sp+8));
+                        reg.c = (*(int64*)(stack + sp)) <
+                        (*(int64*)(stack + sp+8));
+                    break;
+                    case UINT64:
+                    case POINTER:
+                        sp -= 16;
+                        reg.c = (*(uint64*)(stack + sp)) <
+                        (*(uint64*)(stack + sp+8));
                     break;
                     case FLOAT32:
                         sp -= 8;
-						reg.c = (*(float*)(stack + sp)) <
-						(*(float*)(stack + sp+4));
+                        reg.c = (*(float*)(stack + sp)) <
+                        (*(float*)(stack + sp+4));
                     break;
                     case FLOAT64:
                         sp -= 16;
-						reg.c = (*(double*)(stack + sp)) <
-						(*(double*)(stack + sp+8));
+                        reg.c = (*(double*)(stack + sp)) <
+                        (*(double*)(stack + sp+8));
                     break;
-				}
-				stack[sp++] = reg.c;
-				SilentPushBack(stackT, dt + UINT8);
-			break;
+                }
+                stack[sp++] = reg.c;
+                SilentPushBack(stackT, dt + UINT8);
+            break;
 
-			case LargerThan:
-				SilentPopBack(stackT);
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr])
-				{
-					case INT8:
-						sp-=2;
-						reg.c = (*(char*)(stack + sp)) >
-						(*(char*)(stack + sp+1));
-					break;
+            case LargerThan:
+                SilentPopBack(stackT);
+                SilentPopBack(stackT);
+                switch(stackT->data[stackT->ptr])
+                {
+                    case INT8:
+                        sp-=2;
+                        reg.c = (*(char*)(stack + sp)) >
+                        (*(char*)(stack + sp+1));
+                    break;
                     case UINT8:
-						sp-=2;
-						reg.c = (*(unsigned char*)(stack + sp)) >
-						(*(unsigned char*)(stack + sp+1));
+                        sp-=2;
+                        reg.c = (*(unsigned char*)(stack + sp)) >
+                        (*(unsigned char*)(stack + sp+1));
                     break;
                     case INT16:
-						sp -= 4;
-						reg.c = (*(short*)(stack + sp)) >
-						(*(short*)(stack + sp+2));
-					break;
+                        sp -= 4;
+                        reg.c = (*(short*)(stack + sp)) >
+                        (*(short*)(stack + sp+2));
+                    break;
                     case UINT16:
-						sp -= 4;
-						reg.c = (*(unsigned short*)(stack + sp)) >
-						(*(unsigned short*)(stack + sp+2));
+                        sp -= 4;
+                        reg.c = (*(unsigned short*)(stack + sp)) >
+                        (*(unsigned short*)(stack + sp+2));
                     break;
                     case INT32:
-						sp -= 8;
-						reg.c = (*(int*)(stack + sp)) >
-						(*(int*)(stack + sp+4));
-					break;
+                        sp -= 8;
+                        reg.c = (*(int*)(stack + sp)) >
+                        (*(int*)(stack + sp+4));
+                    break;
                     case UINT32:
                         sp -= 8;
-						reg.c = (*(unsigned int*)(stack + sp)) >
-						(*(unsigned int*)(stack + sp+4));
+                        reg.c = (*(unsigned int*)(stack + sp)) >
+                        (*(unsigned int*)(stack + sp+4));
                     break;
                     case INT64:
-						sp -= 16;
-						reg.c = (*(int64*)(stack + sp)) >
-						(*(int64*)(stack + sp+8));
-					break;
-                    case UINT64:
-					case POINTER:
                         sp -= 16;
-						reg.c = (*(uint64*)(stack + sp)) >
-						(*(uint64*)(stack + sp+8));
+                        reg.c = (*(int64*)(stack + sp)) >
+                        (*(int64*)(stack + sp+8));
+                    break;
+                    case UINT64:
+                    case POINTER:
+                        sp -= 16;
+                        reg.c = (*(uint64*)(stack + sp)) >
+                        (*(uint64*)(stack + sp+8));
                     break;
                     case FLOAT32:
                         sp -= 8;
-						reg.c = (*(float*)(stack + sp)) >
-						(*(float*)(stack + sp+4));
+                        reg.c = (*(float*)(stack + sp)) >
+                        (*(float*)(stack + sp+4));
                     break;
                     case FLOAT64:
                         sp -= 16;
-						reg.c = (*(double*)(stack + sp)) >
-						(*(double*)(stack + sp+8));
+                        reg.c = (*(double*)(stack + sp)) >
+                        (*(double*)(stack + sp+8));
                     break;
-				}
-				stack[sp++] = reg.c;
-				SilentPushBack(stackT, dt + UINT8);
-			break;
+                }
+                stack[sp++] = reg.c;
+                SilentPushBack(stackT, dt + UINT8);
+            break;
 
-			case Equal:
-				SilentPopBack(stackT);
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr])
-				{
-					case INT8:
-						sp-=2;
-						reg.c = (*(char*)(stack + sp)) ==
-						(*(char*)(stack + sp+1));
-					break;
+            case Equal:
+                SilentPopBack(stackT);
+                SilentPopBack(stackT);
+                switch(stackT->data[stackT->ptr])
+                {
+                    case INT8:
+                        sp-=2;
+                        reg.c = (*(char*)(stack + sp)) ==
+                        (*(char*)(stack + sp+1));
+                    break;
                     case UINT8:
-						sp-=2;
-						reg.c = (*(unsigned char*)(stack + sp)) ==
-						(*(unsigned char*)(stack + sp+1));
+                        sp-=2;
+                        reg.c = (*(unsigned char*)(stack + sp)) ==
+                        (*(unsigned char*)(stack + sp+1));
                     break;
                     case INT16:
-						sp -= 4;
-						reg.c = (*(short*)(stack + sp)) ==
-						(*(short*)(stack + sp+2));
-					break;
+                        sp -= 4;
+                        reg.c = (*(short*)(stack + sp)) ==
+                        (*(short*)(stack + sp+2));
+                    break;
                     case UINT16:
-						sp -= 4;
-						reg.c = (*(unsigned short*)(stack + sp)) ==
-						(*(unsigned short*)(stack + sp+2));
+                        sp -= 4;
+                        reg.c = (*(unsigned short*)(stack + sp)) ==
+                        (*(unsigned short*)(stack + sp+2));
                     break;
                     case INT32:
-						sp -= 8;
-						reg.c = (*(int*)(stack + sp)) ==
-						(*(int*)(stack + sp+4));
-					break;
+                        sp -= 8;
+                        reg.c = (*(int*)(stack + sp)) ==
+                        (*(int*)(stack + sp+4));
+                    break;
                     case UINT32:
                         sp -= 8;
-						reg.c = (*(unsigned int*)(stack + sp)) ==
-						(*(unsigned int*)(stack + sp+4));
+                        reg.c = (*(unsigned int*)(stack + sp)) ==
+                        (*(unsigned int*)(stack + sp+4));
                     break;
                     case INT64:
-						sp -= 16;
-						reg.c = (*(int64*)(stack + sp)) ==
-						(*(int64*)(stack + sp+8));
-					break;
-                    case UINT64:
-					case POINTER:
                         sp -= 16;
-						reg.c = (*(uint64*)(stack + sp)) ==
-						(*(uint64*)(stack + sp+8));
+                        reg.c = (*(int64*)(stack + sp)) ==
+                        (*(int64*)(stack + sp+8));
+                    break;
+                    case UINT64:
+                    case POINTER:
+                        sp -= 16;
+                        reg.c = (*(uint64*)(stack + sp)) ==
+                        (*(uint64*)(stack + sp+8));
                     break;
                     case FLOAT32:
                         sp -= 8;
-						reg.c = (*(float*)(stack + sp)) ==
-						(*(float*)(stack + sp+4));
+                        reg.c = (*(float*)(stack + sp)) ==
+                        (*(float*)(stack + sp+4));
                     break;
                     case FLOAT64:
                         sp -= 16;
-						reg.c = (*(double*)(stack + sp)) ==
-						(*(double*)(stack + sp+8));
+                        reg.c = (*(double*)(stack + sp)) ==
+                        (*(double*)(stack + sp+8));
                     break;
-				}
-				stack[sp++] = reg.c;
-				SilentPushBack(stackT, dt + UINT8);
-			break;
+                }
+                stack[sp++] = reg.c;
+                SilentPushBack(stackT, dt + UINT8);
+            break;
 
-			case If:
-				sp--;
-				SilentPopBack(stackT);
-				if(stack[sp])
-				{
-					pc++;
-					pc = *((uint64*)(program + (pc)));
-					pc--;
-				}
-				else pc += 8;
-			break;
+            case If:
+                sp--;
+                SilentPopBack(stackT);
+                if(stack[sp])
+                {
+                    pc++;
+                    pc = *((uint64*)(program + (pc)));
+                    pc--;
+                }
+                else pc += 8;
+            break;
 
-			case IfNot:
-				sp--;
-				SilentPopBack(stackT);
-				if(!stack[sp])
-				{
-					pc++;
-					pc = *((uint64*)(program + (pc)));
-					pc--;
-				}
-				else pc += 8;
-			break;
+            case IfNot:
+                sp--;
+                SilentPopBack(stackT);
+                if(!stack[sp])
+                {
+                    pc++;
+                    pc = *((uint64*)(program + (pc)));
+                    pc--;
+                }
+                else pc += 8;
+            break;
 
-			case And:
-				sp--;
-				SilentPopBack(stackT);
-				stack[sp-1] = stack[sp-1] & stack[sp];
-			break;
+            case And:
+                sp--;
+                SilentPopBack(stackT);
+                stack[sp-1] = stack[sp-1] & stack[sp];
+            break;
 
-			case Or:
-				sp--;
-				SilentPopBack(stackT);
-				stack[sp-1] = stack[sp-1] | stack[sp];
-			break;
+            case Or:
+                sp--;
+                SilentPopBack(stackT);
+                stack[sp-1] = stack[sp-1] | stack[sp];
+            break;
 
-			case Not:
-				stack[sp-1] = !stack[sp-1];
-			break;
+            case Not:
+                stack[sp-1] = !stack[sp-1];
+            break;
 
 /*
-			case ByteToShort:
-				memset(stack + *sp + *fp, 0, 1);
-				*sp += 1;
-				stackT->data[stackT->ptr - 1] = BYTE_TWO;
-			break;
+            case ByteToShort:
+                memset(stack + *sp + *fp, 0, 1);
+                *sp += 1;
+                stackT->data[stackT->ptr - 1] = BYTE_TWO;
+            break;
 
-			case ByteToInt:
-				memset(stack + *sp + *fp, 0, 3);
-				*sp += 3;
-				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
-			break;
+            case ByteToInt:
+                memset(stack + *sp + *fp, 0, 3);
+                *sp += 3;
+                stackT->data[stackT->ptr - 1] = BYTE_FOUR;
+            break;
 
-			case ByteToLong:
-				memset(stack + *sp + *fp, 0, 7);
-				*sp += 7;
-				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
-			break;
+            case ByteToLong:
+                memset(stack + *sp + *fp, 0, 7);
+                *sp += 7;
+                stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
+            break;
 
-			case ByteToFloat:
-				*sp-=1;
-				reg.f = *((char*)stack + *sp + *fp);
-				memcpy(stack + *sp + *fp, &reg.f, 4);
-				*sp += 4;
-				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
-			break;
+            case ByteToFloat:
+                *sp-=1;
+                reg.f = *((char*)stack + *sp + *fp);
+                memcpy(stack + *sp + *fp, &reg.f, 4);
+                *sp += 4;
+                stackT->data[stackT->ptr - 1] = BYTE_FOUR;
+            break;
 
-			case ByteToDouble:
-				*sp-=1;
-				reg.d = *((char*)stack + *sp + *fp);
-				memcpy(stack + *sp + *fp, &reg.d, 8);
-				*sp += 8;
-				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
-			break;
+            case ByteToDouble:
+                *sp-=1;
+                reg.d = *((char*)stack + *sp + *fp);
+                memcpy(stack + *sp + *fp, &reg.d, 8);
+                *sp += 8;
+                stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
+            break;
 
-			case ShortToByte:
-				*sp-=1;
-				stackT->data[stackT->ptr - 1] = BYTE_ONE;
-			break;
+            case ShortToByte:
+                *sp-=1;
+                stackT->data[stackT->ptr - 1] = BYTE_ONE;
+            break;
 
-			case ShortToInt:
-				memset(stack + *sp + *fp, 0, 2);
-				*sp += 2;
-				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
-			break;
+            case ShortToInt:
+                memset(stack + *sp + *fp, 0, 2);
+                *sp += 2;
+                stackT->data[stackT->ptr - 1] = BYTE_FOUR;
+            break;
 
-			case ShortToLong:
-				memset(stack + *sp + *fp, 0, 6);
-				*sp += 6;
-				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
-			break;
+            case ShortToLong:
+                memset(stack + *sp + *fp, 0, 6);
+                *sp += 6;
+                stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
+            break;
 
-			case ShortToFloat:
-				*sp-=2;
-				reg.f = *((char*)stack + *sp + *fp);
-				memcpy(stack + *sp + *fp, &reg.f, 4);
-				*sp += 4;
-				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
-			break;
+            case ShortToFloat:
+                *sp-=2;
+                reg.f = *((char*)stack + *sp + *fp);
+                memcpy(stack + *sp + *fp, &reg.f, 4);
+                *sp += 4;
+                stackT->data[stackT->ptr - 1] = BYTE_FOUR;
+            break;
 
-			case ShortToDouble:
-				*sp-=2;
-				reg.d = *((char*)stack + *sp + *fp);
-				memcpy(stack + *sp + *fp, &reg.f, 8);
-				*sp+=8;
-				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
-			break;
-
-
-
-			case IntToByte:
-				*sp-=3;
-				stackT->data[stackT->ptr - 1] = BYTE_ONE;
-			break;
-
-			case IntToShort:
-				*sp -= 2;
-				stackT->data[stackT->ptr - 1] = BYTE_TWO;
-			break;
-
-			case IntToLong:
-				memset(stack + *sp + *fp, 0, 4);
-				*sp += 4;
-				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
-			break;
-
-			case IntToFloat:
-				*sp-=4;
-				reg.f = *((char*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.f, 4);
-				*sp+=4;
-			break;
-
-			case IntToDouble:
-				*sp-=4;
-				reg.d = *((char*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.f, 8);
-				*sp+=8;
-				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
-			break;
+            case ShortToDouble:
+                *sp-=2;
+                reg.d = *((char*)stack + *sp + *fp);
+                memcpy(stack + *sp + *fp, &reg.f, 8);
+                *sp+=8;
+                stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
+            break;
 
 
 
-			case LongToByte:
-				*sp -= 7;
-				stackT->data[stackT->ptr - 1] = BYTE_ONE;
-			break;
+            case IntToByte:
+                *sp-=3;
+                stackT->data[stackT->ptr - 1] = BYTE_ONE;
+            break;
 
-			case LongToShort:
-				*sp -= 6;
-				stackT->data[stackT->ptr - 1] = BYTE_TWO;
-			break;
+            case IntToShort:
+                *sp -= 2;
+                stackT->data[stackT->ptr - 1] = BYTE_TWO;
+            break;
 
-			case LongToInt:
-				*sp -= 4;
-				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
-			break;
+            case IntToLong:
+                memset(stack + *sp + *fp, 0, 4);
+                *sp += 4;
+                stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
+            break;
 
-			case LongToFloat:
-				*sp-=8;
-				reg.f = *((char*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.f, 4);
-				*sp+=4;
-				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
-			break;
+            case IntToFloat:
+                *sp-=4;
+                reg.f = *((char*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.f, 4);
+                *sp+=4;
+            break;
 
-			case LongToDouble:
-				*sp-=8;
-				reg.d = *((char*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.d, 8);
-				*sp+=8;
-			break;
-
-
-
-			case FloatToByte:
-				*sp-=4;
-				reg.c = *((float*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.c, 1);
-				*sp+=1;
-				stackT->data[stackT->ptr - 1] = BYTE_ONE;
-			break;
-
-			case FloatToShort:
-				*sp-=4;
-				reg.c = *((float*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.c, 1);
-				*sp+=2;
-				stackT->data[stackT->ptr - 1] = BYTE_TWO;
-			break;
-
-			case FloatToInt:
-				*sp-=4;
-				reg.i = *((float*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.i, 4);
-				*sp+=4;
-			break;
-
-			case FloatToLong:
-				*sp-=4;
-				reg.l = *((float*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.i, 8);
-				*sp+=8;
-				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
-			break;
-
-			case FloatToDouble:
-				*sp-=4;
-				reg.d = *((float*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.d, 8);
-				*sp+=8;
-				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;		
-			break;
+            case IntToDouble:
+                *sp-=4;
+                reg.d = *((char*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.f, 8);
+                *sp+=8;
+                stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
+            break;
 
 
 
-			case DoubleToByte:
-				*sp-=8;
-				reg.c = *((double*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.c, 1);
-				*sp+=1;
-				stackT->data[stackT->ptr - 1] = BYTE_ONE;
-			break;
+            case LongToByte:
+                *sp -= 7;
+                stackT->data[stackT->ptr - 1] = BYTE_ONE;
+            break;
 
-			case DoubleToShort:
-				*sp-=8;
-				reg.s = *((double*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.s, 2);
-				*sp+=2;
-				stackT->data[stackT->ptr - 1] = BYTE_TWO;
-			break;
+            case LongToShort:
+                *sp -= 6;
+                stackT->data[stackT->ptr - 1] = BYTE_TWO;
+            break;
 
-			case DoubleToInt:
-				*sp-=8;
-				reg.i = *((double*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.i, 4);
-				*sp+=4;
-				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
-			break;
+            case LongToInt:
+                *sp -= 4;
+                stackT->data[stackT->ptr - 1] = BYTE_FOUR;
+            break;
 
-			case DoubleToLong:
-				*sp-=8;
-				reg.l = *((double*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.l, 8);
-				*sp+=8;
-				stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
-			break;
+            case LongToFloat:
+                *sp-=8;
+                reg.f = *((char*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.f, 4);
+                *sp+=4;
+                stackT->data[stackT->ptr - 1] = BYTE_FOUR;
+            break;
 
-			case DoubleToFloat:
-				*sp-=8;
-				reg.f = *((double*)stack+*sp + *fp);
-				memcpy(stack+*sp + *fp, &reg.f, 4);
-				*sp+=4;
-				stackT->data[stackT->ptr - 1] = BYTE_FOUR;
-			break;
+            case LongToDouble:
+                *sp-=8;
+                reg.d = *((char*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.d, 8);
+                *sp+=8;
+            break;
 
-			
 
-			case SmallerThanByte:
-				*sp-=1;
-				if((*(char*)(stack + *sp-1 + *fp)) < (*(char*)(stack + *sp + *fp)))
-				{
-					stack[*sp-1 + *fp] = 1;
-				}
-				else
-				{
-					stack[*sp-1 + *fp] = 0;
-				}
-			break;
 
-			case SmallerThanShort:
-				*sp-=3;
-				if((*(short*)(stack + *sp-1 + *fp)) < (*(short*)(stack + *sp+1 + *fp)))
-				{
-					stack[*sp-1 + *fp] = 1;
-				}
-				else
-				{
-					stack[*sp-1 + *fp] = 0;
-				}
-				stackT->data[stackT->ptr - 1] = BYTE_ONE;
-			break;
+            case FloatToByte:
+                *sp-=4;
+                reg.c = *((float*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.c, 1);
+                *sp+=1;
+                stackT->data[stackT->ptr - 1] = BYTE_ONE;
+            break;
 
-			//Compare value of 2 4 bytes
-			case SmallerThanInt:
-				//printf("smallerint\n");
-				memory->stackPointer-=7;
-				if(*(int*)(memory->stack + memory->stackPointer-1) < 
-					*(int*)(memory->stack + memory->stackPointer+3))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}			
-			break;
+            case FloatToShort:
+                *sp-=4;
+                reg.c = *((float*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.c, 1);
+                *sp+=2;
+                stackT->data[stackT->ptr - 1] = BYTE_TWO;
+            break;
 
-			//Compare value of 2 8 bytes
-			case SmallerThanLong:
-				//memory->stackPointer-=15;
-				memory->stackPointer-=(sizeof(long)*2)-1;
-				if(*(long*)(memory->stack + (memory->stackPointer-1)) < 
-					*(long*)(memory->stack + memory->stackPointer+(sizeof(long)-1)))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            case FloatToInt:
+                *sp-=4;
+                reg.i = *((float*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.i, 4);
+                *sp+=4;
+            break;
 
-			//Compare value of 2 4 bytes
-			case SmallerThanFloat:
-				memory->stackPointer-=7;
-				if(*(float*)(memory->stack + (memory->stackPointer-1)) < 
-					*(float*)(memory->stack + memory->stackPointer+3))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            case FloatToLong:
+                *sp-=4;
+                reg.l = *((float*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.i, 8);
+                *sp+=8;
+                stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
+            break;
 
-			//Compare value of 2 8 bytes
-			case SmallerThanDouble:
-				memory->stackPointer-=(sizeof(double)*2)-1;
-				if(*(double*)(memory->stack + (memory->stackPointer-1)) < 
-					*(double*)(memory->stack + memory->stackPointer+(sizeof(double)-1)))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            case FloatToDouble:
+                *sp-=4;
+                reg.d = *((float*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.d, 8);
+                *sp+=8;
+                stackT->data[stackT->ptr - 1] = BYTE_EIGHT;		
+            break;
 
-			//Compare value of 2 bytes
-			case BiggerThanByte:
-				memory->stackPointer--;
-				if(*(char*)(memory->stack + (memory->stackPointer-1)) > 
-					*(char*)(memory->stack + memory->stackPointer))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
 
-			//Compare value of 2 4 bytes
-			case BiggerThanInt:
-				memory->stackPointer-=7;
-				if(*(int*)(memory->stack + (memory->stackPointer-1)) > 
-					*(int*)(memory->stack + memory->stackPointer+3))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
 
-			//Compare value of 2 8 bytes
-			case BiggerThanLong:
-				memory->stackPointer-=(sizeof(long)*2)-1;
-				if(*(long*)(memory->stack + (memory->stackPointer-1)) > 
-					*(long*)(memory->stack + memory->stackPointer+(sizeof(long)-1)))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            case DoubleToByte:
+                *sp-=8;
+                reg.c = *((double*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.c, 1);
+                *sp+=1;
+                stackT->data[stackT->ptr - 1] = BYTE_ONE;
+            break;
 
-			//Compare value of 2 4 bytes
-			case BiggerThanFloat:
-				memory->stackPointer-=7;
-				if(*(float*)(memory->stack + (memory->stackPointer-1)) > 
-					*(float*)(memory->stack + memory->stackPointer+3))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            case DoubleToShort:
+                *sp-=8;
+                reg.s = *((double*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.s, 2);
+                *sp+=2;
+                stackT->data[stackT->ptr - 1] = BYTE_TWO;
+            break;
 
-			//Compare value of 2 8 bytes
-			case BiggerThanDouble:
-				memory->stackPointer-=(sizeof(double)*2)-1;
-				if(*(double*)(memory->stack + (memory->stackPointer-1)) > 
-					*(double*)(memory->stack + memory->stackPointer+(sizeof(double)-1)))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            case DoubleToInt:
+                *sp-=8;
+                reg.i = *((double*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.i, 4);
+                *sp+=4;
+                stackT->data[stackT->ptr - 1] = BYTE_FOUR;
+            break;
 
-			//Compare value of 2 bytes
-			case EqualByte:
-				memory->stackPointer--;
-				if(*(char*)(memory->stack + (memory->stackPointer-1)) == 
-					*(char*)(memory->stack + memory->stackPointer))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            case DoubleToLong:
+                *sp-=8;
+                reg.l = *((double*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.l, 8);
+                *sp+=8;
+                stackT->data[stackT->ptr - 1] = BYTE_EIGHT;
+            break;
 
-			//Compare value of 2 4 bytes
-			case EqualInt:
-				memory->stackPointer-=7;
-				if(*(int*)(memory->stack + (memory->stackPointer-1)) == 
-					*(int*)(memory->stack + memory->stackPointer+3))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            case DoubleToFloat:
+                *sp-=8;
+                reg.f = *((double*)stack+*sp + *fp);
+                memcpy(stack+*sp + *fp, &reg.f, 4);
+                *sp+=4;
+                stackT->data[stackT->ptr - 1] = BYTE_FOUR;
+            break;
 
-			//Compare value of 2 8 bytes
-			case EqualLong:
-				memory->stackPointer-=(sizeof(long)*2)-1;
-				if(*(long*)(memory->stack + (memory->stackPointer-1)) == 
-					*(long*)(memory->stack + memory->stackPointer+(sizeof(long)-1)))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            
 
-			//Compare value of 2 4 bytes
-			case EqualFloat:
-				memory->stackPointer-=7;
-				if((*(float*)(memory->stack + (memory->stackPointer-1))) == 
-					(*(float*)(memory->stack + memory->stackPointer+3)))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            case SmallerThanByte:
+                *sp-=1;
+                if((*(char*)(stack + *sp-1 + *fp)) < (*(char*)(stack + *sp + *fp)))
+                {
+                    stack[*sp-1 + *fp] = 1;
+                }
+                else
+                {
+                    stack[*sp-1 + *fp] = 0;
+                }
+            break;
 
-			//Compare value of 2 8 bytes
-			case EqualDouble:
-				memory->stackPointer-=15;
-				if(*(double*)(memory->stack + (memory->stackPointer-1)) ==
-					*(double*)(memory->stack + memory->stackPointer+7))
-				{
-					memory->stack[memory->stackPointer-1] = 1;
-				}
-				else
-				{
-					memory->stack[memory->stackPointer-1] = 0;
-				}
-			break;
+            case SmallerThanShort:
+                *sp-=3;
+                if((*(short*)(stack + *sp-1 + *fp)) < (*(short*)(stack + *sp+1 + *fp)))
+                {
+                    stack[*sp-1 + *fp] = 1;
+                }
+                else
+                {
+                    stack[*sp-1 + *fp] = 0;
+                }
+                stackT->data[stackT->ptr - 1] = BYTE_ONE;
+            break;
+
+            //Compare value of 2 4 bytes
+            case SmallerThanInt:
+                //printf("smallerint\n");
+                memory->stackPointer-=7;
+                if(*(int*)(memory->stack + memory->stackPointer-1) < 
+                    *(int*)(memory->stack + memory->stackPointer+3))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }			
+            break;
+
+            //Compare value of 2 8 bytes
+            case SmallerThanLong:
+                //memory->stackPointer-=15;
+                memory->stackPointer-=(sizeof(long)*2)-1;
+                if(*(long*)(memory->stack + (memory->stackPointer-1)) < 
+                    *(long*)(memory->stack + memory->stackPointer+(sizeof(long)-1)))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 4 bytes
+            case SmallerThanFloat:
+                memory->stackPointer-=7;
+                if(*(float*)(memory->stack + (memory->stackPointer-1)) < 
+                    *(float*)(memory->stack + memory->stackPointer+3))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 8 bytes
+            case SmallerThanDouble:
+                memory->stackPointer-=(sizeof(double)*2)-1;
+                if(*(double*)(memory->stack + (memory->stackPointer-1)) < 
+                    *(double*)(memory->stack + memory->stackPointer+(sizeof(double)-1)))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 bytes
+            case BiggerThanByte:
+                memory->stackPointer--;
+                if(*(char*)(memory->stack + (memory->stackPointer-1)) > 
+                    *(char*)(memory->stack + memory->stackPointer))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 4 bytes
+            case BiggerThanInt:
+                memory->stackPointer-=7;
+                if(*(int*)(memory->stack + (memory->stackPointer-1)) > 
+                    *(int*)(memory->stack + memory->stackPointer+3))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 8 bytes
+            case BiggerThanLong:
+                memory->stackPointer-=(sizeof(long)*2)-1;
+                if(*(long*)(memory->stack + (memory->stackPointer-1)) > 
+                    *(long*)(memory->stack + memory->stackPointer+(sizeof(long)-1)))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 4 bytes
+            case BiggerThanFloat:
+                memory->stackPointer-=7;
+                if(*(float*)(memory->stack + (memory->stackPointer-1)) > 
+                    *(float*)(memory->stack + memory->stackPointer+3))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 8 bytes
+            case BiggerThanDouble:
+                memory->stackPointer-=(sizeof(double)*2)-1;
+                if(*(double*)(memory->stack + (memory->stackPointer-1)) > 
+                    *(double*)(memory->stack + memory->stackPointer+(sizeof(double)-1)))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 bytes
+            case EqualByte:
+                memory->stackPointer--;
+                if(*(char*)(memory->stack + (memory->stackPointer-1)) == 
+                    *(char*)(memory->stack + memory->stackPointer))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 4 bytes
+            case EqualInt:
+                memory->stackPointer-=7;
+                if(*(int*)(memory->stack + (memory->stackPointer-1)) == 
+                    *(int*)(memory->stack + memory->stackPointer+3))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 8 bytes
+            case EqualLong:
+                memory->stackPointer-=(sizeof(long)*2)-1;
+                if(*(long*)(memory->stack + (memory->stackPointer-1)) == 
+                    *(long*)(memory->stack + memory->stackPointer+(sizeof(long)-1)))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 4 bytes
+            case EqualFloat:
+                memory->stackPointer-=7;
+                if((*(float*)(memory->stack + (memory->stackPointer-1))) == 
+                    (*(float*)(memory->stack + memory->stackPointer+3)))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
+
+            //Compare value of 2 8 bytes
+            case EqualDouble:
+                memory->stackPointer-=15;
+                if(*(double*)(memory->stack + (memory->stackPointer-1)) ==
+                    *(double*)(memory->stack + memory->stackPointer+7))
+                {
+                    memory->stack[memory->stackPointer-1] = 1;
+                }
+                else
+                {
+                    memory->stack[memory->stackPointer-1] = 0;
+                }
+            break;
 */
-		}
+        }
 
 #if STACK_OUTPUT
-		uint64 stackPos = 0;
-		for(uint i = 0; i < stackT->ptr; i++)
-		{
-			switch(stackT->data[i])
-			{
-				case INT8:
-				case UINT8:
-					printf("%i, ", stack[stackPos]);
-					stackPos++;
-				break;
-				case INT16:
-				case UINT16:
-					memcpy(&reg.s, stack + stackPos, 2);
-					printf("%i, ", reg.s);
-					stackPos += 2;
-				break;
-				case INT32:
-				case UINT32:
-					memcpy(&reg.i, stack + stackPos, 4);
-					printf("%i, ",reg.i);
-					stackPos += 4;
-				break;
-				case INT64:
-				case UINT64:
-				case POINTER:
-					memcpy(&reg.l, stack + stackPos, 8);
-					printf("%lli, ",reg.i);
-					stackPos += 8;
-				break;
-				case FLOAT32:
-					memcpy(&reg.f, stack + stackPos, 4);
-					printf("%f, ",reg.f);
-					stackPos += 4;
-				break;
-				case FLOAT64:
-					memcpy(&reg.d, stack + stackPos, 8);
-					printf("%f, ",reg.d);
-					stackPos += 8;
-				break;
-			}
-		}
-		printf("\n");
+        uint64 stackPos = 0;
+        for(uint i = 0; i < stackT->ptr; i++)
+        {
+            switch(stackT->data[i])
+            {
+                case INT8:
+                case UINT8:
+                    printf("%i, ", stack[stackPos]);
+                    stackPos++;
+                break;
+                case INT16:
+                case UINT16:
+                    memcpy(&reg.s, stack + stackPos, 2);
+                    printf("%i, ", reg.s);
+                    stackPos += 2;
+                break;
+                case INT32:
+                case UINT32:
+                    memcpy(&reg.i, stack + stackPos, 4);
+                    printf("%i, ",reg.i);
+                    stackPos += 4;
+                break;
+                case INT64:
+                case UINT64:
+                case POINTER:
+                    memcpy(&reg.l, stack + stackPos, 8);
+                    printf("%lli, ",reg.i);
+                    stackPos += 8;
+                break;
+                case FLOAT32:
+                    memcpy(&reg.f, stack + stackPos, 4);
+                    printf("%f, ",reg.f);
+                    stackPos += 4;
+                break;
+                case FLOAT64:
+                    memcpy(&reg.d, stack + stackPos, 8);
+                    printf("%f, ",reg.d);
+                    stackPos += 8;
+                break;
+            }
+        }
+        printf("\n");
 #endif
-		pc++;
-		#if DEBUG
-			printf("\tpc: %i\n",pc);
-			printf("\tstack: %i\n",*(int*)(stack+sp-4));
-			printf("\tstack val: %i\n",stackT->data[stackT->ptr-1]);
-			printf("\tstack count: %i\n",stackT->ptr);
-			printf("\tstack size: %i\n",sp);
-		#endif
-	}
+        pc++;
+        #if DEBUG
+            printf("\tpc: %i\n",pc);
+            printf("\tstack: %i\n",*(int*)(stack+sp-4));
+            printf("\tstack val: %i\n",stackT->data[stackT->ptr-1]);
+            printf("\tstack count: %i\n",stackT->ptr);
+            printf("\tstack size: %i\n",sp);
+        #endif
+    }
 }
 
 char markedByte = 1;
 void SilentFree(SilentGC* gc, uint64 ptr)
 {
-	SilentMemory* mem = gc->memory;
-	SilentVector* heap = mem->heap;
-	((SilentMemoryBlock*)heap->data)[ptr].occupied = 0;
-	mem->freeHeapSpace = 1;
+    SilentMemory* mem = gc->memory;
+    SilentVector* heap = mem->heap;
+    ((SilentMemoryBlock*)heap->data)[ptr].occupied = 0;
+    mem->freeHeapSpace = 1;
 }
 
 void SilentSweep(SilentGC* gc)
 {
-	SilentMemory* mem = gc->memory;
-	SilentVector* heap = mem->heap;
-	for(uint64 i = 0; i < mem->heapPtr; i++)
-	{
-		if(((SilentMemoryBlock*)(heap->data))[i].marked != markedByte-2)
-		{
-			((SilentMemoryBlock*)(heap->data))[i].occupied = 0;
-			printf("freeing a thing\n");
-			free(((SilentMemoryBlock*)(heap->data))[i].data);
-			mem->freeHeapSpace = 1;
-		}
-	}
+    SilentMemory* mem = gc->memory;
+    SilentVector* heap = mem->heap;
+    for(uint64 i = 0; i < mem->heapPtr; i++)
+    {
+        if(((SilentMemoryBlock*)(heap->data))[i].marked != markedByte-2)
+        {
+            ((SilentMemoryBlock*)(heap->data))[i].occupied = 0;
+            printf("freeing a thing\n");
+            free(((SilentMemoryBlock*)(heap->data))[i].data);
+            mem->freeHeapSpace = 1;
+        }
+    }
 }
 
 void SilentMark(SilentGC* gc)
 {
-	SilentMemory* 	mem = gc->memory;
-	char* 			stack = mem->stack;
-	SilentVector* 	stackT = mem->stackTypes;
-	SilentVector* 	heap = mem->heap;
+    SilentMemory* 	mem = gc->memory;
+    char* 			stack = mem->stack;
+    SilentVector* 	stackT = mem->stackTypes;
+    SilentVector* 	heap = mem->heap;
 
-	uint64 stackPtr = 0;
+    uint64 stackPtr = 0;
 
-	for(uint64 i = 0; i < stackT->ptr; i++)
-	{
-		uint64 temp;
-		switch(stackT->data[i])
-		{
-			case POINTER_LOCATION:
-				temp = *((long*)(stack + stackPtr));
-				((SilentMemoryBlock*)(heap->data))[temp].marked = markedByte;
-				stackPtr += 8;
-				printf("Marked a thing\n");
-				if(((SilentMemoryBlock*)(heap->data))[temp].occupied == 0)
-				{
-					free(((SilentMemoryBlock*)(heap->data))[temp].data);
-				}
-			break;		
-			case UNDEFINED:
-				temp = *((long*)(stackT->data + i));
-				stackPtr += temp;
-				i += 8;
-			break;
+    for(uint64 i = 0; i < stackT->ptr; i++)
+    {
+        uint64 temp;
+        switch(stackT->data[i])
+        {
+            case POINTER_LOCATION:
+                temp = *((long*)(stack + stackPtr));
+                ((SilentMemoryBlock*)(heap->data))[temp].marked = markedByte;
+                stackPtr += 8;
+                printf("Marked a thing\n");
+                if(((SilentMemoryBlock*)(heap->data))[temp].occupied == 0)
+                {
+                    free(((SilentMemoryBlock*)(heap->data))[temp].data);
+                }
+            break;		
+            case UNDEFINED:
+                temp = *((long*)(stackT->data + i));
+                stackPtr += temp;
+                i += 8;
+            break;
             default:
                 stackPtr += SilentGetTypeSize(stackT->data[i]);
             break;
-		}
-	}
-	markedByte += 2;
+        }
+    }
+    markedByte += 2;
 }
 
 long SilentAlloc(SilentGC* gc, uint64 size)
 {
-	SilentMemory* mem = gc->memory;
-	SilentVector* heap = mem->heap;
-	if(mem->freeHeapSpace == 1)
-	{
-		for(uint64 i = 0; i < mem->heapPtr; i++)
-		{
-			if(((SilentMemoryBlock*)heap->data)[i].occupied == 0)
-			{
-				if(((SilentMemoryBlock*)heap->data)[i].data != NULL)
-				{	
-					free(((SilentMemoryBlock*)heap->data)[i].data);
-				}
-				((SilentMemoryBlock*)heap->data)[i].occupied = 1;
-				((SilentMemoryBlock*)heap->data)[i].data = malloc(size);
-				printf("Alloc at %i\n",i);
-				return i;
-				break;	
-			}
-		}
-		mem->freeHeapSpace = 0;
-		return SilentAlloc(gc,size);
-	}
-	else
-	{
-		SilentMemoryBlock* memBlock = malloc(sizeof(SilentMemoryBlock));
-		memBlock->occupied = 1;
-		memBlock->data = malloc(size);
-		SilentPushBack(heap, memBlock);
-		mem->heapPtr = heap->ptr/sizeof(SilentMemoryBlock);
-		printf("Alloc at %i\n",mem->heapPtr-1);
-		printf("alloc ptr: %lu\n",memBlock->data);
-		return mem->heapPtr-1;
-	}
+    SilentMemory* mem = gc->memory;
+    SilentVector* heap = mem->heap;
+    if(mem->freeHeapSpace == 1)
+    {
+        for(uint64 i = 0; i < mem->heapPtr; i++)
+        {
+            if(((SilentMemoryBlock*)heap->data)[i].occupied == 0)
+            {
+                if(((SilentMemoryBlock*)heap->data)[i].data != NULL)
+                {	
+                    free(((SilentMemoryBlock*)heap->data)[i].data);
+                }
+                ((SilentMemoryBlock*)heap->data)[i].occupied = 1;
+                ((SilentMemoryBlock*)heap->data)[i].data = malloc(size);
+                printf("Alloc at %i\n",i);
+                return i;
+                break;	
+            }
+        }
+        mem->freeHeapSpace = 0;
+        return SilentAlloc(gc,size);
+    }
+    else
+    {
+        SilentMemoryBlock* memBlock = malloc(sizeof(SilentMemoryBlock));
+        memBlock->occupied = 1;
+        memBlock->data = malloc(size);
+        SilentPushBack(heap, memBlock);
+        mem->heapPtr = heap->ptr/sizeof(SilentMemoryBlock);
+        printf("Alloc at %i\n",mem->heapPtr-1);
+        printf("alloc ptr: %lu\n",memBlock->data);
+        return mem->heapPtr-1;
+    }
 }
