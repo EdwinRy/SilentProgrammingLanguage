@@ -1,9 +1,10 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#define DEBUG 0
+#define DEBUG 1
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;
@@ -71,6 +72,41 @@ typedef struct SilentLabel
     uint64 index;
 }SilentLabel;
 
+
+uint64 getline(char** line, FILE* file)
+{
+    /*
+    char buffer[10000];
+    uint64 bufferPtr = 0;
+    do 
+    {
+        buffer[bufferPtr++] = (char)fgetc(file);
+    } while(!(buffer[bufferPtr-1] == EOF  || buffer[bufferPtr-1] == '\n'));
+    buffer[bufferPtr] = '\0';
+    printf("here %s\n",buffer);
+    line[0] = malloc(bufferPtr);
+    memcpy(line[0], buffer, bufferPtr);
+    printf("here %s\n",line[0]);
+    return bufferPtr;*/
+    size_t n = 0;
+    int c;
+    char buffer[1000];
+    c = fgetc(file);
+    while(!(c == EOF || c  == '\n'))
+    {
+        buffer[n++] = (char)c;
+        printf("h %c\n",buffer[n-1]);
+        c = fgetc(file);
+    }
+    buffer[n] = '\0';
+    printf("buffer %s\n",buffer);
+    printf("n %i\n",n);
+    *line = malloc(n+1);
+    memcpy(*line, buffer, n+1);
+    printf("line %s\n",*line);
+    return n;
+}
+
 char* assemble(char* inFile, char* outFile)
 {
     char* program = malloc(10000);
@@ -92,7 +128,7 @@ char* assemble(char* inFile, char* outFile)
     uint64 currentLine = 1;
     size_t s = 0;
     uint64 size = 0;
-    size = getline(&line, &s, fileStream);
+    size = getline(&line, fileStream);
 
     char buffer[1000];
     char** instructions = malloc(sizeof(char*)*10);
@@ -109,14 +145,14 @@ char* assemble(char* inFile, char* outFile)
         if(line[0] == '\n')
         {
             currentLine += 1;
-            size = getline(&line, &s, fileStream);
+            size = getline(&line, fileStream);
             continue;
         }
         //One line comment
         if(line[0] == '/' && line[1] == '/')
         {
             currentLine += 1;
-            size = getline(&line, &s, fileStream);
+            size = getline(&line, fileStream);
             continue;
         }
         //Multi-line comment
@@ -125,10 +161,10 @@ char* assemble(char* inFile, char* outFile)
             while(!(line[0] == '*' && line[1] == '/'))
             {
                 currentLine += 1;
-                size = getline(&line, &s, fileStream);
+                size = getline(&line, fileStream);
             }
             currentLine += 1;
-            size = getline(&line, &s, fileStream);
+            size = getline(&line, fileStream);
             continue;
         }
 
@@ -821,7 +857,7 @@ char* assemble(char* inFile, char* outFile)
         }
 
         currentLine += 1;
-        size = getline(&line,&s,fileStream);
+        size = getline(&line,fileStream);
         for(int i = 0; i < iIndex; i++)
         {
             free(instructions[i]);
