@@ -2,6 +2,10 @@
 #include <iostream>
 namespace Silent
 {
+    enum class SilentCompileMode
+    {
+        Asm,Src
+    };
     class SilentCompiler
     {
         private:
@@ -12,7 +16,7 @@ namespace Silent
 
         public:
         SilentCompiler();
-        void Compile();
+        void Compile(SilentCompileMode mode);
         void SetSource(char* source);
         void SetPath(char* path);
     };

@@ -1,0 +1,5 @@
+loaddll "lib/silentLib.dll\0" meme
+loaddllfunc 0 "outputStr\0"
+push str "my nama jeff\0"
+calldllfunc 0 0 1
+halt

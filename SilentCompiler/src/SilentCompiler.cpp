@@ -2,6 +2,7 @@
 #include "SilentTokenizer.hpp"
 #include "SilentParser.hpp"
 #include "SilentCleanup.hpp"
+#include "Assembler/SilentAssembler.hpp"
 #include <iostream>
 #include <string.h>
 #include <vector>
@@ -45,22 +46,32 @@ char* readAllText(char* path)
     return text;
 }
 
+
+
 SilentCompiler::SilentCompiler()
 {
     this->source = "";
 }
 
-void SilentCompiler::Compile()
+void SilentCompiler::Compile(SilentCompileMode mode)
 {
-    if(this->source == "")
+    if(mode == SilentCompileMode::Src)
     {
-        char* source = readAllText(this->path);
-        this->source.assign(source,strlen(source)+1);
+        if(this->source == "")
+        {
+            char* source = readAllText(this->path);
+            this->source.assign(source,strlen(source)+1);
+        }
+        std::vector<SilentToken>* tokens = SilentTokenize(this->source);
+        std::vector<Silent::SilentNode*>* nodes = SilentParse(*tokens);
+        //SilentFreeNodes(nodes);
     }
-    std::vector<SilentToken>* tokens = SilentTokenize(this->source);
-    std::vector<Silent::SilentNode*>* nodes = SilentParse(*tokens);
-    //SilentFreeNodes(nodes);
-    std::cout << "Done!\n";
+    else
+    {
+        SilentAssembler assembler = SilentAssembler();
+        assembler.Assemble(this->path);
+    }
+    std::cout << "\nDone!\n";
 }
 
 void SilentCompiler::SetSource(char* source)
@@ -76,7 +87,15 @@ void SilentCompiler::SetPath(char* path)
 int main(int argc, char** argv)
 {
     SilentCompiler compiler = SilentCompiler();
-    compiler.SetPath(argv[1]);
-    compiler.Compile();
+    if(strcmp(argv[1], "-asm") == 0)
+    {
+        compiler.SetPath(argv[2]);
+        compiler.Compile(SilentCompileMode::Asm);
+    }
+    else
+    {
+        compiler.SetPath(argv[1]);
+        compiler.Compile(SilentCompileMode::Src);
+    }
     return 0;
 }

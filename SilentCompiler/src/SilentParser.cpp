@@ -498,7 +498,7 @@ SilentNode* Silent::SilentParseFunction(NodePtrList* scope)
     {
         node->function->initialised = true;
         nextToken();
-        node->function->scope = SilentParseScope(scope);
+        //node->function->scope = SilentParseScope(scope);
     }
 
 #if DEBUG
