@@ -68,7 +68,7 @@ void SilentAssembler::Assemble(char* path)
         // std::cout << "endl" << "\n";
 
     }
-}
+} 
 
 std::string SilentAssembler::GetOutput()
 {
