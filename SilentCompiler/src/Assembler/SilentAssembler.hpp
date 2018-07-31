@@ -5,7 +5,7 @@ namespace Silent
     class SilentAssembler
     {
         private:
-        std::string output;
+        std::vector<char*> output;
         char* path;
 
         public:
