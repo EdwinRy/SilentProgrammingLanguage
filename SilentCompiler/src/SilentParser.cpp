@@ -58,7 +58,8 @@ SilentDataType getType(NodePtrList* scope, std::string name)
     {
         if(getNode(scope,name,SilentNodeType::structure) != NULL) 
         {
-            return SilentDataType::structType;}
+            return SilentDataType::structType;
+        }
     }
     return SilentDataType::undefined;
 }
@@ -146,9 +147,9 @@ bool expectToken(SilentTokenType type, std::string msg)
 SilentOperand* parseExpression();
 SilentOperand* parseFactor()
 {
-#if DEBUG
-    std::cout << ct.value.data() << "\n";
-#endif
+    #if DEBUG
+        std::cout << ct.value.data() << "\n";
+    #endif
     if(acceptToken(SilentTokenType::Number))
     {
         SilentOperand* operand = new SilentOperand();
@@ -273,7 +274,8 @@ SilentNode* Silent::SilentParseVar(
 
     if(node->variable->type == SilentDataType::undefined)
     {
-        errorMsg("Type " + ct.value + " undefined");
+        //errorMsg("Type " + ct.value + " undefined");
+        errorMsg("Use of undefined type");
     }
 
     else if(node->variable->type == SilentDataType::structType)
@@ -369,9 +371,9 @@ SilentNode* Silent::SilentParseStruct(NodePtrList* scope)
             );
             localScope->push_back(var);
             node->structure->size += var->variable->size;
-#if DEBUG
-            std::cout << "struct size " << node->structure->size << "\n";
-#endif
+            #if DEBUG
+                std::cout << "struct size " << node->structure->size << "\n";
+            #endif
         }
         else
         {
@@ -383,18 +385,18 @@ SilentNode* Silent::SilentParseStruct(NodePtrList* scope)
 
     nextToken();
 
-#if DEBUG
-    std::cout
-    << "structure " << node->name.data() << " of size: " 
-    << node->structure->size
-    << " declared with variables:\n";
+    #if DEBUG
+        std::cout
+        << "structure " << node->name.data() << " of size: " 
+        << node->structure->size
+        << " declared with variables:\n";
 
-    for(uint64 i = 0; i < localScope->size(); i++)
-    {
-        std::cout << i << ":" << (*localScope)[i]->name.data() << "\n";
-    }
-    std::cout << "\n";
-#endif
+        for(uint64 i = 0; i < localScope->size(); i++)
+        {
+            std::cout << i << ":" << (*localScope)[i]->name.data() << "\n";
+        }
+        std::cout << "\n";
+    #endif
     return node;
 }
 
@@ -461,8 +463,7 @@ SilentNode* Silent::SilentParseFunction(NodePtrList* scope)
     node->function->returnType = getType(scope, ct.value);
     if(node->function->returnType == SilentDataType::undefined)
     {
-        std::cout << "Error on line "<< ct.line <<":\n";
-        std::cout <<"Type "<< ct.value.data()<<" undefined\n";
+        errorMsg("Use of undefined type");
         exit(-1);
     }
 
@@ -501,13 +502,14 @@ SilentNode* Silent::SilentParseFunction(NodePtrList* scope)
         //node->function->scope = SilentParseScope(scope);
     }
 
-#if DEBUG
-    std::cout << "Declared function " << node->name.data() << "\n";
-#endif
-
+    #if DEBUG
+        std::cout << "Declared function " << node->name.data() << "\n";
+    #endif
+    nextToken();
     return node;
 }
 
+//Parse tokens
 NodePtrList* Silent::SilentParse(TokenList tokens)
 {   
     NodePtrList* globalScope = new NodePtrList();
@@ -516,18 +518,21 @@ NodePtrList* Silent::SilentParse(TokenList tokens)
 
     while(cursor < tokens.size()-1)
     {
+        //Parse structure declaration
         if(acceptToken(SilentTokenType::Struct))
         {
             SilentNode* node = SilentParseStruct(globalScope);
             globalScope->push_back(node);
         }
 
+        //Parse function declaration
         else if(acceptToken(SilentTokenType::Function))
         {
             SilentNode* node = SilentParseFunction(globalScope);
             globalScope->push_back(node);
         }
 
+        //Parse primitive variable
         else if(acceptToken(SilentTokenType::Primitive))
         {
             SilentNode* node = SilentParseVar(
@@ -536,6 +541,7 @@ NodePtrList* Silent::SilentParse(TokenList tokens)
             globalScope->push_back(node);
         }
 
+        //Parse custom type variable
         else if(acceptToken(SilentTokenType::Identifier))
         {
             SilentDataType type = getType(globalScope, ct.value);
@@ -549,20 +555,15 @@ NodePtrList* Silent::SilentParse(TokenList tokens)
             }
             else
             {
-                std::cout << "Error on line " << ct.line <<":\n";
-                std::cout
-                << "Use of undefined type "
-                << ct.value.data() <<"\n";
+                errorMsg("Use of undefined type");
                 exit(-1);
             }
         }
 
+        //Display invalid token error
         else
         {
-            std::cout << "Error on line "<< ct.line << ":\n";
-            std::cout
-            << "Unexpected token in the global scope "
-            << ct.value.data() <<"\n";
+            errorMsg("Unexpected token in the global scope");
             exit(-1);
         }
     }

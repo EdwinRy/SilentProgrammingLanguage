@@ -64,7 +64,7 @@ enum class SilentBytecode
 
 SilentAssembler::SilentAssembler()
 {
-    this->output = "";
+
 }
 
 std::vector<std::string> tokenizeLine(std::string line)
@@ -120,7 +120,7 @@ void SilentAssembler::Assemble(char* path)
     std::ifstream inFile(path);
     std::string line;
     uint64 currentLine = 0;
-    std::vector<char*> program;
+    std::vector<char> program;
     std::vector<SilentLabel> labels;
     std::vector<SilentLabel> aLabels;
     while(std::getline(inFile, line))
@@ -144,18 +144,22 @@ void SilentAssembler::Assemble(char* path)
         else if(instructions[0] == "halt")
         {
             program.push_back((char)SilentBytecode::Halt);
+            // char* temp = (char*)malloc(1);
+            // temp[0] = (char)SilentBytecode::Halt;
+            // program.push_back(temp);
+            // pc += 1;
         }
 
         else if(instructions[0] == "goto")
         {
-            char* temp = (char*)malloc(1);
-            temp[0] = (char)SilentBytecode::Goto;
-            SilentLabel label;
-            label.label = instructions[1];
-            label.index = program.size();
-            aLabels.push_back(label);
-            //program.insert(program.end(),&currentLine,std::end())
-            program.push_back(temp);
+            // char* temp = (char*)malloc(9);
+            // temp[0] = (char)SilentBytecode::Goto;
+            // SilentLabel label;
+            // label.label = instructions[1];
+            // label.index = program.size();
+            // aLabels.push_back(label);
+            // //program.insert(program.end(),&currentLine,std::end())
+            // program.push_back(temp);
         }
         else if(instructions[0] == "sweep")
         {
@@ -292,9 +296,16 @@ void SilentAssembler::Assemble(char* path)
         }
 
     }
+
+    this->Link(program);
 } 
 
-std::string SilentAssembler::GetOutput()
+void SilentAssembler::Link(std::vector<char> in)
+{
+
+}
+
+char* SilentAssembler::GetOutput()
 {
     return this->output;
 }

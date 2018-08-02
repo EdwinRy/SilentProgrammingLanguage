@@ -5,12 +5,13 @@ namespace Silent
     class SilentAssembler
     {
         private:
-        std::vector<char*> output;
+        char* output;
         char* path;
 
         public:
         SilentAssembler();
         void Assemble(char* path);
-        std::string GetOutput();
+        void Link(std::vector<char> in);
+        char* GetOutput();
     };
 }
