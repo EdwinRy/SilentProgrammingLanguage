@@ -18,7 +18,7 @@ namespace Silent
         };
     };
 
-    std::vector<SilentIntCode> SilentTransform(std::vector<SilentNode*>* nodes);
+    std::vector<SilentIntCode>* SilentTransform(std::vector<SilentNode*>* nodes);
     std::vector<std::string> SilentGenAssembly(std::vector<std::string> code);
     void SilentPrintTree(SilentOperand* operand);    
 }
