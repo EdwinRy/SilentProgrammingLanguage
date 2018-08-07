@@ -2,10 +2,21 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+using namespace Silent;
 typedef unsigned long long uint64;
 typedef unsigned int uint32;
-using namespace Silent;
+typedef std::vector<Silent::SilentToken> TokenList;
+typedef std::vector<Silent::SilentToken*> TokenPtrList;
+//typedef std::vector<SilentNode> NodeList;
+typedef std::vector<SilentNode*> NodePtrList;
 
+
+std::vector<SilentIntCode>* SilentTransform(std::vector<SilentNode*>* nodes)
+{
+    std::vector<SilentIntCode>* out = new std::vector<SilentIntCode>();
+
+    return out;
+}
 
 //Outputting binary trees
 std::string getOperandType(SilentOperandType type)
