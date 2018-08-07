@@ -44,7 +44,10 @@ namespace Silent
         Assign,
         Function,
         Struct,
-        Return
+        Return,
+        Namespace,
+        Class,
+        Method
     };
 
     typedef struct SilentToken

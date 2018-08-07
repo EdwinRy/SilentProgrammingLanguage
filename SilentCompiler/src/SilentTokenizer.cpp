@@ -165,6 +165,18 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
                     {
                         token.type = SilentTokenType::Struct;
                     }
+                    else if(token.value == "namespace")
+                    {
+                        token.type = SilentTokenType::Namespace;
+                    }
+                    else if(token.value == "class")
+                    {
+                        token.type = SilentTokenType::Class;
+                    }
+                    else if(token.value == "method")
+                    {
+                        token.type = SilentTokenType::Method;
+                    }
                     else if(token.value == "return")
                     {
                         token.type = SilentTokenType::Return;

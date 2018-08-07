@@ -3,8 +3,11 @@
 #include <iomanip>
 #include <vector>
 typedef unsigned long long uint64;
+typedef unsigned int uint32;
 using namespace Silent;
 
+
+//Outputting binary trees
 std::string getOperandType(SilentOperandType type)
 {
     switch(type)

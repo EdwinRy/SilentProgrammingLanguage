@@ -10,7 +10,8 @@ namespace Silent
         variable,
         structure,
         function,
-        scope
+        scope,
+        expression
     };
 
     enum class SilentDataType
@@ -49,6 +50,7 @@ namespace Silent
     typedef struct SilentFunction SilentFunction;
     typedef struct SilentOperand SilentOperand;
     typedef struct SilentScope SilentScope;
+
     typedef struct SilentNode
     {
         SilentNodeType type;
@@ -106,33 +108,40 @@ namespace Silent
         };
     }SilentOperant;
 
+    typedef struct SilentParserInfo
+    {
+        std::vector<SilentFunction*> functions;
+        std::vector<SilentStructure*> structs;
+        std::vector<SilentNode*> nodes;
+    }SilentParserInfo;
+
 
     void SilentParseExpression(
-        std::vector<SilentNode*> *scope,
+        std::vector<SilentNode*> &scope,
         std::vector<Silent::SilentToken> tokens,
         unsigned long long* i,
         SilentOperand* operand
     );
 
     SilentNode* SilentParseVar(
-        std::vector<SilentNode*> *scope,
+        std::vector<SilentNode*> &scope,
         std::string type,
         bool init,
         bool expectEnd
     );
 
-    SilentNode* SilentParseStruct(std::vector<SilentNode*> *scope);
+    SilentNode* SilentParseStruct(std::vector<SilentNode*> &scope);
 
     void SilentParseParameters(
         SilentFunction* function,
-        std::vector<SilentNode*> *scope
+        std::vector<SilentNode*> &scope
     );
 
-    SilentNode* SilentParseScope(std::vector<SilentNode*> *scope);
+    SilentNode* SilentParseScope(std::vector<SilentNode*> &scope);
 
-    SilentNode* SilentParseFunction(std::vector<SilentNode*> *scope);
+    SilentNode* SilentParseFunction(std::vector<SilentNode*> &scope);
 
-    std::vector<SilentNode*>* SilentParse(
+    SilentScope* SilentParse(
         std::vector<Silent::SilentToken> tokens
     );
 }

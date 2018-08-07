@@ -63,7 +63,7 @@ void SilentCompiler::Compile(SilentCompileMode mode)
             this->source.assign(source,strlen(source)+1);
         }
         std::vector<SilentToken>* tokens = SilentTokenize(this->source);
-        std::vector<Silent::SilentNode*>* nodes = SilentParse(*tokens);
+        SilentScope* nodes = SilentParse(*tokens);
         //SilentFreeNodes(nodes);
     }
     else
