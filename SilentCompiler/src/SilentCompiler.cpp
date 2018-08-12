@@ -3,6 +3,7 @@
 #include "SilentParser.hpp"
 #include "SilentCleanup.hpp"
 #include "Assembler/SilentAssembler.hpp"
+#include "SilentCodeGen.hpp"
 #include <iostream>
 #include <string.h>
 #include <vector>
@@ -63,7 +64,8 @@ void SilentCompiler::Compile(SilentCompileMode mode)
             this->source.assign(source,strlen(source)+1);
         }
         std::vector<SilentToken>* tokens = SilentTokenize(this->source);
-        SilentScope* nodes = SilentParse(*tokens);
+        SilentParserInfo* parserOutput = SilentParse(*tokens);
+        //std::vector<SilentIntCode>* intCode = SilentTransform(nodes->nodes);
         //SilentFreeNodes(nodes);
     }
     else

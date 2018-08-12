@@ -11,10 +11,29 @@ typedef std::vector<Silent::SilentToken*> TokenPtrList;
 typedef std::vector<SilentNode*> NodePtrList;
 
 
-std::vector<SilentIntCode>* SilentTransform(std::vector<SilentNode*>* nodes)
+std::vector<SilentIntCode>* SilentTransform(std::vector<SilentNode*>& nodes)
 {
     std::vector<SilentIntCode>* out = new std::vector<SilentIntCode>();
+    for(uint64 i = 0; i < nodes.size(); i++)
+    {
+        switch(nodes[i]->type)
+        {
+            case SilentNodeType::expression:
+            break;
 
+            case SilentNodeType::function:
+            break;
+
+            case SilentNodeType::scope:
+            break;
+
+            case SilentNodeType::structure:
+            break;
+
+            case SilentNodeType::variable:
+            break;
+        }
+    }
     return out;
 }
 

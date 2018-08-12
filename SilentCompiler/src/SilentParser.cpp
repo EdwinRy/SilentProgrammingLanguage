@@ -9,10 +9,26 @@ typedef std::vector<Silent::SilentToken*> TokenPtrList;
 typedef std::vector<SilentNode*> NodePtrList;
 #define DEBUG 1
 
-SilentParserInfo info;
+SilentParserInfo* info;
 SilentToken ct; //current token
 TokenList* tokensPtr;
 uint64 cursor;
+
+bool checkGlobalIdentifier(std::string name)
+{
+    for(auto function : info->functions)
+    {
+        if(function->name == name) return true;
+    }
+
+    for(auto structure : info->types)
+    {
+        if(structure->name == name) return true;
+    }
+
+    return false;
+}
+
 
 SilentNode* getNode(NodePtrList &scope, std::string name, SilentNodeType type)
 {
@@ -30,11 +46,11 @@ SilentNode* getNode(NodePtrList &scope, std::string name, SilentNodeType type)
 SilentNode* getAccessibleNode(std::string name, SilentNodeType type)
 {
     //Scan from the end to get the closest variable
-    for(uint64 i = info.nodes.size()-1; i >= 0; i--)
+    for(uint64 i = info->nodes.size()-1; i >= 0; i--)
     {
-        if(info.nodes[i]->type == type)
+        if(info->nodes[i]->type == type)
         {
-            if(info.nodes[i]->name == name) return info.nodes[i];
+            if(info->nodes[i]->name == name) return info->nodes[i];
         }
     }
     return NULL;
@@ -473,13 +489,64 @@ SilentNode* Silent::SilentParseFunction(NodePtrList& scope)
     return node;
 }
 
+void GetGlobalIdentifiers(TokenList tokens)
+{
+    for(uint64 i = 0; i < tokens.size(); i++)
+    {
+        switch(tokens[i].type)
+        {
+            case SilentTokenType::Function:
+            {
+                SilentFunction* newF = new SilentFunction();
+                newF->initialised = false;
+                if(tokens[i+=2].type != SilentTokenType::Identifier)
+                {
+                    ct = tokens[i];
+                    errorMsg("Function name needs to be a valid identifier",false);
+                }
+                if(checkGlobalIdentifier(tokens[i].value))
+                {
+                    ct = tokens[i];
+                    errorMsg("Identifier already in use", false);
+                }
+                newF->name = tokens[i].value;
+                info->functions.push_back(newF);
+            }
+            break;
+
+            case SilentTokenType::Struct:
+            {
+                SilentStructure* newS = new SilentStructure();
+                newS->initialised = false;
+                if(tokens[++i].type != SilentTokenType::Identifier)
+                {
+                    ct = tokens[i];
+                    errorMsg("Structure name needs to be a valid identifier",false);
+                }
+                if(checkGlobalIdentifier(tokens[i].value))
+                {
+                    ct = tokens[i];
+                    errorMsg("Identifier name already in use", false);
+                }
+                newS->name = tokens[i].value;
+                info->types.push_back(newS);
+            }
+            break;
+        }
+    }
+}
+
 //Parse tokens
-SilentScope* Silent::SilentParse(TokenList tokens)
+SilentParserInfo* Silent::SilentParse(TokenList tokens)
 {   
+    SilentParserInfo* pInfo = new SilentParserInfo();
+    info = pInfo;
     //NodePtrList* globalScope = new NodePtrList();
     SilentScope* globalScope = new SilentScope();
     ct = tokens[cursor];
     tokensPtr = &tokens;
+
+    GetGlobalIdentifiers(tokens);
 
     while(cursor < tokens.size()-1)
     {
@@ -523,5 +590,5 @@ SilentScope* Silent::SilentParse(TokenList tokens)
         //Display invalid token error
         else errorMsg("Unexpected token in the global scope", true);
     }
-    return globalScope;
+    return pInfo;
 }

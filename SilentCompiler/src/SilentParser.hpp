@@ -14,6 +14,15 @@ namespace Silent
         expression
     };
 
+    enum class SilentStatementType
+    {
+        Expression,
+        If,
+        Else,
+        While,
+        For
+    };
+
     enum class SilentDataType
     {
         int8,
@@ -65,6 +74,11 @@ namespace Silent
         };
     }SilentNode;
 
+    typedef struct SilentStatement
+    {
+
+    }SilentStatement;
+
     typedef struct SilentVariable
     {
         unsigned long long size;
@@ -77,8 +91,10 @@ namespace Silent
 
     typedef struct SilentStructure
     {
-        unsigned long long size;
         std::vector<SilentNode*> variables;
+        std::string name;
+        unsigned long long size;
+        bool initialised;
     }SilentStructure;
 
     typedef struct SilentScope
@@ -89,11 +105,12 @@ namespace Silent
     typedef struct SilentFunction
     {
         std::vector<SilentNode*> parameters;
-        bool initialised;
+        SilentScope* scope;
+        std::string name;
         unsigned long long returnTypePtr;
         unsigned long long returnSize;
         SilentDataType returnType;
-        SilentScope* scope;
+        bool initialised;
     }SilentFunction;
 
     typedef struct SilentOperand
@@ -111,7 +128,7 @@ namespace Silent
     typedef struct SilentParserInfo
     {
         std::vector<SilentFunction*> functions;
-        std::vector<SilentStructure*> structs;
+        std::vector<SilentStructure*> types;
         std::vector<SilentNode*> nodes;
     }SilentParserInfo;
 
@@ -141,7 +158,7 @@ namespace Silent
 
     SilentNode* SilentParseFunction(std::vector<SilentNode*> &scope);
 
-    SilentScope* SilentParse(
+    SilentParserInfo* SilentParse(
         std::vector<Silent::SilentToken> tokens
     );
 }
