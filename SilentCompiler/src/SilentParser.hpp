@@ -76,7 +76,7 @@ namespace Silent
 
     typedef struct SilentStatement
     {
-
+        
     }SilentStatement;
 
     typedef struct SilentVariable
