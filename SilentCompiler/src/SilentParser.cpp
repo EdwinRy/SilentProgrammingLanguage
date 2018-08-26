@@ -414,7 +414,7 @@ void Silent::SilentParseParameters(SilentFunction* function, NodePtrList &scope)
     }
 }
 
-SilentNode* Silent::SilentParseScope(NodePtrList &scope)
+SilentLocalScope* SilentParseLocalScope(SilentNamespace &scope)
 {
     SilentNode* newScope = new SilentNode();
     newScope->type = SilentNodeType::scope;
@@ -438,6 +438,25 @@ SilentNode* Silent::SilentParseScope(NodePtrList &scope)
     return newScope;
 }
 
+SilentLocalScope* SilentParseFunctionScope(SilentNamespace& scope)
+{
+    SilentLocalScope* localScope = new SilentLocalScope();
+    localScope->scopeParent = false;
+    localScope->namespaceParent = &scope;
+    while(!acceptToken(SilentTokenType::CloseScope))
+    {
+        switch(ct.type)
+        {
+            case SilentTokenType::Identifier:
+            case SilentTokenType::Primitive:
+                localScope->variables.push_back(
+                    SilentParseVar(*localScope, ct.value, false, true)
+                );
+            break;
+        }
+    }
+}
+
 SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
 {
     //Create function
@@ -459,10 +478,10 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
     nextToken();
     if(!acceptToken(SilentTokenType::OpenParam))
         errorMsg("Expected \"(\" for parameter declaration", true);
-
     nextToken();
     SilentParseParameters(*function);
 
+    //Parse function scope
     if(!acceptToken(SilentTokenType::OpenScope))
     {
         function->initialised = false;
@@ -476,64 +495,16 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
     {
         function->initialised = true;
         nextToken();
-        //node->function->scope = SilentParseScope(scope);
+        function->scope = SilentParseFunctionScope();
     }
 
     #if DEBUG
-        std::cout << "Declared function " << node->name.data() << "\n";
+        std::cout << "Declared function " << function->name.data() << "\n";
     #endif
 
     nextToken();
-    return node;
+    return function;
 }
-
-/*
-void GetGlobalIdentifiers(TokenList tokens)
-{
-    for(uint64 i = 0; i < tokens.size(); i++)
-    {
-        switch(tokens[i].type)
-        {
-            case SilentTokenType::Function:
-            {
-                SilentFunction* newF = new SilentFunction();
-                newF->initialised = false;
-                if(tokens[i+=2].type != SilentTokenType::Identifier)
-                {
-                    ct = tokens[i];
-                    errorMsg("Function name needs to be a valid identifier",false);
-                }
-                if(checkGlobalIdentifier(tokens[i].value))
-                {
-                    ct = tokens[i];
-                    errorMsg("Identifier already in use", false);
-                }
-                newF->name = tokens[i].value;
-                info->functions.push_back(newF);
-            }
-            break;
-
-            case SilentTokenType::Struct:
-            {
-                SilentStructure* newS = new SilentStructure();
-                newS->initialised = false;
-                if(tokens[++i].type != SilentTokenType::Identifier)
-                {
-                    ct = tokens[i];
-                    errorMsg("Structure name needs to be a valid identifier",false);
-                }
-                if(checkGlobalIdentifier(tokens[i].value))
-                {
-                    ct = tokens[i];
-                    errorMsg("Identifier name already in use", false);
-                }
-                newS->name = tokens[i].value;
-                info->types.push_back(newS);
-            }
-            break;
-        }
-    }
-}*/
 
 SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
 {
@@ -586,8 +557,6 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
     globalNamespace->name = "global";
     info->namespaces.push_back(globalNamespace);
 
-    GetGlobalIdentifiers(tokens);
-
     while(cursor < tokens.size()-1)
     {
         switch(ct.type)
@@ -613,8 +582,8 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
             // case SilentTokenType::Identifier:
             // case SilentTokenType::Primitive:
             //     globalNamespace->globals.push_back(
-            //         SilentParseVar(*globalNamespace, ct.value, false);
-            //     )
+            //         SilentParseVar(globalNamespace, ct.value, false, true)
+            //     );
             // break;
 
             default:

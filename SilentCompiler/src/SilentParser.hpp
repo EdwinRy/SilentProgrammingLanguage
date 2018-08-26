@@ -77,6 +77,12 @@ namespace Silent
     {
         std::vector<SilentVariable*> variables;
         std::vector<SilentStatement*> statements;
+        bool scopeParent;
+        union
+        {
+            SilentLocalScope* scopeParent;
+            SilentNamespace* namespaceParent;
+        };
     }SilentLocalScope;
 
     typedef struct SilentFunction
@@ -148,6 +154,7 @@ namespace Silent
     SilentStructure* SilentParseStruct(SilentNamespace &scope);
     SilentStructure* SilentParseParameters(SilentFunction &function);
     SilentLocalScope* SilentParseLocalScope(SilentNamespace &scope);
+    SilentLocalScope* SilentParseFunctionScope();
     SilentFunction* SilentParseFunction(SilentNamespace &scope);
     SilentNamespace* SilentParseNamespace(SilentNamespace &scope);
     SilentParserInfo* SilentParse(std::vector<Silent::SilentToken> tokens);
