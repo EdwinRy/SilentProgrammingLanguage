@@ -5,7 +5,6 @@ typedef unsigned long long uint64;
 typedef unsigned int uint32;
 typedef std::vector<Silent::SilentToken> TokenList;
 typedef std::vector<Silent::SilentToken*> TokenPtrList;
-//typedef std::vector<SilentNode> NodeList;
 typedef std::vector<SilentNode*> NodePtrList;
 #define DEBUG 1
 
@@ -16,12 +15,12 @@ uint64 cursor;
 
 bool checkGlobalIdentifier(std::string name)
 {
-    for(auto function : info->functions)
+    for(auto function : info->namespaces[0]->functions)
     {
         if(function->name == name) return true;
     }
 
-    for(auto structure : info->types)
+    for(auto structure : info->namespaces[0]->types)
     {
         if(structure->name == name) return true;
     }
@@ -29,34 +28,35 @@ bool checkGlobalIdentifier(std::string name)
     return false;
 }
 
-
-SilentNode* getNode(NodePtrList &scope, std::string name, SilentNodeType type)
+SilentNamespace* getNamespace(SilentNamespace& scope, std::string name)
 {
-    //for(uint64 i = 0; i < (*scope).size(); i++)
-    for(uint64 i = 0; i < scope.size(); i++)
+    for(auto namespaceObj : scope.namespaces)
     {
-        if(scope[i]->type == type)
-        {
-            if(scope[i]->name == name) return scope[i];
-        }
+        if(namespaceObj->name == name) return namespaceObj;
     }
     return NULL;
 }
 
-SilentNode* getAccessibleNode(std::string name, SilentNodeType type)
+SilentStructure* getStruct(SilentNamespace& scope, std::string name)
 {
-    //Scan from the end to get the closest variable
-    for(uint64 i = info->nodes.size()-1; i >= 0; i--)
+    for(auto structure : scope.types)
     {
-        if(info->nodes[i]->type == type)
-        {
-            if(info->nodes[i]->name == name) return info->nodes[i];
-        }
+        if(structure->name == name) return structure;
     }
     return NULL;
 }
 
-SilentDataType getType(NodePtrList &scope, std::string name)
+SilentFunction* getFunction(SilentNamespace& scope, std::string name)
+{
+    for(auto function : scope.functions)
+    {
+        if(function->name == name) return function;
+    }
+    return NULL;
+}
+
+
+SilentDataType getType(SilentNamespace &scope, std::string name)
 {
     if(name == "int8") return SilentDataType::int8;
     else if(name == "uint8") return SilentDataType::uint8;
@@ -73,15 +73,12 @@ SilentDataType getType(NodePtrList &scope, std::string name)
     else if(name == "void") return SilentDataType::null;
     else
     {
-        if(getNode(scope, name, SilentNodeType::structure) != NULL) 
-        {
-            return SilentDataType::structType;
-        }
+        if(getStruct(scope, name) != NULL) return SilentDataType::structType;
     }
     return SilentDataType::undefined;
 }
 
-uint64 getTypeSize(NodePtrList &scope, std::string name)
+uint64 getTypeSize(SilentNamespace &scope, std::string name)
 {
     if(name == "int8") return 1;
     else if(name == "uint8") return 1;
@@ -98,27 +95,27 @@ uint64 getTypeSize(NodePtrList &scope, std::string name)
     else if(name == "void") return 0;
     else
     {
-        SilentNode* node = getNode(scope,name,SilentNodeType::structure);
-        if(node != NULL) return node->structure->size;
+        SilentStructure* structure = getStruct(scope,name);
+        if(structure != NULL) return structure->size;
     }
     return -1;
 }
 
-uint64 getLocalPos(NodePtrList &scope)
-{
-    uint64 scopeSize = scope.size();
-    uint64 lastPos = 1;
-    if(scopeSize == 0) return 0;
-    else
-    {
-        while(scope[scopeSize-lastPos]->type==SilentNodeType::structure)
-        {
-            lastPos+=1;
-        }
-        SilentVariable* var = scope[scopeSize-lastPos]->variable;
-        return var->localPos + var->size;
-    }
-}
+// uint64 getLocalPos(NodePtrList &scope)
+// {
+//     uint64 scopeSize = scope.size();
+//     uint64 lastPos = 1;
+//     if(scopeSize == 0) return 0;
+//     else
+//     {
+//         while(scope[scopeSize-lastPos]->type==SilentNodeType::structure)
+//         {
+//             lastPos+=1;
+//         }
+//         SilentVariable* var = scope[scopeSize-lastPos]->variable;
+//         return var->localPos + var->size;
+//     }
+// }
 
 void errorMsg(std::string msg, bool ex)
 {
@@ -441,34 +438,34 @@ SilentNode* Silent::SilentParseScope(NodePtrList &scope)
     return newScope;
 }
 
-SilentNode* Silent::SilentParseFunction(NodePtrList& scope)
+SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
 {
-    SilentNode* node = new SilentNode();
-    node->function = new SilentFunction();
-    node->type = SilentNodeType::function;
-    nextToken();
+    //Create function
+    SilentFunction* function = new SilentFunction();
 
-    node->function->returnType = getType(scope, ct.value);
-    if(node->function->returnType == SilentDataType::undefined)
+    //Get function return type
+    nextToken();
+    function->returnType = getType(scope, ct.value);
+    if(function->returnType == SilentDataType::undefined)
         errorMsg("Use of undefined type", true);
 
+    //Get function name
     nextToken();
-    if(getNode(scope, ct.value, SilentNodeType::function) != NULL)
+    if(getFunction(scope, ct.value) != NULL)
         errorMsg("Identifier already in use", true);
+    else function->name = ct.value;
 
-    else node->name = ct.value;
+    //Get function parameters
     nextToken();
-
     if(!acceptToken(SilentTokenType::OpenParam))
         errorMsg("Expected \"(\" for parameter declaration", true);
 
-
     nextToken();
-    SilentParseParameters(node->function,scope);
+    SilentParseParameters(*function);
 
     if(!acceptToken(SilentTokenType::OpenScope))
     {
-        node->function->initialised = false;
+        function->initialised = false;
         if(!acceptToken(SilentTokenType::Semicolon))
         {
             errorMsg("Expected \";\" at the end of uninitialised function", false);
@@ -477,7 +474,7 @@ SilentNode* Silent::SilentParseFunction(NodePtrList& scope)
     }
     else
     {
-        node->function->initialised = true;
+        function->initialised = true;
         nextToken();
         //node->function->scope = SilentParseScope(scope);
     }
@@ -485,10 +482,12 @@ SilentNode* Silent::SilentParseFunction(NodePtrList& scope)
     #if DEBUG
         std::cout << "Declared function " << node->name.data() << "\n";
     #endif
+
     nextToken();
     return node;
 }
 
+/*
 void GetGlobalIdentifiers(TokenList tokens)
 {
     for(uint64 i = 0; i < tokens.size(); i++)
@@ -534,6 +533,45 @@ void GetGlobalIdentifiers(TokenList tokens)
             break;
         }
     }
+}*/
+
+SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
+{
+    //Get namespace name
+    nextToken();
+    expectToken(SilentTokenType::Identifier, "Expected scope name");
+    for(SilentNamespace* name : scope.namespaces)
+    {
+        if(name->name == scope.name) errorMsg("Conflicting namespaces", false);
+    }
+    nextToken();
+    expectToken(SilentTokenType::OpenScope, "Expected scope declaration");
+    nextToken();
+
+    while(!acceptToken(SilentTokenType::CloseScope))
+    {
+        switch(ct.type)
+        {
+            case SilentTokenType::Namespace:
+                scope.namespaces.push_back(
+                    SilentParseNamespace(scope)
+                );
+                scope.namespaces.back()->parent = &scope;
+            break;
+
+            case SilentTokenType::Struct:
+                scope.types.push_back(
+                    SilentParseStruct(scope)
+                );
+            break;
+
+            case SilentTokenType::Function:
+                scope.functions.push_back(
+                    SilentParseFunction(scope)
+                );
+            break; 
+        }
+    }
 }
 
 //Parse tokens
@@ -541,54 +579,48 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
 {   
     SilentParserInfo* pInfo = new SilentParserInfo();
     info = pInfo;
-    //NodePtrList* globalScope = new NodePtrList();
-    SilentScope* globalScope = new SilentScope();
     ct = tokens[cursor];
     tokensPtr = &tokens;
+
+    SilentNamespace* globalNamespace = new SilentNamespace();
+    globalNamespace->name = "global";
+    info->namespaces.push_back(globalNamespace);
 
     GetGlobalIdentifiers(tokens);
 
     while(cursor < tokens.size()-1)
     {
-        //Parse structure declaration
-        if(acceptToken(SilentTokenType::Struct))
+        switch(ct.type)
         {
-            SilentNode* node = SilentParseStruct(globalScope->nodes);
-            globalScope->nodes.push_back(node);
-        }
-
-        //Parse function declaration
-        else if(acceptToken(SilentTokenType::Function))
-        {
-            SilentNode* node = SilentParseFunction(globalScope->nodes);
-            globalScope->nodes.push_back(node);
-        }
-
-        //Parse primitive variable
-        else if(acceptToken(SilentTokenType::Primitive))
-        {
-            SilentNode* node = SilentParseVar(
-                globalScope->nodes,ct.value,true,true
-            );
-            globalScope->nodes.push_back(node);
-        }
-
-        //Parse custom type variable
-        else if(acceptToken(SilentTokenType::Identifier))
-        {
-            SilentDataType type = getType(globalScope->nodes, ct.value);
-            if(type == SilentDataType::structType)
-            {
-                SilentNode* node = SilentParseVar(
-                    globalScope->nodes,ct.value,true,true
+            case SilentTokenType::Namespace:
+                globalNamespace->namespaces.push_back(
+                    SilentParseNamespace(*globalNamespace)
                 );
-                globalScope->nodes.push_back(node);
-            }
-            else errorMsg("Use of undefined type", true);
-        }
+            break;
 
-        //Display invalid token error
-        else errorMsg("Unexpected token in the global scope", true);
+            case SilentTokenType::Struct:
+                globalNamespace->types.push_back(
+                    SilentParseStruct(*globalNamespace)
+                );
+            break;
+
+            case SilentTokenType::Function:
+                globalNamespace->functions.push_back(
+                    SilentParseFunction(*globalNamespace)
+                );
+            break;
+
+            // case SilentTokenType::Identifier:
+            // case SilentTokenType::Primitive:
+            //     globalNamespace->globals.push_back(
+            //         SilentParseVar(*globalNamespace, ct.value, false);
+            //     )
+            // break;
+
+            default:
+                errorMsg("Unexpected token in the global scope", true);
+            break;
+        }
     }
     return pInfo;
 }

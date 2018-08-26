@@ -4,6 +4,7 @@
 #include "SilentCleanup.hpp"
 #include "Assembler/SilentAssembler.hpp"
 #include "SilentCodeGen.hpp"
+#include "SilentConsole.hpp"
 #include <iostream>
 #include <string.h>
 #include <vector>
@@ -93,6 +94,11 @@ int main(int argc, char** argv)
     {
         compiler.SetPath(argv[2]);
         compiler.Compile(SilentCompileMode::Asm);
+    }
+    if(strcmp(argv[1], "-c") == 0)
+    {
+        SilentConsole console;
+        console.Start();
     }
     else
     {
