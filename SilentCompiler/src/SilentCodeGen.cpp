@@ -5,118 +5,52 @@
 using namespace Silent;
 typedef unsigned long long uint64;
 typedef unsigned int uint32;
-typedef std::vector<Silent::SilentToken> TokenList;
-typedef std::vector<Silent::SilentToken*> TokenPtrList;
-//typedef std::vector<SilentNode> NodeList;
-typedef std::vector<SilentNode*> NodePtrList;
 
+#define DEBUG 1
 
-std::vector<SilentIntCode>* SilentTransform(std::vector<SilentNode*>& nodes)
+std::string transformFunction(SilentFunction& function)
 {
-    std::vector<SilentIntCode>* out = new std::vector<SilentIntCode>();
-    for(uint64 i = 0; i < nodes.size(); i++)
-    {
-        switch(nodes[i]->type)
-        {
-            case SilentNodeType::expression:
-            break;
+    std::string output;
+    #if DEBUG
+        std::cout << "Transforming function:" << function.name << "\n";
+    #endif
 
-            case SilentNodeType::function:
-            break;
 
-            case SilentNodeType::scope:
-            break;
 
-            case SilentNodeType::structure:
-            break;
-
-            case SilentNodeType::variable:
-            break;
-        }
-    }
-    return out;
+    #if DEBUG
+        std::cout << "Done transforming function:" << function.name << "\n";
+    #endif
+    return output;
 }
 
-//Outputting binary trees
-std::string getOperandType(SilentOperandType type)
+std::string transformNamespace(SilentNamespace& scope)
 {
-    switch(type)
-    {
-        case SilentOperandType::Add:
-            return "Add";
-        break;
-        case SilentOperandType::Subtract:
-            return "Subtract";
-        break;
-        case SilentOperandType::Multiply:
-            return "Multiply";
-        break;
-        case SilentOperandType::Divide:
-            return "Divide";
-        break;
-        case SilentOperandType::Identifier:
-            return "id";
-        break;
-    }
+    std::string output;
+    #if DEBUG
+        std::cout << "Transforming namespace:" << scope.name << "\n";
+    #endif
+
+    #if DEBUG
+        std::cout << "Done transforming namespace:" << scope.name << "\n";
+    #endif
+    return output;
 }
 
-typedef struct Generation
+SilentIntCode* Silent::SilentTransform(SilentParserInfo* parsedCode)
 {
-    std::vector<SilentOperand*> operands;
-}Generation;
+    #if DEBUG
+        std::cout << "Generating intermediate code...\n";
+    #endif
 
-std::vector<Generation> generations;
-uint64 currentGen;
+    SilentIntCode* output = new SilentIntCode();
+    output->code = "goto main\n";
 
-void addGen();
+    
+    output->code += transformFunction(*parsedCode->main);
 
-void printGen()
-{
-    for(uint64 j = 0; j < generations[currentGen].operands.size(); j++)
-    {
-        if(generations[currentGen].operands[j]->type == SilentOperandType::Value)
-        {
-            std::cout 
-            << generations[currentGen].operands[j]->tokenData->value.data() 
-            << " ";
-        }
-        else
-        {
-            std::cout 
-            << getOperandType(generations[currentGen].operands[j]->type).data() 
-            << " ";
-        }
-    }
-    std::cout << "\n";
-    addGen();
-}
-
-void addGen()
-{
-    Generation gen;
-    bool added = false;
-    for(uint64 j = 0; j < generations[currentGen].operands.size(); j++)
-    {
-        if(generations[currentGen].operands[j]->type != SilentOperandType::Value &&
-            generations[currentGen].operands[j]->type != SilentOperandType::Identifier)
-        {
-            gen.operands.push_back(generations[currentGen].operands[j]->left);
-            gen.operands.push_back(generations[currentGen].operands[j]->right);
-            added = true;
-        }
-    }
-    generations.push_back(gen);
-    currentGen += 1;
-    if(added)
-    {
-        printGen();
-    }
-}
-
-void Silent::SilentPrintTree(SilentOperand* operand)
-{
-    Generation gen;
-    gen.operands.push_back(operand);
-    generations.push_back(gen);
-    printGen();
+    #if DEBUG
+        std::cout << "Done generating intermediate code...\n";
+        std::cout << "Generated code:\n" << output->code;
+    #endif
+    return output;
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "SilentParser.hpp"
+#include <vector>
 namespace Silent
 {
     enum class SilentIntToken
@@ -9,16 +10,12 @@ namespace Silent
 
     struct SilentIntCode
     {
-        SilentIntToken type;
-        union
-        {
-            std::string strData;
-            void* ptrData;
-            char* charData;
-        };
+        std::string code;
+        
     };
 
-    std::vector<SilentIntCode>* SilentTransform(std::vector<SilentNode*>& nodes);
-    std::vector<std::string> SilentGenAssembly(std::vector<std::string> code);
-    void SilentPrintTree(SilentOperand* operand);    
+    SilentIntCode* SilentTransform(SilentParserInfo* parsedCode);
+
+    //std::vector<SilentIntCode>* SilentTransform(std::vector<SilentNode*>& nodes);
+    //std::vector<std::string> SilentGenAssembly(std::vector<std::string> code); 
 }

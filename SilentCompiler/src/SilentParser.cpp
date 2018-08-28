@@ -1,12 +1,12 @@
 #include "SilentParser.hpp"
 #include "SilentCodeGen.hpp"
+#include "SilentDebugger.hpp"
 using namespace Silent;
 typedef unsigned long long uint64;
 typedef unsigned int uint32;
 typedef std::vector<Silent::SilentToken> TokenList;
 typedef std::vector<Silent::SilentToken*> TokenPtrList;
-typedef std::vector<SilentNode*> NodePtrList;
-#define DEBUG 1
+#define DEBUG 0
 
 SilentParserInfo* info;
 SilentToken ct; //current token
@@ -16,14 +16,10 @@ uint64 cursor;
 bool checkGlobalIdentifier(std::string name)
 {
     for(auto function : info->namespaces[0]->functions)
-    {
         if(function->name == name) return true;
-    }
 
     for(auto structure : info->namespaces[0]->types)
-    {
         if(structure->name == name) return true;
-    }
 
     return false;
 }
@@ -101,21 +97,13 @@ uint64 getTypeSize(SilentNamespace &scope, std::string name)
     return -1;
 }
 
-// uint64 getLocalPos(NodePtrList &scope)
-// {
-//     uint64 scopeSize = scope.size();
-//     uint64 lastPos = 1;
-//     if(scopeSize == 0) return 0;
-//     else
-//     {
-//         while(scope[scopeSize-lastPos]->type==SilentNodeType::structure)
-//         {
-//             lastPos+=1;
-//         }
-//         SilentVariable* var = scope[scopeSize-lastPos]->variable;
-//         return var->localPos + var->size;
-//     }
-// }
+uint64 getLocalPos(SilentLocalScope &scope)
+{
+    uint64 scopeSize = scope.variables.size();
+    uint64 localPos = 0;
+    for(auto var : scope.variables) localPos += var->size;
+    return localPos;
+}
 
 void errorMsg(std::string msg, bool ex)
 {
@@ -163,16 +151,16 @@ SilentOperand* parseFactor()
     if(acceptToken(SilentTokenType::Number))
     {
         SilentOperand* operand = new SilentOperand();
-        operand->type = SilentOperandType::Value;
-        operand->tokenData = new SilentToken;
-        *(operand->tokenData) = ct;
+        operand->type = SilentOperandType::Number;
+        operand->token = new SilentToken;
+        *(operand->token) = ct;
         nextToken();
         return operand;
     }
     else if(acceptToken(SilentTokenType::Identifier))
     {
         SilentOperand* operand = new SilentOperand();
-        operand->type = SilentOperandType::Identifier;
+        operand->type = SilentOperandType::Variable;
         nextToken();
         return operand;
     }
@@ -221,13 +209,12 @@ SilentOperand* parseTerm()
         }
     }
     temp = operand->left;
-    delete operand;
+    //delete operand;
     return temp;
 }
 
 SilentOperand* parseExpression()
 {
-    
     if(acceptToken(SilentTokenType::Add) ||
         acceptToken(SilentTokenType::Subtract)
     )
@@ -238,6 +225,7 @@ SilentOperand* parseExpression()
     SilentOperand* operand = new SilentOperand();
     SilentOperand* temp;
     operand->left = parseTerm();
+
     while(true)
     {
         if(acceptToken(SilentTokenType::Add))
@@ -265,43 +253,46 @@ SilentOperand* parseExpression()
         }
     }
     temp = operand->left;
-    delete operand;
+    //delete operand;
     return temp;
 }
 
-SilentNode* Silent::SilentParseVar(
-    NodePtrList &scope,
+SilentVariable* Silent::SilentParseVar(
+    SilentLocalScope &scope,
+    SilentNamespace &typeScope,
     std::string type,
     bool init,
     bool expectEnd
 )
 {
-    SilentNode* node = new SilentNode();
-    node->variable = new SilentVariable();
-    node->type = SilentNodeType::variable;
-    node->variable->type = getType(scope,type);
-    node->variable->size = getTypeSize(scope,type);
+    #if DEBUG 
+    std::cout << "Parsing var\n";
+    #endif
 
-    if(node->variable->type == SilentDataType::undefined)
-    {
+    SilentVariable* var = new SilentVariable();
+
+    //Get variable type
+    var->type = getType(typeScope, ct.value);
+
+
+    if(var->type == SilentDataType::undefined)
         errorMsg("Use of undefined type", false);
-    }
 
-    else if(node->variable->type == SilentDataType::structType)
-    {
-        node->variable->typePtr = 
-        getNode(scope, ct.value,SilentNodeType::structure);  
-    }
-    node->variable->localPos = getLocalPos(scope);
+    //Get variable size
+    var->size = getTypeSize(typeScope, ct.value);
+
+    //Get variable position locally
+    var->localPos = getLocalPos(scope);
     nextToken();
 
-    if(getNode(scope, ct.value, SilentNodeType::variable) != NULL)
-        errorMsg("Identifier " + ct.value + " already in use", true);
-    else{node->name = ct.value;}
+    //Get variable name
+    var->name = ct.value;
     nextToken();
 
+    //If only initialisation permitted
     if(init)
     {
+        //If semicolon required at the end
         if(expectEnd)
         {
             if (!acceptToken(SilentTokenType::Semicolon))
@@ -309,96 +300,118 @@ SilentNode* Silent::SilentParseVar(
             nextToken();
         }
         #if DEBUG
-            std::cout << "Declared variable " << node->name.data() << "\n"
-            << "of size: " << node->variable->size << "\n"
-            << "at local position " << node->variable->localPos << "\n\n";
-            #endif
-        return node;
+            std::cout << "Declared variable " << var->name.data() << "\n"
+            << "of size: " << var->size << "\n"
+            << "at local position " << var->localPos << "\n";
+        std::cout << "Finished parsing var\n\n";
+        #endif
+        return var;
     }
     else
     {
-        
+        //Parse statement
         if(acceptToken(SilentTokenType::Assign))
-        {
-            node->variable->expresion = parseExpression();
+        {    
+            nextToken();
+            var->expresion = new SilentOperand();
+            var->expresion->type = SilentOperandType::Assign;
+            var->expresion->left = new SilentOperand();
+            var->expresion->left->type = SilentOperandType::Variable;
+            var->expresion->left->variable = var;
+            var->expresion->right = parseExpression();
             if(expectToken(SilentTokenType::Semicolon,
-                "Expected \";\" at the end of expression"))
+                "Expected \";\" at the end of expression")
+            )
             {
                 nextToken();
                 #if DEBUG
-                    SilentPrintTree(node->variable->expresion);
+                    std::cout << "Syntax tree:\n";
+                    SilentPrintTree(var->expresion);
+                    std::cout << "Finished parsing var\n\n";
                 #endif
-                return node;
+                return var;
             }
             nextToken();
         }
+        //End declaration
         else if(acceptToken(SilentTokenType::Semicolon))
         {
-            node->variable->initialised = false;
+            var->initialised = false;
             nextToken();
-            return node;
+            #if DEBUG
+            std::cout << "Finished parsing var\n\n";
+            #endif
+            return var;
         }
         else errorMsg("Invalid token following an expression", true);
+        #if DEBUG
+        std::cout << "Finished parsing var\n\n";
+        #endif
+        return var;
     }
 }
 
-SilentNode* Silent::SilentParseStruct(NodePtrList &scope)
+SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
 {
-    SilentNode* node = new SilentNode();
-    node->structure = new SilentStructure();
-    node->type = SilentNodeType::structure;
-    //NodePtrList* localScope = &(node->structure->variables);
-    NodePtrList localScope;
-    localScope = node->structure->variables;
-    nextToken();
+    #if DEBUG
+    std::cout << "Parsing struct\n";
+    #endif
+    SilentStructure* structure = new SilentStructure();
+    structure->variables = new SilentLocalScope();
 
+    //Get structure name
+    nextToken();
     if(getType(scope, ct.value) != SilentDataType::undefined)
         errorMsg("Identifier " + ct.value + " already in use", true);
-
-    else node->name = ct.value;
+    else structure->name = ct.value;
     nextToken();
     expectToken(SilentTokenType::OpenScope, "Expected struct declaration");
     nextToken();
 
+    //Parse structure body
     while(!acceptToken(SilentTokenType::CloseScope))
     {
         if(getType(scope, ct.value) != SilentDataType::undefined)
         {
-            SilentNode* var = SilentParseVar(
-                localScope, ct.value, true, true
+            SilentVariable* var = SilentParseVar(
+                *structure->variables, scope, ct.value, true, true
             );
-            localScope.push_back(var);
-            node->structure->size += var->variable->size;
+            structure->variables->variables.push_back(var);
+            structure->size += var->size;
             #if DEBUG
-                std::cout << "struct size " << node->structure->size << "\n";
+                std::cout << "struct size " << structure->size << "\n";
             #endif
         }
         else errorMsg("Use of non-existing type", true);
     }
 
     nextToken();
-
     #if DEBUG
         std::cout
-        << "structure " << node->name.data() << " of size: " 
-        << node->structure->size
+        << "structure " << structure->name.data() << " of size: " 
+        << structure->size
         << " declared with variables:\n";
-
-        for(uint64 i = 0; i < localScope.size(); i++)
+        for(uint64 i = 0; i < structure->variables->variables.size(); i++)
         {
-            std::cout << i << ":" << localScope[i]->name.data() << "\n";
+            std::cout << i << ":" << 
+            structure->variables->variables[i]->name.data() << "\n";
         }
         std::cout << "\n";
+        std::cout << "Finished parsing struct\n\n";
     #endif
-    return node;
+    return structure;
 }
 
-void Silent::SilentParseParameters(SilentFunction* function, NodePtrList &scope)
+SilentLocalScope* Silent::SilentParseParameters(SilentNamespace &scope)
 {
-    while(true)
+    #if DEBUG
+    std::cout << "Parsing parameters\n";
+    #endif
+    SilentLocalScope* parameters = new SilentLocalScope();
+    while(ct.type != SilentTokenType::CloseParam)
     {
-        function->parameters.push_back(
-            SilentParseVar(function->parameters, ct.value,true,false)
+        parameters->variables.push_back(
+            SilentParseVar(*parameters, scope, ct.value,true,false)
         );
         if(ct.value == ",")
         {
@@ -412,36 +425,49 @@ void Silent::SilentParseParameters(SilentFunction* function, NodePtrList &scope)
         }
         else errorMsg("Got invalid token whilst parsing parameters", false);
     }
+    #if DEBUG
+    std::cout << "finished parsing parameters\n\n";
+    #endif
+    return parameters;
 }
 
 SilentLocalScope* SilentParseLocalScope(SilentNamespace &scope)
 {
-    SilentNode* newScope = new SilentNode();
-    newScope->type = SilentNodeType::scope;
-    newScope->scope = new SilentScope();
+    #if DEBUG
+    std::cout << "Parsing local scope\n";
+    #endif
+    SilentLocalScope* localScope = new SilentLocalScope();
+    localScope->usesScopeParent = false;
+    localScope->namespaceParent = &scope;
     
     while(!acceptToken(SilentTokenType::CloseScope))
     {
-        if(acceptToken(SilentTokenType::Primitive))
+        switch(ct.type)
         {
-            SilentNode* node = SilentParseVar(
-                newScope->scope->nodes, ct.value,false,true
-            );
-            newScope->scope->nodes.push_back(node);
-        }
-        else if(acceptToken(SilentTokenType::Identifier))
-        {
+            case SilentTokenType::Primitive:
+                localScope->variables.push_back(
+                    SilentParseVar(*localScope, scope, ct.value, false, true)
+                );
+            break;
+
+            //Add other statements
 
         }
     }
     nextToken();
-    return newScope;
+    #if DEBUG
+    std::cout << "Finished parsing local scope\n\n";
+    #endif
+    return localScope;
 }
 
-SilentLocalScope* SilentParseFunctionScope(SilentNamespace& scope)
+SilentLocalScope* Silent::SilentParseFunctionScope(SilentNamespace& scope)
 {
+    #if DEBUG
+    std::cout << "Parsing function scope\n";
+    #endif
     SilentLocalScope* localScope = new SilentLocalScope();
-    localScope->scopeParent = false;
+    localScope->usesScopeParent = false;
     localScope->namespaceParent = &scope;
     while(!acceptToken(SilentTokenType::CloseScope))
     {
@@ -450,15 +476,25 @@ SilentLocalScope* SilentParseFunctionScope(SilentNamespace& scope)
             case SilentTokenType::Identifier:
             case SilentTokenType::Primitive:
                 localScope->variables.push_back(
-                    SilentParseVar(*localScope, ct.value, false, true)
+                    SilentParseVar(*localScope, scope, ct.value, false, true)
                 );
             break;
+
+            //Add other statements
+
         }
     }
+    #if DEBUG
+    std::cout << "Finished parsing function scope\n\n";
+    #endif
+    return localScope;
 }
 
 SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
 {
+    #if DEBUG
+    std::cout << "Parsing function\n";
+    #endif
     //Create function
     SilentFunction* function = new SilentFunction();
 
@@ -473,13 +509,18 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
     if(getFunction(scope, ct.value) != NULL)
         errorMsg("Identifier already in use", true);
     else function->name = ct.value;
+    if(ct.value == "main")
+    {
+        if(info->main == NULL) info->main = function;
+        else errorMsg("Main function already declared", false);
+    }
 
     //Get function parameters
     nextToken();
     if(!acceptToken(SilentTokenType::OpenParam))
         errorMsg("Expected \"(\" for parameter declaration", true);
     nextToken();
-    SilentParseParameters(*function);
+    function->parameters = SilentParseParameters(scope);
 
     //Parse function scope
     if(!acceptToken(SilentTokenType::OpenScope))
@@ -495,7 +536,7 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
     {
         function->initialised = true;
         nextToken();
-        function->scope = SilentParseFunctionScope();
+        function->scope = SilentParseFunctionScope(scope);
     }
 
     #if DEBUG
@@ -503,17 +544,26 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
     #endif
 
     nextToken();
+    #if DEBUG
+    std::cout << "Finished parsing function\n\n";
+    #endif
     return function;
 }
 
 SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
 {
+    #if DEBUG
+    std::cout << "Parsing namespace\n";
+    #endif
+    SilentNamespace* newNamespace = new SilentNamespace();
     //Get namespace name
     nextToken();
     expectToken(SilentTokenType::Identifier, "Expected scope name");
+    newNamespace->name = ct.value;
     for(SilentNamespace* name : scope.namespaces)
     {
-        if(name->name == scope.name) errorMsg("Conflicting namespaces", false);
+        if(name->name == newNamespace->name) 
+            errorMsg("Conflicting namespaces", false);
     }
     nextToken();
     expectToken(SilentTokenType::OpenScope, "Expected scope declaration");
@@ -524,36 +574,46 @@ SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
         switch(ct.type)
         {
             case SilentTokenType::Namespace:
-                scope.namespaces.push_back(
-                    SilentParseNamespace(scope)
+                newNamespace->namespaces.push_back(
+                    SilentParseNamespace(*newNamespace)
                 );
-                scope.namespaces.back()->parent = &scope;
+                newNamespace->namespaces.back()->parent = newNamespace;
             break;
 
             case SilentTokenType::Struct:
-                scope.types.push_back(
-                    SilentParseStruct(scope)
+                newNamespace->types.push_back(
+                    SilentParseStruct(*newNamespace)
                 );
             break;
 
             case SilentTokenType::Function:
-                scope.functions.push_back(
-                    SilentParseFunction(scope)
+                newNamespace->functions.push_back(
+                    SilentParseFunction(*newNamespace)
                 );
             break; 
         }
     }
+    #if DEBUG
+    std::cout << "Finished parsing namespace\n\n";
+    #endif
+    return newNamespace;
 }
 
 //Parse tokens
 SilentParserInfo* Silent::SilentParse(TokenList tokens)
 {   
+    #if DEBUG
+    std::cout << "Started parsing\n";
+    #endif
     SilentParserInfo* pInfo = new SilentParserInfo();
     info = pInfo;
     ct = tokens[cursor];
     tokensPtr = &tokens;
 
     SilentNamespace* globalNamespace = new SilentNamespace();
+    globalNamespace->globals = new SilentLocalScope();
+    globalNamespace->globals->namespaceParent = globalNamespace;
+    globalNamespace->globals->usesScopeParent = false;
     globalNamespace->name = "global";
     info->namespaces.push_back(globalNamespace);
 
@@ -579,17 +639,22 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
                 );
             break;
 
-            // case SilentTokenType::Identifier:
-            // case SilentTokenType::Primitive:
-            //     globalNamespace->globals.push_back(
-            //         SilentParseVar(globalNamespace, ct.value, false, true)
-            //     );
-            // break;
+            case SilentTokenType::Identifier:
+            case SilentTokenType::Primitive:
+                globalNamespace->globals->variables.push_back(
+                    SilentParseVar(*globalNamespace->globals, *globalNamespace,
+                        ct.value, false, true
+                    )
+                );
+            break;
 
             default:
                 errorMsg("Unexpected token in the global scope", true);
             break;
         }
     }
+    #if DEBUG
+    std::cout << "Finished parsing\n\n";
+    #endif
     return pInfo;
 }

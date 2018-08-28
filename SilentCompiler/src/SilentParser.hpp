@@ -40,14 +40,16 @@ namespace Silent
         Multiply,
         Divide,
         FunctionCall,
-        Value,
-        Identifier
+        Number,
+        String,
+        Variable
     };
 
     enum class SilentExpressionType
     {
         arithmetic,
-        logical
+        logical,
+        memory
     };
 
     typedef struct SilentVariable SilentVariable;
@@ -55,11 +57,15 @@ namespace Silent
     typedef struct SilentFunction SilentFunction;
     typedef struct SilentOperand SilentOperand;
     typedef struct SilentLocalScope SilentLocalScope;
+    typedef struct SilentStatement SilentStatement;
+    typedef struct SilentNamespace SilentNamespace;
+
 
     typedef struct SilentVariable
     {
         unsigned long long size;
         unsigned long long localPos;
+        std::string name;
         SilentOperand* expresion;
         SilentDataType type;
         bool initialised;
@@ -67,7 +73,8 @@ namespace Silent
 
     typedef struct SilentStructure
     {
-        std::vector<SilentVariable*> variables;
+        //std::vector<SilentVariable*> variables;
+        SilentLocalScope* variables;
         std::string name;
         unsigned long long size;
         bool initialised;
@@ -77,7 +84,7 @@ namespace Silent
     {
         std::vector<SilentVariable*> variables;
         std::vector<SilentStatement*> statements;
-        bool scopeParent;
+        bool usesScopeParent;
         union
         {
             SilentLocalScope* scopeParent;
@@ -87,7 +94,8 @@ namespace Silent
 
     typedef struct SilentFunction
     {
-        std::vector<SilentVariable*> parameters;
+        //std::vector<SilentVariable*> parameters;
+        SilentLocalScope* parameters;
         SilentLocalScope* scope;
         std::string name;
         unsigned long long returnTypePtr;
@@ -95,19 +103,6 @@ namespace Silent
         SilentDataType returnType;
         bool initialised;
     }SilentFunction;
-
-    typedef struct SilentExpression
-    {
-        SilentOperand* operand;
-        SilentExpressionType type;
-        SilentDataType returnType;
-    };
-
-    typedef struct SilentStatement
-    {
-        SilentStatementType type;
-        
-    }SilentStatement;
 
     typedef struct SilentOperand
     {
@@ -117,9 +112,32 @@ namespace Silent
         {
             SilentToken* token;
             SilentVariable* variable;
-            SilentExpression* expression;
         };
     }SilentOperant;
+
+    typedef struct SilentIfStatement
+    {
+        SilentOperand* expression;
+        SilentLocalScope* scope;
+    }SilentIfStatement;
+
+    typedef struct SilentWhileLoop
+    {
+        SilentOperand* expression;
+        SilentLocalScope* scope;
+    }SilentWhileLoop;
+
+    typedef struct SilentStatement
+    {
+        SilentLocalScope* parentScope;
+        SilentStatementType type;
+        union
+        {
+            SilentIfStatement* ifStatement;
+            SilentWhileLoop* whileLoop;
+        };
+        
+    }SilentStatement;
 
     typedef struct SilentNamespace
     {
@@ -127,34 +145,30 @@ namespace Silent
         std::vector<SilentNamespace*> namespaces;
         std::vector<SilentFunction*> functions;
         std::vector<SilentStructure*> types;
-        std::vector<SilentVariable*> globals;
+        SilentLocalScope* globals;
         std::string name;
     }SilentNamespace;
 
     typedef struct SilentParserInfo
     {
+        SilentFunction* main;
         std::vector<SilentNamespace*> namespaces;
     }SilentParserInfo;
-
-
-    SilentExpression* SilentParseExpression(
-        SilentLocalScope &scope,
-        SilentOperand* operand
-    );
 
     SilentStatement* SilentParseStatement(SilentLocalScope &scope);
 
     SilentVariable* SilentParseVar(
         SilentLocalScope &scope,
+        SilentNamespace &typeScope,
         std::string type,
         bool init,
         bool expectEnd
     );
 
     SilentStructure* SilentParseStruct(SilentNamespace &scope);
-    SilentStructure* SilentParseParameters(SilentFunction &function);
+    SilentLocalScope* SilentParseParameters(SilentNamespace &scope);
     SilentLocalScope* SilentParseLocalScope(SilentNamespace &scope);
-    SilentLocalScope* SilentParseFunctionScope();
+    SilentLocalScope* SilentParseFunctionScope(SilentNamespace& scope);
     SilentFunction* SilentParseFunction(SilentNamespace &scope);
     SilentNamespace* SilentParseNamespace(SilentNamespace &scope);
     SilentParserInfo* SilentParse(std::vector<Silent::SilentToken> tokens);

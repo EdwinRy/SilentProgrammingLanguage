@@ -27,13 +27,14 @@ char* readAllText(char* path)
     //Seek the end of the file
     fseek(f,0,SEEK_END);
     //Allocate enough space for the entire file
-    text = (char*)malloc(ftell(f));
+    text = (char*)malloc(ftell(f) + 1);
     //Rewind the file back to beginning
     fseek(f,0,SEEK_SET);
     //Declare counter for the character array
     long count = 0;
     //Initialise buffer for single character
     char c;
+    std::cout << "HERE\n";
     //Iterate for as long as the character is not
     //the end of the file
     while((c = fgetc(f))!=EOF)
@@ -66,8 +67,10 @@ void SilentCompiler::Compile(SilentCompileMode mode)
         }
         std::vector<SilentToken>* tokens = SilentTokenize(this->source);
         SilentParserInfo* parserOutput = SilentParse(*tokens);
+        SilentIntCode* intCode = SilentTransform(parserOutput);
         //std::vector<SilentIntCode>* intCode = SilentTransform(nodes->nodes);
         //SilentFreeNodes(nodes);
+        SilentCleanup(parserOutput);
     }
     else
     {
