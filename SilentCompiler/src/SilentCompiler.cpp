@@ -68,7 +68,6 @@ void SilentCompiler::Compile(SilentCompileMode mode)
         std::vector<SilentToken>* tokens = SilentTokenize(this->source);
         SilentParserInfo* parserOutput = SilentParse(*tokens);
         SilentIntCode* intCode = SilentTransform(parserOutput);
-        //std::vector<SilentIntCode>* intCode = SilentTransform(nodes->nodes);
         //SilentFreeNodes(nodes);
         SilentCleanup(parserOutput);
     }

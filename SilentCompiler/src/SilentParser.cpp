@@ -444,10 +444,17 @@ SilentLocalScope* SilentParseLocalScope(SilentNamespace &scope)
     {
         switch(ct.type)
         {
+            case SilentTokenType::Identifier:
             case SilentTokenType::Primitive:
-                localScope->variables.push_back(
-                    SilentParseVar(*localScope, scope, ct.value, false, true)
-                );
+                SilentStatement* statement = new SilentStatement();
+                statement->type = SilentStatementType::VarInit;
+
+                SilentVariable* var = 
+                    SilentParseVar(*localScope, scope, ct.value, false, true);
+
+                localScope->variables.push_back(var);
+                if(var->initialised) 
+                    localScope->statements.push_back(statement);
             break;
 
             //Add other statements

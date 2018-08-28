@@ -6,6 +6,7 @@ namespace Silent
 {
     enum class SilentStatementType
     {
+        VarInit,
         Expression,
         If,
         Else,
@@ -73,7 +74,6 @@ namespace Silent
 
     typedef struct SilentStructure
     {
-        //std::vector<SilentVariable*> variables;
         SilentLocalScope* variables;
         std::string name;
         unsigned long long size;
@@ -94,7 +94,6 @@ namespace Silent
 
     typedef struct SilentFunction
     {
-        //std::vector<SilentVariable*> parameters;
         SilentLocalScope* parameters;
         SilentLocalScope* scope;
         std::string name;
