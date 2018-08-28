@@ -59,6 +59,7 @@
         "optional": "cpp",
         "ratio": "cpp",
         "string_view": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "unordered_map": "cpp"
     }
 }

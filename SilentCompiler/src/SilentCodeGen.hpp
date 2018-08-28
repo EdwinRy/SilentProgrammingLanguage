@@ -15,7 +15,4 @@ namespace Silent
     };
 
     SilentIntCode* SilentTransform(SilentParserInfo* parsedCode);
-
-    //std::vector<SilentIntCode>* SilentTransform(std::vector<SilentNode*>& nodes);
-    //std::vector<std::string> SilentGenAssembly(std::vector<std::string> code); 
 }

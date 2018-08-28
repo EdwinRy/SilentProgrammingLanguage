@@ -6,7 +6,7 @@ typedef unsigned long long uint64;
 typedef unsigned int uint32;
 typedef std::vector<Silent::SilentToken> TokenList;
 typedef std::vector<Silent::SilentToken*> TokenPtrList;
-#define DEBUG 0
+#define DEBUG 1
 
 SilentParserInfo* info;
 SilentToken ct; //current token
@@ -323,6 +323,7 @@ SilentVariable* Silent::SilentParseVar(
                 "Expected \";\" at the end of expression")
             )
             {
+                var->initialised = true;
                 nextToken();
                 #if DEBUG
                     std::cout << "Syntax tree:\n";
@@ -358,7 +359,7 @@ SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
     #endif
     SilentStructure* structure = new SilentStructure();
     structure->variables = new SilentLocalScope();
-
+    
     //Get structure name
     nextToken();
     if(getType(scope, ct.value) != SilentDataType::undefined)
@@ -431,7 +432,7 @@ SilentLocalScope* Silent::SilentParseParameters(SilentNamespace &scope)
     return parameters;
 }
 
-SilentLocalScope* SilentParseLocalScope(SilentNamespace &scope)
+SilentLocalScope* Silent::SilentParseLocalScope(SilentNamespace &scope)
 {
     #if DEBUG
     std::cout << "Parsing local scope\n";
@@ -458,41 +459,11 @@ SilentLocalScope* SilentParseLocalScope(SilentNamespace &scope)
             break;
 
             //Add other statements
-
         }
     }
-    nextToken();
+    //nextToken();
     #if DEBUG
     std::cout << "Finished parsing local scope\n\n";
-    #endif
-    return localScope;
-}
-
-SilentLocalScope* Silent::SilentParseFunctionScope(SilentNamespace& scope)
-{
-    #if DEBUG
-    std::cout << "Parsing function scope\n";
-    #endif
-    SilentLocalScope* localScope = new SilentLocalScope();
-    localScope->usesScopeParent = false;
-    localScope->namespaceParent = &scope;
-    while(!acceptToken(SilentTokenType::CloseScope))
-    {
-        switch(ct.type)
-        {
-            case SilentTokenType::Identifier:
-            case SilentTokenType::Primitive:
-                localScope->variables.push_back(
-                    SilentParseVar(*localScope, scope, ct.value, false, true)
-                );
-            break;
-
-            //Add other statements
-
-        }
-    }
-    #if DEBUG
-    std::cout << "Finished parsing function scope\n\n";
     #endif
     return localScope;
 }
@@ -533,6 +504,7 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
     if(!acceptToken(SilentTokenType::OpenScope))
     {
         function->initialised = false;
+        function->scope = new SilentLocalScope();
         if(!acceptToken(SilentTokenType::Semicolon))
         {
             errorMsg("Expected \";\" at the end of uninitialised function", false);
@@ -543,7 +515,9 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
     {
         function->initialised = true;
         nextToken();
-        function->scope = SilentParseFunctionScope(scope);
+        function->scope = SilentParseLocalScope(scope);
+        std::cout << "v: "<<function->scope->variables.size()<<"\n";
+        std::cout << "s: "<<function->scope->statements.size()<<"\n";
     }
 
     #if DEBUG

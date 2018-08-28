@@ -3,26 +3,6 @@
 #include <vector>
 namespace Silent
 {
-    /*
-    enum class SilentTokenType
-    {
-        Unrecognised,
-        Identifier,
-        ExpressionSymbol,
-        Symbol,
-        Function,
-        Struct,
-        Return,
-        Primitive,
-        Number,
-        StringValue,
-        OpenScope,
-        CloseScope,
-        OpenParam,
-        CloseParam
-    };
-    */
-
     enum class SilentTokenType
     {
         Unrecognised,

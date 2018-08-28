@@ -19,14 +19,42 @@ std::string transformExpression(SilentOperand& expression)
 
     switch(expression.type)
     {
+        case SilentOperandType::Assign:
+            output += transformExpression(*expression.left);
+            output += transformExpression(*expression.right);
+            output += "assign\n";
+        break;
+
         case SilentOperandType::Add:
-            output+=transformExpression(*expression.left);
-            output+=transformExpression(*expression.right);
-            output+="+";
+            output += transformExpression(*expression.left);
+            output += transformExpression(*expression.right);
+            output += "+\n";
+        break;
+
+        case SilentOperandType::Subtract:
+            output += transformExpression(*expression.left);
+            output += transformExpression(*expression.right);
+            output += "-\n";
+        break;
+
+        case SilentOperandType::Multiply:
+            output += transformExpression(*expression.left);
+            output += transformExpression(*expression.right);
+            output += "*\n";
+        break;
+
+        case SilentOperandType::Divide:
+            output += transformExpression(*expression.left);
+            output += transformExpression(*expression.right);
+            output += "/\n";
         break;
 
         case SilentOperandType::Number:
-            output += expression.token->value;
+            output += expression.token->value+"\n";
+        break;
+
+        case SilentOperandType::Variable:
+            output += expression.variable->name+"\n";
         break;
     }
 
@@ -36,19 +64,45 @@ std::string transformExpression(SilentOperand& expression)
     return output;
 }
 
+std::string transformVariable(SilentVariable& var)
+{
+    std::string output = "";
+    #if DEBUG
+        std::cout << "Transforming variable:" << var.name << "\n";
+    #endif
+
+    currentNamespace += "::"+var.name;
+    output += "var "+currentNamespace+"\n";
+
+    if(var.initialised) output += transformExpression(*var.expresion);
+
+    for(uint64 i = 0; i < var.name.length()+2; i++) currentNamespace.pop_back();
+
+    #if DEBUG
+        std::cout << "Done transforming variable:" << var.name << "\n";
+    #endif
+    return output;
+}
+
 std::string transformLocalScope(SilentLocalScope& scope)
 {
-    std::string output;
+    std::string output = "";
     #if DEBUG
         std::cout << "Transforming local scope\n";
     #endif
+
+    uint64 currentVar = 0;
 
     for(SilentStatement* statement : scope.statements)
     {
         switch(statement->type)
         {
             case SilentStatementType::VarInit:
-
+                output += transformVariable(*scope.variables[currentVar]);
+                currentVar++;
+            break;
+            default:
+                std::cout << "default type parse\n";
             break;
         }
     }
@@ -61,7 +115,7 @@ std::string transformLocalScope(SilentLocalScope& scope)
 
 std::string transformFunction(SilentFunction& function)
 {
-    std::string output;
+    std::string output = "";
     #if DEBUG
         std::cout << "Transforming function:" << function.name << "\n";
     #endif
@@ -76,7 +130,7 @@ std::string transformFunction(SilentFunction& function)
 
 std::string transformNamespace(SilentNamespace& scope)
 {
-    std::string output;
+    std::string output = "";
     #if DEBUG
         std::cout << "Transforming namespace:" << scope.name << "\n";
     #endif
@@ -109,6 +163,7 @@ SilentIntCode* Silent::SilentTransform(SilentParserInfo* parsedCode)
     for(SilentNamespace* scope : parsedCode->namespaces) 
         output->code += transformNamespace(*scope);
 
+    if(parsedCode->main != NULL)
     output->code += transformFunction(*parsedCode->main);
 
     #if DEBUG
