@@ -6,6 +6,7 @@ namespace Silent
     {
         Asm,Src
     };
+    
     class SilentCompiler
     {
         private:
@@ -13,6 +14,7 @@ namespace Silent
         char* path;
 
         std::string output;
+        std::string libOutput;
 
         public:
         SilentCompiler();
