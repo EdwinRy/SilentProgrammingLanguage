@@ -168,7 +168,6 @@ std::string transformNamespace(SilentNamespace& scope)
 
     output += "e n\n";
 
-
     #if DEBUG
         std::cout << "Done transforming namespace:" << scope.name << "\n";
     #endif
