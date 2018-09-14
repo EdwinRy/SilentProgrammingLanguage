@@ -574,6 +574,7 @@ SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
             break; 
         }
     }
+    nextToken();
     #if DEBUG
     std::cout << "Finished parsing namespace\n\n";
     #endif

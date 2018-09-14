@@ -2,6 +2,11 @@
 int8 meme;
 int8 kek;
 
+namespace testNamespace
+{
+    func int16 nFunc();
+}
+
 struct sampleText
 {
     int64 meme;
@@ -15,4 +20,5 @@ func int8 meme(int8 swag, int16 memes)
 {
     int8 x = 2 * (2 + 3);
 }
-func int16 kek(int8 swag, int16 meme);
+func int16 kek();
+int32 x;

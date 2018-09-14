@@ -16,4 +16,5 @@ namespace Silent
 
     SilentIntCode* SilentTransform(SilentParserInfo* parsedCode);
     std::string SilentGenerateAssembly(std::string code);
+    std::string SilentCompileTree(SilentParserInfo* parsedCode);
 }
