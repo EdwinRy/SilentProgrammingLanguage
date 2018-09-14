@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 2.6)
+project(SilentCompiler)
+
+set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+
+set(COMPILER_SOURCE 
+    ${PROJECT_SOURCE_DIR}/src/SilentCleanup.cpp
+    ${PROJECT_SOURCE_DIR}/src/SilentCodeGen.cpp
+    ${PROJECT_SOURCE_DIR}/src/SilentCompiler.cpp
+    ${PROJECT_SOURCE_DIR}/src/SilentConsole.cpp
+    ${PROJECT_SOURCE_DIR}/src/SilentDebugger.cpp
+    ${PROJECT_SOURCE_DIR}/src/SilentParser.cpp
+    ${PROJECT_SOURCE_DIR}/src/SilentTokenizer.cpp
+)
+
+add_executable(SilentCompilerC ${COMPILER_SOURCE})

@@ -92,6 +92,8 @@ void SilentCompiler::SetPath(char* path)
 
 int main(int argc, char** argv)
 {
+    std::cout << "Hello there\n";
+    std::cout << "hi\n";
     SilentCompiler compiler = SilentCompiler();
     if(strcmp(argv[1], "-asm") == 0)
     {
