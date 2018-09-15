@@ -10,17 +10,12 @@
             "request": "launch",
             "program": "${workspaceFolder}/SilentCompiler/bin/SilentC",
             "args": ["test.silent"],
-            "stopAtEntry": false,
+            "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": true,
             "MIMode": "gdb",
             "miDebuggerPath": "gdb",
-            "logging": {
-                "moduleLoad": false,
-                "trace": true,
-                "engineLogging": true
-            },
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -28,6 +23,23 @@
                     "ignoreFailures": true
                 }
             ],
+            "logging": {
+                "engineLogging": false,
+                "trace": false
+            },
+
+            "linux": {
+                "program": "${workspaceRoot}/main",
+                "MIMode": "gdb"
+            },
+            "windows": {
+                "program": "${workspaceRoot}/main",
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "program": "${workspaceRoot}/main",
+                "MIMode": "gdb"
+            },
             "preLaunchTask": "build SilentVM"
         }
     ]

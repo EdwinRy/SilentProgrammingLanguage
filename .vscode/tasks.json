@@ -19,6 +19,15 @@
                 "kind": "build",
                 "isDefault": true
             },
+            "linux": {
+                "command": "g++",
+                "args": [
+                    "-g",
+                    "main.cpp",
+                    "-std=c++11",
+                    "-o","main",
+                ],
+            },
             "problemMatcher": [
                 "$gcc"
             ]
