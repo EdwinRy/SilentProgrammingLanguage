@@ -5,17 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Compiler launch",
+            "name": "Compiler Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/SilentCompiler/bin/SilentC",
-            "args": ["test.silent"],
-            "stopAtEntry": true,
+            //"program": "${workspaceFolder}/SilentCompiler/bin/SilentC",
+            //"preLaunchTask": "SilentCompiler Debug",
+            "args": ["${workspaceRoot}/SilentCompiler/test.silent"],
+            //"stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": true,
-            "MIMode": "gdb",
-            "miDebuggerPath": "gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -27,20 +26,20 @@
                 "engineLogging": false,
                 "trace": false
             },
-
+            
             "linux": {
-                "program": "${workspaceRoot}/main",
+                "program": "${workspaceRoot}/SilentCompiler/bin/SilentC",
                 "MIMode": "gdb"
             },
             "windows": {
-                "program": "${workspaceRoot}/main",
-                "MIMode": "gdb"
+                "program": "${workspaceRoot}/SilentCompiler/bin/SilentC.exe",
+                "MIMode": "gdb",
+                "miDebuggerPath": "C:/mingw-64/bin/gdb.exe",
             },
             "osx": {
                 "program": "${workspaceRoot}/main",
                 "MIMode": "gdb"
-            },
-            "preLaunchTask": "build SilentVM"
+            }
         }
     ]
 }

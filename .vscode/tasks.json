@@ -4,28 +4,33 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build SilentVM",
+            "label": "SilentCompiler Debug",
             "type": "shell",
-            "command": "g++",
-            "args": [
-                "SilentCompiler/src/*.cpp",
-                "SilentCompiler/src/Assembler/*.cpp",
-                "-std=c++11",
-                "-o","SilentCompiler/bin/SilentC",
-
-            ],
             "group": 
             {
                 "kind": "build",
                 "isDefault": true
             },
-            "linux": {
+            "linux": 
+            {
                 "command": "g++",
                 "args": [
                     "-g",
-                    "main.cpp",
+                    "SilentCompiler/src/*.cpp",
+                    "SilentCompiler/src/Assembler/*.cpp",
                     "-std=c++11",
-                    "-o","main",
+                    "-o","SilentCompiler/bin/SilentC",
+                ],
+            },
+            "windows" : 
+            {
+                "command": "g++",
+                "args": [
+                    "-g",
+                    "SilentCompiler/src/*.cpp",
+                    "SilentCompiler/src/Assembler/*.cpp",
+                    "-std=c++11",
+                    "-o","SilentCompiler/bin/SilentC",
                 ],
             },
             "problemMatcher": [

@@ -421,14 +421,16 @@ SilentLocalScope* Silent::SilentParseParameters(SilentNamespace &scope)
         }
         else if(ct.type == SilentTokenType::CloseParam)
         {
-            nextToken();
             break;
         }
         else errorMsg("Got invalid token whilst parsing parameters", false);
     }
+    std::cout << "ct: " + ct.value << "\n";
+    nextToken();
     #if DEBUG
     std::cout << "finished parsing parameters\n\n";
     #endif
+    std::cout << "ct: " + ct.value << "\n";
     return parameters;
 }
 
@@ -470,6 +472,7 @@ SilentLocalScope* Silent::SilentParseLocalScope(SilentNamespace &scope)
 
 SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
 {
+
     #if DEBUG
     std::cout << "Parsing function\n";
     #endif
@@ -500,6 +503,8 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
     nextToken();
     function->parameters = SilentParseParameters(scope);
 
+    std::cout << "ct: " + ct.value << "\n";
+
     //Parse function scope
     if(!acceptToken(SilentTokenType::OpenScope))
     {
@@ -509,7 +514,7 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
         {
             errorMsg("Expected \";\" at the end of uninitialised function", false);
         }
-        nextToken();
+        //nextToken();
     }
     else
     {
