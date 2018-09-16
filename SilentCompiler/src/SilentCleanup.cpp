@@ -66,7 +66,7 @@ void freeNamespace(SilentNamespace* scope)
     for(SilentNamespace* name : scope->namespaces) freeNamespace(name);
     for(SilentFunction* function : scope->functions) freeFunction(function);
     for(SilentStructure* structure : scope->types) freeStructure(structure);
-    freeLocalScope(scope->globals);
+    if(scope->globals != NULL) freeLocalScope(scope->globals);
     #if DEBUG
     std::cout << "Done cleaning namespace:" << scope->name << "\n";
     #endif
