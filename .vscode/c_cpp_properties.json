@@ -4,7 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/SilentCompiler"
+                "${workspaceFolder}/SilentCompiler/src"
             ],
             "defines": [
                 "_DEBUG",
