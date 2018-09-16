@@ -36,6 +36,36 @@
             "problemMatcher": [
                 "$gcc"
             ]
+        },
+        {
+            "label": "SilentVM Debug",
+            "type": "shell",
+            "group": 
+            {
+                "kind": "build",
+                "isDefault": true
+            },
+            "linux": 
+            {
+                "command": "gcc",
+                "args": [
+                    "-g",
+                    "SilentVM/src/*.c",
+                    "-o","SilentVM/bin/SilentVM"
+                ],
+            },
+            "windows" : 
+            {
+                "command": "gcc",
+                "args": [
+                    "-g",
+                    "SilentVM/src/*.c",
+                    "-o","SilentVM/bin/SilentVM"
+                ],
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
         }
     ]
 }

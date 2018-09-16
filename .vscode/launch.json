@@ -40,6 +40,43 @@
                 "program": "${workspaceRoot}/main",
                 "MIMode": "gdb"
             }
+        },
+        {
+            "name": "VM Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            //"program": "${workspaceFolder}/SilentCompiler/bin/SilentC",
+            //"preLaunchTask": "SilentCompiler Debug",
+            "args": ["${workspaceRoot}/SilentCompiler/test.sts"],
+            //"stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "logging": {
+                "engineLogging": false,
+                "trace": false
+            },
+            
+            "linux": {
+                "program": "${workspaceRoot}/SilentVM/bin/SilentVM",
+                "MIMode": "gdb"
+            },
+            "windows": {
+                "program": "${workspaceRoot}/SilentVM/bin/SilentVM.exe",
+                "MIMode": "gdb",
+                "miDebuggerPath": "C:/mingw-64/bin/gdb.exe",
+            },
+            "osx": {
+                "program": "${workspaceRoot}/main",
+                "MIMode": "gdb"
+            }
         }
     ]
 }
