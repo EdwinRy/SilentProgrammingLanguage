@@ -2,7 +2,7 @@
 using namespace Silent;
 typedef unsigned long long uint64;
 
-#define DEBUG 0
+#define DEBUG 1
 
 void freeVariable(SilentVariable* variable)
 {

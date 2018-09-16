@@ -154,6 +154,7 @@ std::string transformNamespace(SilentNamespace& scope)
         std::cout << "Transforming namespace:" << scope.name << "\n";
     #endif
 
+    currentNamespace += "::"+scope.name;
     output += "n " + scope.name + "\n";
 
     if(currentNamespace.length() == 0) currentNamespace = scope.name;
@@ -164,7 +165,13 @@ std::string transformNamespace(SilentNamespace& scope)
     for(SilentFunction* function : scope.functions)
         output += transformFunction(*function);
 
-    for(uint64 i = 0; i < scope.name.length(); i++) currentNamespace.pop_back();
+    for(uint64 i = 0; i < scope.name.length()+2; i++) 
+    {
+        std::cout << currentNamespace << "\n";
+        currentNamespace.pop_back();
+    };
+
+    std::cout << currentNamespace << "\n";
 
     output += "e n\n";
 
