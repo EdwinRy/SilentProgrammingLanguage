@@ -167,11 +167,8 @@ std::string transformNamespace(SilentNamespace& scope)
 
     for(uint64 i = 0; i < scope.name.length()+2; i++) 
     {
-        std::cout << currentNamespace << "\n";
         currentNamespace.pop_back();
     };
-
-    std::cout << currentNamespace << "\n";
 
     output += "e n\n";
 
@@ -227,7 +224,6 @@ std::string Silent::SilentGenerateAssembly(std::string code)
     std::vector<std::string> statements = splitString(code, '\n');
 
     std::cout << statements[0];
-
-
+ 
     return output;
 }

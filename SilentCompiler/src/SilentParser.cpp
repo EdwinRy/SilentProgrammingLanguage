@@ -303,7 +303,7 @@ SilentVariable* Silent::SilentParseVar(
             std::cout << "Declared variable " << var->name.data() << "\n"
             << "of size: " << var->size << "\n"
             << "at local position " << var->localPos << "\n";
-        std::cout << "Finished parsing var\n\n";
+        std::cout << "Finished parsing var " << var->name << "\n\n";
         #endif
         return var;
     }
@@ -328,7 +328,7 @@ SilentVariable* Silent::SilentParseVar(
                 #if DEBUG
                     std::cout << "Syntax tree:\n";
                     SilentPrintTree(var->expresion);
-                    std::cout << "Finished parsing var\n\n";
+                    std::cout << "Finished parsing var " << var->name << "\n\n";
                 #endif
                 return var;
             }
@@ -340,13 +340,13 @@ SilentVariable* Silent::SilentParseVar(
             var->initialised = false;
             nextToken();
             #if DEBUG
-            std::cout << "Finished parsing var\n\n";
+            std::cout << "Finished parsing var " << var->name << "\n\n";
             #endif
             return var;
         }
         else errorMsg("Invalid token following an expression", true);
         #if DEBUG
-        std::cout << "Finished parsing var\n\n";
+        std::cout << "Finished parsing var " << var->name << "\n\n";
         #endif
         return var;
     }
@@ -425,12 +425,10 @@ SilentLocalScope* Silent::SilentParseParameters(SilentNamespace &scope)
         }
         else errorMsg("Got invalid token whilst parsing parameters", false);
     }
-    std::cout << "ct: " + ct.value << "\n";
     nextToken();
     #if DEBUG
     std::cout << "finished parsing parameters\n\n";
     #endif
-    std::cout << "ct: " + ct.value << "\n";
     return parameters;
 }
 
@@ -502,8 +500,6 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
         errorMsg("Expected \"(\" for parameter declaration", true);
     nextToken();
     function->parameters = SilentParseParameters(scope);
-
-    std::cout << "ct: " + ct.value << "\n";
 
     //Parse function scope
     if(!acceptToken(SilentTokenType::OpenScope))
@@ -581,7 +577,7 @@ SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
     }
     nextToken();
     #if DEBUG
-    std::cout << "Finished parsing namespace\n\n";
+    std::cout << "Finished parsing namespace: " << newNamespace->name << "\n\n";
     #endif
     return newNamespace;
 }

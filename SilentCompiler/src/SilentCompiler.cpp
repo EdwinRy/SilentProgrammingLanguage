@@ -69,7 +69,6 @@ void SilentCompiler::Compile(SilentCompileMode mode)
         SilentIntCode* intCode = SilentTransform(parserOutput);
         this->libOutput = intCode->code;
         this->output = SilentGenerateAssembly(intCode->code);
-        //SilentFreeNodes(nodes);
         SilentCleanup(parserOutput);
     }
     else
