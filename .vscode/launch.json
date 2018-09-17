@@ -14,7 +14,7 @@
             //"stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": true,
+            // "externalConsole": true,
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -37,7 +37,7 @@
                 "miDebuggerPath": "C:/mingw-64/bin/gdb.exe",
             },
             "osx": {
-                "program": "${workspaceRoot}/main",
+                "program": "${workspaceRoot}/SilentCompiler/bin/SilentC",
                 "MIMode": "gdb"
             }
         },
