@@ -34,7 +34,7 @@
             "windows": {
                 "program": "${workspaceRoot}/SilentCompiler/bin/SilentC.exe",
                 "MIMode": "gdb",
-                "miDebuggerPath": "C:/mingw-64/bin/gdb.exe",
+                "miDebuggerPath": "C:/mingw-64/bin/gdb.exe"
             },
             "osx": {
                 "program": "${workspaceRoot}/SilentCompiler/bin/SilentC",
