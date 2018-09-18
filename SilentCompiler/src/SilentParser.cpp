@@ -374,10 +374,14 @@ SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
     {
         if(getType(scope, ct.value) != SilentDataType::undefined)
         {
+            SilentStatement* statement = new SilentStatement();
+            statement->type = SilentStatementType::VarInit;
+
             SilentVariable* var = SilentParseVar(
                 *structure->variables, scope, ct.value, true, true
             );
             structure->variables->variables.push_back(var);
+            structure->variables->statements.push_back(statement);
             structure->size += var->size;
             #if DEBUG
                 std::cout << "struct size " << structure->size << "\n";

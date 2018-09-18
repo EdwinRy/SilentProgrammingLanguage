@@ -14,7 +14,7 @@
             //"stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            // "externalConsole": true,
+            "externalConsole": true,
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

@@ -1,0 +1,16 @@
+n <id> - namespace start
+e n <id> - namespace end
+
+f <id> - function start
+e f <id> - function end
+
+v <type> <name> - variable declaration
+l <id> - load variable to stack
+
+p <type> <val> - push value to stack
++, - , *, / : arithmetic operators
+
+s <val> <id> - structure definition of size val
+e s <id> - end of structure
+
+

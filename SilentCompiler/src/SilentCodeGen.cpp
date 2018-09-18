@@ -10,6 +10,26 @@ typedef unsigned int uint32;
 
 std::string currentNamespace = "";
 
+std::string typeToString(SilentDataType dt)
+{
+    switch(dt)
+    {
+        case SilentDataType::int8: return "int8"; break;
+        case SilentDataType::uint8: return "uint8"; break;
+        case SilentDataType::int16: return "int16"; break;
+        case SilentDataType::uint16: return "uint16"; break;
+        case SilentDataType::int32: return "int32"; break;
+        case SilentDataType::uint32: return "uint32"; break;
+        case SilentDataType::int64: return "int64"; break;
+        case SilentDataType::uint64: return "uint64"; break;
+        case SilentDataType::float32: return "float32"; break;
+        case SilentDataType::float64: return "float64"; break;
+        case SilentDataType::string: return "string"; break;
+        case SilentDataType::pointer: return "pointer"; break;
+        default : return "null"; break;
+    }
+}
+
 std::string transformExpression(SilentOperand& expression)
 {
     std::string output;
@@ -121,10 +141,9 @@ std::string transformFunction(SilentFunction& function)
     #endif
 
     output += "f " + function.name + "\n";
-
     output += transformLocalScope(*function.scope);
+    output += "e f " + function.name + "\n";
 
-    output += "e f\n";
     #if DEBUG
         std::cout << "Done transforming function:" << function.name << "\n";
     #endif
@@ -138,8 +157,11 @@ std::string transformStructure(SilentStructure& structure)
         std::cout << "Transforming structure:" << structure.name << "\n";
     #endif
 
+    output += "s " + std::to_string(structure.size) + " " + structure.name + "\n";
 
+    output += transformLocalScope(*structure.variables);
 
+    output += "e s " + structure.name + "\n";
 
     #if DEBUG
         std::cout << "Done transforming structure:" << structure.name << "\n";
@@ -162,6 +184,9 @@ std::string transformNamespace(SilentNamespace& scope)
     for(SilentNamespace* scope : scope.namespaces) 
         output += transformNamespace(*scope);
 
+    for(SilentStructure* structure : scope.types) 
+        output += transformStructure(*structure);
+
     for(SilentFunction* function : scope.functions)
         output += transformFunction(*function);
 
@@ -170,7 +195,7 @@ std::string transformNamespace(SilentNamespace& scope)
         currentNamespace.pop_back();
     };
 
-    output += "e n\n";
+    output += "e n " + scope.name + "\n";
 
     #if DEBUG
         std::cout << "Done transforming namespace:" << scope.name << "\n";
