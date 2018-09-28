@@ -1,7 +1,9 @@
 n <id> - namespace start
 e n <id> - namespace end
 
-f <id> - function start
+f <type> <id> - function start
+a - start of function parameters
+e a - end of function parameters
 e f <id> - function end
 
 v <type> <name> - variable declaration

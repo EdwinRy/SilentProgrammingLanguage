@@ -415,9 +415,13 @@ SilentLocalScope* Silent::SilentParseParameters(SilentNamespace &scope)
     SilentLocalScope* parameters = new SilentLocalScope();
     while(ct.type != SilentTokenType::CloseParam)
     {
+        SilentStatement* statement = new SilentStatement();
+            statement->type = SilentStatementType::VarInit;
+
         parameters->variables.push_back(
             SilentParseVar(*parameters, scope, ct.value,true,false)
         );
+        parameters->statements.push_back(statement);
         if(ct.value == ",")
         {
             nextToken();
