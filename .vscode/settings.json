@@ -60,6 +60,11 @@
         "ratio": "cpp",
         "string_view": "cpp",
         "algorithm": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "__config": "cpp",
+        "__nullptr": "cpp",
+        "cstdarg": "cpp",
+        "deque": "cpp",
+        "list": "cpp"
     }
 }

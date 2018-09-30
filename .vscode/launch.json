@@ -9,7 +9,7 @@
             "name": "Compiler Debug",
             "type": "cppdbg",
             "request": "launch",
-            //"program": "${workspaceFolder}/SilentCompiler/bin/SilentC",
+            "program": "${workspaceFolder}/SilentCompiler/bin/SilentC",
             //"preLaunchTask": "SilentCompiler Debug",
             "args": ["${workspaceRoot}/SilentCompiler/test.silent"],
             //"stopAtEntry": true,
@@ -18,6 +18,7 @@
             "externalConsole": true,
             "setupCommands": [
                 {
+                    "console" :"integratedTerminal",
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
@@ -30,6 +31,7 @@
             },
             
             "linux": {
+                "console" :"integratedTerminal",
                 "program": "${workspaceRoot}/SilentCompiler/bin/SilentC",
                 "MIMode": "gdb"
             },
