@@ -15,10 +15,10 @@ uint64 cursor;
 
 bool checkGlobalIdentifier(std::string name)
 {
-    for(auto function : info->namespaces[0]->functions)
+    for(auto function : info->globalNamespace->functions)
         if(function->name == name) return true;
 
-    for(auto structure : info->namespaces[0]->types)
+    for(auto structure : info->globalNamespace->types)
         if(structure->name == name) return true;
 
     return false;
@@ -606,7 +606,8 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
     globalNamespace->globals->namespaceParent = globalNamespace;
     globalNamespace->globals->usesScopeParent = false;
     globalNamespace->name = "global";
-    info->namespaces.push_back(globalNamespace);
+    //info->namespaces.push_back(globalNamespace);
+    info->globalNamespace = globalNamespace;
 
     while(cursor < tokens.size()-1)
     {

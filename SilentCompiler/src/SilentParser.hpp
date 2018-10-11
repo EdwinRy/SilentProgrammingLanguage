@@ -151,7 +151,8 @@ namespace Silent
     typedef struct SilentParserInfo
     {
         SilentFunction* main;
-        std::vector<SilentNamespace*> namespaces;
+        SilentNamespace* globalNamespace;
+        //std::vector<SilentNamespace*> namespaces;
     }SilentParserInfo;
 
     SilentStatement* SilentParseStatement(SilentLocalScope &scope);

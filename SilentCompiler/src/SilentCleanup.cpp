@@ -73,15 +73,12 @@ void freeNamespace(SilentNamespace* scope)
     free(scope);
 }
 
-void Silent::SilentCleanup(SilentParserInfo* info)
+void Silent::SilentCleanupParserInfo(SilentParserInfo* info)
 {
     #if DEBUG
     std::cout << "Cleaning up...\n";
     #endif
-    for(SilentNamespace* globalNamespace : info->namespaces)
-    {
-        freeNamespace(globalNamespace);
-    }
+    freeNamespace(info->globalNamespace);
     free(info);
     #if DEBUG
     std::cout << "Cleanup successfull\n";

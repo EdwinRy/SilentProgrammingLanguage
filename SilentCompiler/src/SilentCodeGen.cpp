@@ -1,7 +1,9 @@
 #include "SilentCodeGen.hpp"
+#include "SilentParser.hpp"
 #include <iostream>
 #include <iomanip>
 #include <vector>
+#include <unordered_map>
 using namespace Silent;
 typedef unsigned long long uint64;
 typedef unsigned int uint32;
@@ -9,38 +11,28 @@ typedef unsigned int uint32;
 #define DEBUG 1
 
 std::string currentToken;
-std::string currentNamespace;
+std::string currentIntNamespace;
 std::string currentFunction;
 std::vector<std::string> scope;
-std::string inputCode;
-uint64 cp; // intermediate code pointer
-
-void nextToken()
-{
-    std::string buffer = "";
-    for(;inputCode[cp] != ' '; cp++) { buffer += cp; }
-    cp++;
-    currentToken = buffer;
-}
+std::unordered_map<std::string, uint64> symTable;
+uint64 cp;
 
 std::string compileFunction()
 {
-
+    std::string output;
+    return output;
 }
 
-std::string compileNamespace()
+std::string compileNamespace(SilentNamespace& scope)
 {
-
+    std::string output;
+    return output;
 }
 
-std::string Silent::SilentCompileIntCode(std::string intCode)
+std::string Silent::SilentCompileAST(SilentParserInfo& info)
 {
     cp = 0;
-    inputCode = intCode;
-
     std::string output;
-
-
-
+    output += compileNamespace(*info.globalNamespace);
     return output;
 }

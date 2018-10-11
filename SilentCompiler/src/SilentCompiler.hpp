@@ -12,6 +12,7 @@ namespace Silent
         private:
         std::string source;
         char* path;
+        char* libPath;
 
         std::string output;
         std::string libOutput;
@@ -21,5 +22,6 @@ namespace Silent
         void Compile(SilentCompileMode mode);
         void SetSource(char* source);
         void SetPath(char* path);
+        void SetLibPath(char* path);
     };
 }

@@ -6,31 +6,10 @@
 #include "SilentCodeGen.hpp"
 #include "SilentIntCode.hpp"
 #include "SilentConsole.hpp"
+#include "SilentFiles.hpp"
 #include <iostream>
-#include <string.h>
 #include <vector>
 using namespace Silent;
-
-char* readAllText(char* path)
-{
-    char* text;
-    FILE *f;
-
-    if((f = fopen(path,"r"))==NULL)
-    {
-        printf("File %s doesn't exist!\n", path);
-        exit(-1);
-    }
-    fseek(f,0,SEEK_END);
-    text = (char*)malloc(ftell(f) + 1);
-    fseek(f,0,SEEK_SET);
-    long count = 0;
-    char c;
-    while((c = fgetc(f))!=EOF) { text[count++] = (char)c; }
-    text[count] = '\0';
-    fclose(f);
-    return text;
-}
 
 SilentCompiler::SilentCompiler() { this->source = ""; }
 
@@ -45,11 +24,12 @@ void SilentCompiler::Compile(SilentCompileMode mode)
         }
         std::vector<SilentToken>* tokens = SilentTokenize(this->source);
         SilentParserInfo* parserOutput = SilentParse(*tokens);
-        SilentIntCode* intCode = SilentTransform(parserOutput);
-        this->libOutput = intCode->code;
-        this->output = SilentCompileIntCode(intCode->code);
+        std::string intCode = SilentGenerateIntCode(parserOutput);
+        writeAllText("package.spck", intCode.data());
+        this->libOutput = intCode;
+        this->output = SilentCompileAST(*parserOutput);
         //this->output = SilentGenerateAssembly(intCode->code);
-        SilentCleanup(parserOutput);
+        SilentCleanupParserInfo(parserOutput);
     }
     else
     {

@@ -1,5 +1,6 @@
-#include "SilentIntCode.hpp"
+#include "SilentCodeGen.hpp"
 #include <iostream>
+#include <string>
 #include <iomanip>
 #include <vector>
 using namespace Silent;
@@ -204,24 +205,22 @@ std::string transformNamespace(SilentNamespace& scope)
     return output;
 }
 
-SilentIntCode* Silent::SilentTransform(SilentParserInfo* parsedCode)
+std::string Silent::SilentGenerateIntCode(SilentParserInfo* parsedCode)
 {
     #if DEBUG
         std::cout << "Generating intermediate code...\n";
     #endif
 
-    SilentIntCode* output = new SilentIntCode();
-    output->code = "goto main\n";
+    std::string output = "goto main\n";
 
-    for(SilentNamespace* scope : parsedCode->namespaces)
-        output->code += transformNamespace(*scope);
+    output += transformNamespace(*parsedCode->globalNamespace);
 
     if(parsedCode->main != NULL)
-    output->code += transformFunction(*parsedCode->main);
+    output += transformFunction(*parsedCode->main);
 
     #if DEBUG
         std::cout << "Done generating intermediate code...\n";
-        std::cout << "Generated code:\n" << output->code;
+        std::cout << "Generated code:\n" << output;
     #endif
     return output;
 }

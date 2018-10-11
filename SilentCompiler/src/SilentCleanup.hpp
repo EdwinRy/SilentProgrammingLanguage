@@ -1,8 +1,8 @@
-
+#pragma once
 #include "SilentParser.hpp"
 #include <vector>
 
 namespace Silent
 {
-    void SilentCleanup(SilentParserInfo* info);
+    void SilentCleanupParserInfo(SilentParserInfo* info);
 }
