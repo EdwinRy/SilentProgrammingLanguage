@@ -45,16 +45,19 @@ void SilentCompiler::SetPath(char* path) { this->path = path; }
 int main(int argc, char** argv)
 {
     SilentCompiler compiler = SilentCompiler();
-    if(strcmp(argv[1], "-asm") == 0)
-    {
-        compiler.SetPath(argv[2]);
-        compiler.Compile(SilentCompileMode::Asm);
-    }
+    
     if(strcmp(argv[1], "-c") == 0)
     {
         SilentConsole console;
         console.Start();
     }
+    //else if(argc > 1)
+    //{
+    //    for(int i = 0; i < argc; i++)
+    //    {
+    //        if(strcmp(argv[1], "-o"))
+    //    }
+    //}
     else
     {
         compiler.SetPath(argv[1]);
