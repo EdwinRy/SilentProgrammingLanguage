@@ -17,15 +17,44 @@ std::vector<std::string> scope;
 std::unordered_map<std::string, uint64> symTable;
 uint64 cp;
 
-std::string compileFunction()
+std::string compileExpression(SilentOperand& expression)
 {
     std::string output;
+    #if DEBUG
+        std::cout << "Compiling expression\n";
+    #endif
+
+    #if DEBUG
+        std::cout << "Done compiling  expression\n";
+    #endif
+    return output;
+}
+
+std::string compileFunction(SilentFunction& func)
+{
+    std::string output;
+    #if DEBUG
+        std::cout << "Compiling function: " << func.name << "\n";
+    #endif
+
+    #if DEBUG
+        std::cout << "Done compiling function: " << func.name << "\n";
+    #endif
     return output;
 }
 
 std::string compileNamespace(SilentNamespace& scope)
 {
     std::string output;
+    #if DEBUG
+        std::cout << "Compiling namespace: " << scope.name << "\n";
+    #endif
+
+
+
+    #if DEBUG
+        std::cout << "Done compiling namespace: " << scope.name << "\n";
+    #endif
     return output;
 }
 
