@@ -6,12 +6,15 @@ typedef unsigned long long uint64;
 typedef unsigned int uint32;
 typedef std::vector<Silent::SilentToken> TokenList;
 typedef std::vector<Silent::SilentToken*> TokenPtrList;
+//typedef std::vector<Silent::SilentStructure*> TypePtrList;
+//typedef std::vector<Silent::SilentFunction*> FuncPtrList;
 #define DEBUG 1
 
 SilentParserInfo* info;
 SilentToken ct; //current token
 TokenList* tokensPtr;
 uint64 cursor;
+std::vector<SilentNamespace*> accessibleNamespaces;
 
 bool checkGlobalIdentifier(std::string name)
 {
@@ -20,7 +23,6 @@ bool checkGlobalIdentifier(std::string name)
 
     for(auto structure : info->globalNamespace->types)
         if(structure->name == name) return true;
-
     return false;
 }
 
@@ -42,39 +44,78 @@ SilentStructure* getStruct(SilentNamespace& scope, std::string name)
     return NULL;
 }
 
-SilentFunction* getFunction(SilentNamespace& scope, std::string name)
+
+void errorMsg(std::string msg, bool ex)
 {
-    for(auto function : scope.functions)
+    std::cout << "Error on line: " << ct.line << "\n";
+    std::cout << msg.data() << "\n";
+    std::cout << "At token: " << ct.value.data() << "\n";
+    if(ex){exit(-1);}
+}
+
+SilentDataType getType(std::string name)
+{
+    SilentDataType dataType;
+    dataType.isPrimitive = true;
+    if(name == "int8") dataType.primitive = SilentPrimitives::int8;
+    else if(name == "uint8") dataType.primitive = SilentPrimitives::uint8;
+    else if(name == "int16") dataType.primitive = SilentPrimitives::int16;
+    else if(name == "uint16") dataType.primitive = SilentPrimitives::uint16;
+    else if(name == "int32") dataType.primitive = SilentPrimitives::int32;
+    else if(name == "uint32") dataType.primitive = SilentPrimitives::uint32;
+    else if(name == "int64") dataType.primitive = SilentPrimitives::int64;
+    else if(name == "uint64") dataType.primitive = SilentPrimitives::uint64;
+    else if(name == "float32") dataType.primitive = SilentPrimitives::float32;
+    else if(name == "float64") dataType.primitive = SilentPrimitives::float64;
+    else if(name == "string") dataType.primitive = SilentPrimitives::string;
+    else if(name == "pointer") dataType.primitive = SilentPrimitives::pointer;
+    else if(name == "void") dataType.primitive = SilentPrimitives::null;
+    else
+    {
+        //for(TypePtrList typeList : accessibleTypes)
+        for(SilentNamespace* scope : accessibleNamespaces)
+        {
+            for(Silent::SilentStructure* structure : scope->types)
+            {
+                if(structure->name == name)
+                {
+                    dataType.isPrimitive = false;
+                    dataType.type = structure;
+                    return dataType;
+                }
+            }
+        }
+        dataType.primitive = SilentPrimitives::undefined;
+        errorMsg("Use of undefined type", false);
+    }
+    return dataType;
+}
+
+SilentFunction* getLocalFunction(std::string name)
+{
+    SilentNamespace* scope = accessibleNamespaces.back();
+    for(Silent::SilentFunction* function : scope->functions)
     {
         if(function->name == name) return function;
     }
+    errorMsg("Function is not undefined", false);
     return NULL;
 }
 
-
-SilentDataType getType(SilentNamespace &scope, std::string name)
+SilentFunction* getFunction(std::string name)
 {
-    if(name == "int8") return SilentDataType::int8;
-    else if(name == "uint8") return SilentDataType::uint8;
-    else if(name == "int16") return SilentDataType::int16;
-    else if(name == "uint16") return SilentDataType::uint16;
-    else if(name == "int32") return SilentDataType::int32;
-    else if(name == "uint32") return SilentDataType::uint32;
-    else if(name == "int64") return SilentDataType::int64;
-    else if(name == "uint64") return SilentDataType::uint64;
-    else if(name == "float32") return SilentDataType::float32;
-    else if(name == "float64") return SilentDataType::float64;
-    else if(name == "string") return SilentDataType::string;
-    else if(name == "pointer") return SilentDataType::pointer;
-    else if(name == "void") return SilentDataType::null;
-    else
+    for(SilentNamespace* scope : accessibleNamespaces)
     {
-        if(getStruct(scope, name) != NULL) return SilentDataType::structType;
+        for(Silent::SilentFunction* function : scope->functions)
+        {
+            if(function->name == name) return function;
+        }
     }
-    return SilentDataType::undefined;
+    errorMsg("Function is not undefined", false);
+    return NULL;
 }
 
-uint64 getTypeSize(SilentNamespace &scope, std::string name)
+uint64 getTypeSize(std::string name)
 {
     if(name == "int8") return 1;
     else if(name == "uint8") return 1;
@@ -89,12 +130,42 @@ uint64 getTypeSize(SilentNamespace &scope, std::string name)
     else if(name == "string") return 8;
     else if(name == "pointer") return 8;
     else if(name == "void") return 0;
+    else return getType(name).type->size;
+    return -1;
+}
+
+bool isPrimitive(std::string name)
+{
+    if(name == "int8") return true;
+    else if(name == "uint8") return true;
+    else if(name == "int16") return true;
+    else if(name == "uint16") return true;
+    else if(name == "int32") return true;
+    else if(name == "uint32") return true;
+    else if(name == "int64") return true;
+    else if(name == "uint64") return true;
+    else if(name == "float32") return true;
+    else if(name == "float64") return true;
+    else if(name == "string") return true;
+    else if(name == "pointer") return true;
+    else if(name == "void") return true;
+    else return false;
+}
+
+bool isValidType(std::string name)
+{
+    if(isPrimitive(name)) return true;
     else
     {
-        SilentStructure* structure = getStruct(scope,name);
-        if(structure != NULL) return structure->size;
+        for(SilentNamespace* scope : accessibleNamespaces)
+        {
+            for(Silent::SilentStructure* structure : scope->types)
+            {
+                if(structure->name == name) return true;
+            }
+        }
+        return false;
     }
-    return -1;
 }
 
 uint64 getLocalPos(SilentLocalScope &scope)
@@ -103,14 +174,6 @@ uint64 getLocalPos(SilentLocalScope &scope)
     uint64 localPos = 0;
     for(auto var : scope.variables) localPos += var->size;
     return localPos;
-}
-
-void errorMsg(std::string msg, bool ex)
-{
-    std::cout << "Error on line: " << ct.line << "\n";
-    std::cout << msg.data() << "\n";
-    std::cout << "At token: " << ct.value.data() << "\n";
-    if(ex){exit(-1);}
 }
 
 void nextToken()
@@ -272,14 +335,10 @@ SilentVariable* Silent::SilentParseVar(
     SilentVariable* var = new SilentVariable();
 
     //Get variable type
-    var->type = getType(typeScope, ct.value);
-
-
-    if(var->type == SilentDataType::undefined)
-        errorMsg("Use of undefined type", false);
+    var->type = getType(ct.value);
 
     //Get variable size
-    var->size = getTypeSize(typeScope, ct.value);
+    var->size = getTypeSize(ct.value);
 
     //Get variable position locally
     var->localPos = getLocalPos(scope);
@@ -362,7 +421,7 @@ SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
     
     //Get structure name
     nextToken();
-    if(getType(scope, ct.value) != SilentDataType::undefined)
+    if(isValidType(ct.value))
         errorMsg("Identifier " + ct.value + " already in use", true);
     else structure->name = ct.value;
     nextToken();
@@ -372,7 +431,7 @@ SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
     //Parse structure body
     while(!acceptToken(SilentTokenType::CloseScope))
     {
-        if(getType(scope, ct.value) != SilentDataType::undefined)
+        if(getType(ct.value).primitive != SilentPrimitives::undefined)
         {
             SilentStatement* statement = new SilentStatement();
             statement->type = SilentStatementType::VarInit;
@@ -404,6 +463,7 @@ SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
         std::cout << "\n";
         std::cout << "Finished parsing struct\n\n";
     #endif
+    //accessibleTypes.back().push_back(structure);
     return structure;
 }
 
@@ -487,14 +547,12 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
 
     //Get function return type
     nextToken();
-    function->returnType = getType(scope, ct.value);
-    if(function->returnType == SilentDataType::undefined)
-        errorMsg("Use of undefined type", true);
+    function->returnType = getType(ct.value);
 
     //Get function name
     nextToken();
-    if(getFunction(scope, ct.value) != NULL)
-        errorMsg("Identifier already in use", true);
+    if(getLocalFunction(ct.value) != NULL)
+        errorMsg("Identifier already in use locally", true);
     else function->name = ct.value;
     if(ct.value == "main")
     {
@@ -545,7 +603,10 @@ SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
     #if DEBUG
     std::cout << "Parsing namespace\n";
     #endif
+
     SilentNamespace* newNamespace = new SilentNamespace();
+    accessibleNamespaces.push_back(newNamespace);
+
     //Get namespace name
     nextToken();
     expectToken(SilentTokenType::Identifier, "Expected scope name");
@@ -580,10 +641,12 @@ SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
                 newNamespace->functions.push_back(
                     SilentParseFunction(*newNamespace)
                 );
-            break; 
+            break;
         }
     }
     nextToken();
+    accessibleNamespaces.pop_back();
+
     #if DEBUG
     std::cout << "Finished parsing namespace: " << newNamespace->name << "\n\n";
     #endif
@@ -606,7 +669,7 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
     globalNamespace->globals->namespaceParent = globalNamespace;
     globalNamespace->globals->usesScopeParent = false;
     globalNamespace->name = "global";
-    //info->namespaces.push_back(globalNamespace);
+    accessibleNamespaces.push_back(globalNamespace);
     info->globalNamespace = globalNamespace;
 
     while(cursor < tokens.size()-1)
@@ -645,6 +708,7 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
             break;
         }
     }
+    accessibleNamespaces.pop_back();
     #if DEBUG
     std::cout << "Finished parsing\n\n";
     #endif

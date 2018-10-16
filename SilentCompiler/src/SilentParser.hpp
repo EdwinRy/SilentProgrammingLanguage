@@ -14,7 +14,7 @@ namespace Silent
         For
     };
 
-    enum class SilentDataType
+    enum class SilentPrimitives
     {
         int8,
         uint8,
@@ -61,6 +61,16 @@ namespace Silent
     typedef struct SilentStatement SilentStatement;
     typedef struct SilentNamespace SilentNamespace;
 
+
+    typedef struct SilentDataType
+    {
+        union
+        {
+            SilentStructure* type;
+            SilentPrimitives primitive;
+        };
+        bool isPrimitive;
+    }SilentDataType;
 
     typedef struct SilentVariable
     {

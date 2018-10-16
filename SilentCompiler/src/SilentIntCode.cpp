@@ -10,22 +10,22 @@ typedef unsigned int uint32;
 #define DEBUG 1
 std::string currentNamespace = "";
 
-std::string typeToString(SilentDataType dt)
+std::string typeToString(SilentPrimitives dt)
 {
     switch(dt)
     {
-        case SilentDataType::int8: return "int8"; break;
-        case SilentDataType::uint8: return "uint8"; break;
-        case SilentDataType::int16: return "int16"; break;
-        case SilentDataType::uint16: return "uint16"; break;
-        case SilentDataType::int32: return "int32"; break;
-        case SilentDataType::uint32: return "uint32"; break;
-        case SilentDataType::int64: return "int64"; break;
-        case SilentDataType::uint64: return "uint64"; break;
-        case SilentDataType::float32: return "float32"; break;
-        case SilentDataType::float64: return "float64"; break;
-        case SilentDataType::string: return "string"; break;
-        case SilentDataType::pointer: return "pointer"; break;
+        case SilentPrimitives::int8: return "int8"; break;
+        case SilentPrimitives::uint8: return "uint8"; break;
+        case SilentPrimitives::int16: return "int16"; break;
+        case SilentPrimitives::uint16: return "uint16"; break;
+        case SilentPrimitives::int32: return "int32"; break;
+        case SilentPrimitives::uint32: return "uint32"; break;
+        case SilentPrimitives::int64: return "int64"; break;
+        case SilentPrimitives::uint64: return "uint64"; break;
+        case SilentPrimitives::float32: return "float32"; break;
+        case SilentPrimitives::float64: return "float64"; break;
+        case SilentPrimitives::string: return "string"; break;
+        case SilentPrimitives::pointer: return "pointer"; break;
         default : return "null"; break;
     }
 }
