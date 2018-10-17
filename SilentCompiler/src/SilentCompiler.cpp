@@ -12,7 +12,6 @@
 using namespace Silent;
 
 SilentCompiler::SilentCompiler() { this->source = ""; }
-
 void SilentCompiler::Compile(SilentCompileMode mode)
 {
     if(mode == SilentCompileMode::Src)

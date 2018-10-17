@@ -10,55 +10,46 @@ typedef std::vector<Silent::SilentToken*> TokenPtrList;
 //typedef std::vector<Silent::SilentFunction*> FuncPtrList;
 #define DEBUG 1
 
-SilentParserInfo* info;
-SilentToken ct; //current token
-TokenList* tokensPtr;
-uint64 cursor;
-std::vector<SilentNamespace*> accessibleNamespaces;
-
-//To be removed:
-// bool checkGlobalIdentifier(std::string name)
-// {
-//     for(auto function : info->globalNamespace->functions)
-//         if(function->name == name) return true;
-
-//     for(auto structure : info->globalNamespace->types)
-//         if(structure->name == name) return true;
-//     return false;
-// }
+struct ParserData
+{
+    SilentParserInfo* info;
+    SilentToken ct; //current token
+    TokenList* tokensPtr;
+    uint64 cursor;
+    std::vector<SilentNamespace*> accessibleNamespaces;
+};
+ParserData pd;
 
 void errorMsg(std::string msg, bool ex)
 {
-    std::cout << "Error on line: " << ct.line << "\n";
+    std::cout << "Error on line: " << pd.ct.line << "\n";
     std::cout << msg.data() << "\n";
-    std::cout << "At token: " << ct.value.data() << "\n";
+    std::cout << "At token: " << pd.ct.value.data() << "\n";
     if(ex){exit(-1);}
 }
 
 SilentNamespace* getNamespace(std::string name)
 {
-    //for(SilentNamespace* scope : accessibleNamespaces) -> scans front to back
-    for(uint64 i = accessibleNamespaces.size()-1; i >= 0; i--)
+    for(uint64 i = pd.accessibleNamespaces.size()-1; i >= 0; i--)
     {
-        SilentNamespace* scope = accessibleNamespaces[i];
+        SilentNamespace* scope = pd.accessibleNamespaces[i];
         if(scope->name == name) return scope;
     }
-    errorMsg("Use of undefined namespace", false);
+    //errorMsg("Use of undefined namespace", false);
     return NULL;
 }
 
 SilentStructure* getStruct(std::string name)
 {
-    //for(SilentNamespace* scope : accessibleNamespaces)
-    for(uint64 i = accessibleNamespaces.size()-1; i >= 0; i--)
+    for(uint64 i = pd.accessibleNamespaces.size()-1; i >= 0; i--)
     {
-        SilentNamespace* scope = accessibleNamespaces[i];
+        SilentNamespace* scope = pd.accessibleNamespaces[i];
         for(Silent::SilentStructure* structure : scope->types)
         {
             if(structure->name == name) return structure;
         }
     }
-    errorMsg("Use of undefined type", false);
+    //errorMsg("Use of undefined type", false);
     return NULL;
 }
 
@@ -81,20 +72,6 @@ SilentDataType getType(std::string name)
     else if(name == "void") dataType.primitive = SilentPrimitives::null;
     else
     {
-        //for(TypePtrList typeList : accessibleTypes)
-        /*
-        for(SilentNamespace* scope : accessibleNamespaces)
-        {
-            for(Silent::SilentStructure* structure : scope->types)
-            {
-                if(structure->name == name)
-                {
-                    dataType.isPrimitive = false;
-                    dataType.type = structure;
-                    return dataType;
-                }
-            }
-        }*/
         dataType.type = getStruct(name);
         if(dataType.type == NULL) 
             dataType.primitive = SilentPrimitives::undefined;
@@ -106,27 +83,26 @@ SilentDataType getType(std::string name)
 
 SilentFunction* getLocalFunction(std::string name)
 {
-    SilentNamespace* scope = accessibleNamespaces.back();
+    SilentNamespace* scope = pd.accessibleNamespaces.back();
     for(Silent::SilentFunction* function : scope->functions)
     {
         if(function->name == name) return function;
     }
-    errorMsg("Function is not undefined", false);
+    //errorMsg("Function is not undefined", false);
     return NULL;
 }
 
 SilentFunction* getFunction(std::string name)
 {
-    //for(SilentNamespace* scope : accessibleNamespaces)
-    for(uint64 i = accessibleNamespaces.size()-1; i >= 0; i--)
+    for(uint64 i = pd.accessibleNamespaces.size()-1; i >= 0; i--)
     {
-        SilentNamespace* scope = accessibleNamespaces[i];
+        SilentNamespace* scope = pd.accessibleNamespaces[i];
         for(Silent::SilentFunction* function : scope->functions)
         {
             if(function->name == name) return function;
         }
     }
-    errorMsg("Function is not undefined", false);
+    //errorMsg("Function is not undefined", false);
     return NULL;
 }
 
@@ -172,7 +148,7 @@ bool isValidType(std::string name)
     if(isPrimitive(name)) return true;
     else
     {
-        for(SilentNamespace* scope : accessibleNamespaces)
+        for(SilentNamespace* scope : pd.accessibleNamespaces)
         {
             for(Silent::SilentStructure* structure : scope->types)
             {
@@ -193,17 +169,17 @@ uint64 getLocalPos(SilentLocalScope &scope)
 
 void nextToken()
 {
-    cursor += 1;
-    if(cursor == tokensPtr->size())
+    pd.cursor += 1;
+    if(pd.cursor == pd.tokensPtr->size())
     {
-        cursor -= 1;
+        pd.cursor -= 1;
     }
-    ct = (*tokensPtr)[cursor];
+    pd.ct = (*pd.tokensPtr)[pd.cursor];
 }
 
 bool acceptToken(SilentTokenType type)
 {
-    if(ct.type == type)
+    if(pd.ct.type == type)
     {
         return true;
     }
@@ -224,14 +200,14 @@ SilentOperand* parseExpression();
 SilentOperand* parseFactor()
 {
     #if DEBUG
-        std::cout << ct.value.data() << "\n";
+        std::cout << pd.ct.value.data() << "\n";
     #endif
     if(acceptToken(SilentTokenType::Number))
     {
         SilentOperand* operand = new SilentOperand();
         operand->type = SilentOperandType::Number;
         operand->token = new SilentToken;
-        *(operand->token) = ct;
+        *(operand->token) = pd.ct;
         nextToken();
         return operand;
     }
@@ -349,12 +325,12 @@ SilentVariable* Silent::SilentParseVar(
 
     SilentVariable* var = new SilentVariable();
 
-    var->type = getType(ct.value);
-    var->size = getTypeSize(ct.value);
+    var->type = getType(pd.ct.value);
+    var->size = getTypeSize(pd.ct.value);
     var->localPos = getLocalPos(scope);
 
     nextToken();
-    var->name = ct.value;
+    var->name = pd.ct.value;
     nextToken();
 
     //If only initialisation is permitted (structures etc)
@@ -431,9 +407,9 @@ SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
     
     //Get structure name
     nextToken();
-    if(isValidType(ct.value))
-        errorMsg("Identifier " + ct.value + " already in use", true);
-    else structure->name = ct.value;
+    if(isValidType(pd.ct.value))
+        errorMsg("Identifier " + pd.ct.value + " already in use", true);
+    else structure->name = pd.ct.value;
     nextToken();
     expectToken(SilentTokenType::OpenScope, "Expected struct declaration");
     nextToken();
@@ -441,13 +417,13 @@ SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
     //Parse structure body
     while(!acceptToken(SilentTokenType::CloseScope))
     {
-        if(getType(ct.value).primitive != SilentPrimitives::undefined)
+        if(getType(pd.ct.value).primitive != SilentPrimitives::undefined)
         {
             SilentStatement* statement = new SilentStatement();
             statement->type = SilentStatementType::VarInit;
 
             SilentVariable* var = SilentParseVar(
-                *structure->variables, scope, ct.value, true, true
+                *structure->variables, scope, pd.ct.value, true, true
             );
             structure->variables->variables.push_back(var);
             structure->variables->statements.push_back(statement);
@@ -483,21 +459,21 @@ SilentLocalScope* Silent::SilentParseParameters(SilentNamespace &scope)
     std::cout << "Parsing parameters\n";
     #endif
     SilentLocalScope* parameters = new SilentLocalScope();
-    while(ct.type != SilentTokenType::CloseParam)
+    while(pd.ct.type != SilentTokenType::CloseParam)
     {
         SilentStatement* statement = new SilentStatement();
             statement->type = SilentStatementType::VarInit;
 
         parameters->variables.push_back(
-            SilentParseVar(*parameters, scope, ct.value,true,false)
+            SilentParseVar(*parameters, scope, pd.ct.value,true,false)
         );
         parameters->statements.push_back(statement);
-        if(ct.value == ",")
+        if(pd.ct.value == ",")
         {
             nextToken();
             continue;
         }
-        else if(ct.type == SilentTokenType::CloseParam)
+        else if(pd.ct.type == SilentTokenType::CloseParam)
         {
             break;
         }
@@ -521,7 +497,7 @@ SilentLocalScope* Silent::SilentParseLocalScope(SilentNamespace &scope)
     
     while(!acceptToken(SilentTokenType::CloseScope))
     {
-        switch(ct.type)
+        switch(pd.ct.type)
         {
             case SilentTokenType::Identifier:
             case SilentTokenType::Primitive:
@@ -529,7 +505,7 @@ SilentLocalScope* Silent::SilentParseLocalScope(SilentNamespace &scope)
                 statement->type = SilentStatementType::VarInit;
 
                 SilentVariable* var = 
-                    SilentParseVar(*localScope, scope, ct.value, false, true);
+                    SilentParseVar(*localScope, scope, pd.ct.value, false, true);
 
                 localScope->variables.push_back(var);
                 if(var->initialised) 
@@ -557,16 +533,16 @@ SilentFunction* Silent::SilentParseFunction(SilentNamespace& scope)
 
     //Get function return type
     nextToken();
-    function->returnType = getType(ct.value);
+    function->returnType = getType(pd.ct.value);
 
     //Get function name
     nextToken();
-    if(getLocalFunction(ct.value) != NULL)
+    if(getLocalFunction(pd.ct.value) != NULL)
         errorMsg("Identifier already in use locally", true);
-    else function->name = ct.value;
-    if(ct.value == "main")
+    else function->name = pd.ct.value;
+    if(pd.ct.value == "main")
     {
-        if(info->main == NULL) info->main = function;
+        if(pd.info->main == NULL) pd.info->main = function;
         else errorMsg("Main function already declared", false);
     }
 
@@ -615,12 +591,12 @@ SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
     #endif
 
     SilentNamespace* newNamespace = new SilentNamespace();
-    accessibleNamespaces.push_back(newNamespace);
+    pd.accessibleNamespaces.push_back(newNamespace);
 
     //Get namespace name
     nextToken();
     expectToken(SilentTokenType::Identifier, "Expected scope name");
-    newNamespace->name = ct.value;
+    newNamespace->name = pd.ct.value;
     for(SilentNamespace* name : scope.namespaces)
     {
         if(name->name == newNamespace->name) 
@@ -632,7 +608,7 @@ SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
 
     while(!acceptToken(SilentTokenType::CloseScope))
     {
-        switch(ct.type)
+        switch(pd.ct.type)
         {
             case SilentTokenType::Namespace:
                 newNamespace->namespaces.push_back(
@@ -655,7 +631,7 @@ SilentNamespace* Silent::SilentParseNamespace(SilentNamespace& scope)
         }
     }
     nextToken();
-    accessibleNamespaces.pop_back();
+    pd.accessibleNamespaces.pop_back();
 
     #if DEBUG
     std::cout << "Finished parsing namespace: " << newNamespace->name << "\n\n";
@@ -670,21 +646,21 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
     std::cout << "Started parsing\n";
     #endif
     SilentParserInfo* pInfo = new SilentParserInfo();
-    info = pInfo;
-    ct = tokens[cursor];
-    tokensPtr = &tokens;
+    pd.info = pInfo;
+    pd.ct = tokens[pd.cursor];
+    pd.tokensPtr = &tokens;
 
     SilentNamespace* globalNamespace = new SilentNamespace();
     globalNamespace->globals = new SilentLocalScope();
     globalNamespace->globals->namespaceParent = globalNamespace;
     globalNamespace->globals->usesScopeParent = false;
     globalNamespace->name = "global";
-    accessibleNamespaces.push_back(globalNamespace);
-    info->globalNamespace = globalNamespace;
+    pd.accessibleNamespaces.push_back(globalNamespace);
+    pd.info->globalNamespace = globalNamespace;
 
-    while(cursor < tokens.size()-1)
+    while(pd.cursor < tokens.size()-1)
     {
-        switch(ct.type)
+        switch(pd.ct.type)
         {
             case SilentTokenType::Namespace:
                 globalNamespace->namespaces.push_back(
@@ -708,7 +684,7 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
             case SilentTokenType::Primitive:
                 globalNamespace->globals->variables.push_back(
                     SilentParseVar(*globalNamespace->globals, *globalNamespace,
-                        ct.value, false, true
+                        pd.ct.value, false, true
                     )
                 );
             break;
@@ -718,7 +694,7 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
             break;
         }
     }
-    accessibleNamespaces.pop_back();
+    pd.accessibleNamespaces.pop_back();
     #if DEBUG
     std::cout << "Finished parsing\n\n";
     #endif

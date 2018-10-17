@@ -10,12 +10,18 @@ typedef unsigned int uint32;
 
 #define DEBUG 1
 
-std::string currentToken;
-std::string currentIntNamespace;
-std::string currentFunction;
-std::vector<std::string> scope;
-std::unordered_map<std::string, uint64> symTable;
-uint64 cp;
+
+
+struct CompilerData
+{
+    std::string currentToken;
+    std::string currentNamespace;
+    std::string currentFunction;
+    std::vector<std::string> scope;
+    std::unordered_map<std::string, uint64> symTable;
+    uint64 cp;
+};
+CompilerData cd;
 
 std::string compileExpression(SilentOperand& expression)
 {
@@ -60,7 +66,7 @@ std::string compileNamespace(SilentNamespace& scope)
 
 std::string Silent::SilentCompileAST(SilentParserInfo& info)
 {
-    cp = 0;
+    cd.cp = 0;
     std::string output;
     output += compileNamespace(*info.globalNamespace);
     return output;

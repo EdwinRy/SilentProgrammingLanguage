@@ -8,7 +8,7 @@ typedef unsigned long long uint64;
 typedef unsigned int uint32;
 
 #define DEBUG 1
-std::string currentNamespace = "";
+std::string currentIntNamespace = "";
 
 std::string typeToString(SilentPrimitives dt)
 {
@@ -91,12 +91,12 @@ std::string transformVariable(SilentVariable& var)
         std::cout << "Transforming variable:" << var.name << "\n";
     #endif
 
-    currentNamespace += "::"+var.name;
+    currentIntNamespace += "::"+var.name;
     output += "v " + var.name + " " + std::to_string(var.size) + "\n";
 
     if(var.initialised) output += transformExpression(*var.expresion);
 
-    for(uint64 i = 0; i < var.name.length()+2; i++) currentNamespace.pop_back();
+    for(uint64 i = 0; i < var.name.length()+2; i++) currentIntNamespace.pop_back();
 
     #if DEBUG
         std::cout << "Done transforming variable:" << var.name << "\n";
@@ -178,10 +178,10 @@ std::string transformNamespace(SilentNamespace& scope)
         std::cout << "Transforming namespace:" << scope.name << "\n";
     #endif
 
-    currentNamespace += "::"+scope.name;
+    currentIntNamespace += "::"+scope.name;
     output += "n " + scope.name + "\n";
 
-    if(currentNamespace.length() == 0) currentNamespace = scope.name;
+    if(currentIntNamespace.length() == 0) currentIntNamespace = scope.name;
 
     for(SilentNamespace* scope : scope.namespaces) 
         output += transformNamespace(*scope);
@@ -194,7 +194,7 @@ std::string transformNamespace(SilentNamespace& scope)
 
     for(uint64 i = 0; i < scope.name.length()+2; i++) 
     {
-        currentNamespace.pop_back();
+        currentIntNamespace.pop_back();
     };
 
     output += "e n " + scope.name + "\n";
