@@ -16,34 +16,16 @@ TokenList* tokensPtr;
 uint64 cursor;
 std::vector<SilentNamespace*> accessibleNamespaces;
 
-bool checkGlobalIdentifier(std::string name)
-{
-    for(auto function : info->globalNamespace->functions)
-        if(function->name == name) return true;
+//To be removed:
+// bool checkGlobalIdentifier(std::string name)
+// {
+//     for(auto function : info->globalNamespace->functions)
+//         if(function->name == name) return true;
 
-    for(auto structure : info->globalNamespace->types)
-        if(structure->name == name) return true;
-    return false;
-}
-
-SilentNamespace* getNamespace(SilentNamespace& scope, std::string name)
-{
-    for(auto namespaceObj : scope.namespaces)
-    {
-        if(namespaceObj->name == name) return namespaceObj;
-    }
-    return NULL;
-}
-
-SilentStructure* getStruct(SilentNamespace& scope, std::string name)
-{
-    for(auto structure : scope.types)
-    {
-        if(structure->name == name) return structure;
-    }
-    return NULL;
-}
-
+//     for(auto structure : info->globalNamespace->types)
+//         if(structure->name == name) return true;
+//     return false;
+// }
 
 void errorMsg(std::string msg, bool ex)
 {
@@ -51,6 +33,33 @@ void errorMsg(std::string msg, bool ex)
     std::cout << msg.data() << "\n";
     std::cout << "At token: " << ct.value.data() << "\n";
     if(ex){exit(-1);}
+}
+
+SilentNamespace* getNamespace(std::string name)
+{
+    //for(SilentNamespace* scope : accessibleNamespaces) -> scans front to back
+    for(uint64 i = accessibleNamespaces.size()-1; i >= 0; i--)
+    {
+        SilentNamespace* scope = accessibleNamespaces[i];
+        if(scope->name == name) return scope;
+    }
+    errorMsg("Use of undefined namespace", false);
+    return NULL;
+}
+
+SilentStructure* getStruct(std::string name)
+{
+    //for(SilentNamespace* scope : accessibleNamespaces)
+    for(uint64 i = accessibleNamespaces.size()-1; i >= 0; i--)
+    {
+        SilentNamespace* scope = accessibleNamespaces[i];
+        for(Silent::SilentStructure* structure : scope->types)
+        {
+            if(structure->name == name) return structure;
+        }
+    }
+    errorMsg("Use of undefined type", false);
+    return NULL;
 }
 
 SilentDataType getType(std::string name)
@@ -73,6 +82,7 @@ SilentDataType getType(std::string name)
     else
     {
         //for(TypePtrList typeList : accessibleTypes)
+        /*
         for(SilentNamespace* scope : accessibleNamespaces)
         {
             for(Silent::SilentStructure* structure : scope->types)
@@ -84,9 +94,12 @@ SilentDataType getType(std::string name)
                     return dataType;
                 }
             }
-        }
-        dataType.primitive = SilentPrimitives::undefined;
-        errorMsg("Use of undefined type", false);
+        }*/
+        dataType.type = getStruct(name);
+        if(dataType.type == NULL) 
+            dataType.primitive = SilentPrimitives::undefined;
+        else dataType.isPrimitive = false;
+        
     }
     return dataType;
 }
@@ -104,8 +117,10 @@ SilentFunction* getLocalFunction(std::string name)
 
 SilentFunction* getFunction(std::string name)
 {
-    for(SilentNamespace* scope : accessibleNamespaces)
+    //for(SilentNamespace* scope : accessibleNamespaces)
+    for(uint64 i = accessibleNamespaces.size()-1; i >= 0; i--)
     {
+        SilentNamespace* scope = accessibleNamespaces[i];
         for(Silent::SilentFunction* function : scope->functions)
         {
             if(function->name == name) return function;
@@ -334,21 +349,15 @@ SilentVariable* Silent::SilentParseVar(
 
     SilentVariable* var = new SilentVariable();
 
-    //Get variable type
     var->type = getType(ct.value);
-
-    //Get variable size
     var->size = getTypeSize(ct.value);
-
-    //Get variable position locally
     var->localPos = getLocalPos(scope);
-    nextToken();
 
-    //Get variable name
+    nextToken();
     var->name = ct.value;
     nextToken();
 
-    //If only initialisation permitted
+    //If only initialisation is permitted (structures etc)
     if(init)
     {
         //If semicolon required at the end
@@ -416,6 +425,7 @@ SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
     #if DEBUG
     std::cout << "Parsing struct\n";
     #endif
+
     SilentStructure* structure = new SilentStructure();
     structure->variables = new SilentLocalScope();
     
