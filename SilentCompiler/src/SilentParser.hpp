@@ -169,8 +169,6 @@ namespace Silent
 
     SilentVariable* SilentParseVar(
         SilentLocalScope &scope,
-        SilentNamespace &typeScope,
-        std::string type,
         bool init,
         bool expectEnd
     );

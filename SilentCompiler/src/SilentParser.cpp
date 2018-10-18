@@ -312,11 +312,7 @@ SilentOperand* parseExpression()
 }
 
 SilentVariable* Silent::SilentParseVar(
-    SilentLocalScope &scope,
-    SilentNamespace &typeScope,
-    std::string type,
-    bool init,
-    bool expectEnd
+    SilentLocalScope &scope, bool init, bool expectEnd
 )
 {
     #if DEBUG 
@@ -423,7 +419,7 @@ SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
             statement->type = SilentStatementType::VarInit;
 
             SilentVariable* var = SilentParseVar(
-                *structure->variables, scope, pd.ct.value, true, true
+                *structure->variables, true, true
             );
             structure->variables->variables.push_back(var);
             structure->variables->statements.push_back(statement);
@@ -465,7 +461,7 @@ SilentLocalScope* Silent::SilentParseParameters(SilentNamespace &scope)
             statement->type = SilentStatementType::VarInit;
 
         parameters->variables.push_back(
-            SilentParseVar(*parameters, scope, pd.ct.value,true,false)
+            SilentParseVar(*parameters, true, false)
         );
         parameters->statements.push_back(statement);
         if(pd.ct.value == ",")
@@ -505,7 +501,7 @@ SilentLocalScope* Silent::SilentParseLocalScope(SilentNamespace &scope)
                 statement->type = SilentStatementType::VarInit;
 
                 SilentVariable* var = 
-                    SilentParseVar(*localScope, scope, pd.ct.value, false, true);
+                    SilentParseVar(*localScope, false, true);
 
                 localScope->variables.push_back(var);
                 if(var->initialised) 
@@ -683,9 +679,7 @@ SilentParserInfo* Silent::SilentParse(TokenList tokens)
             case SilentTokenType::Identifier:
             case SilentTokenType::Primitive:
                 globalNamespace->globals->variables.push_back(
-                    SilentParseVar(*globalNamespace->globals, *globalNamespace,
-                        pd.ct.value, false, true
-                    )
+                    SilentParseVar(*globalNamespace->globals, false, true)
                 );
             break;
 
