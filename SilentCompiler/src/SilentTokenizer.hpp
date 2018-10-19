@@ -27,7 +27,8 @@ namespace Silent
         Return,
         Namespace,
         Class,
-        Method
+        Method,
+        ScopeResolution
     };
 
     typedef struct SilentToken

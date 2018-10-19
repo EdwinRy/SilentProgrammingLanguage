@@ -452,32 +452,22 @@ SilentStructure* Silent::SilentParseStruct(SilentNamespace &scope)
 SilentLocalScope* Silent::SilentParseParameters(SilentNamespace &scope)
 {
     #if DEBUG
-    std::cout << "Parsing parameters\n";
+        std::cout << "Parsing parameters\n";
     #endif
     SilentLocalScope* parameters = new SilentLocalScope();
     while(pd.ct.type != SilentTokenType::CloseParam)
     {
         SilentStatement* statement = new SilentStatement();
-            statement->type = SilentStatementType::VarInit;
-
-        parameters->variables.push_back(
-            SilentParseVar(*parameters, true, false)
-        );
+        statement->type = SilentStatementType::VarInit;
+        parameters->variables.push_back(SilentParseVar(*parameters,true,false));
         parameters->statements.push_back(statement);
-        if(pd.ct.value == ",")
-        {
-            nextToken();
-            continue;
-        }
-        else if(pd.ct.type == SilentTokenType::CloseParam)
-        {
-            break;
-        }
+        if(pd.ct.value == ",") {nextToken(); continue;}
+        else if(pd.ct.type == SilentTokenType::CloseParam) break;
         else errorMsg("Got invalid token whilst parsing parameters", false);
     }
     nextToken();
     #if DEBUG
-    std::cout << "finished parsing parameters\n\n";
+        std::cout << "finished parsing parameters\n\n";
     #endif
     return parameters;
 }

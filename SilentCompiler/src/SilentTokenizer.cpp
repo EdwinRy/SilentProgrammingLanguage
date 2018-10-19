@@ -148,6 +148,19 @@ std::vector<SilentToken>* Silent::SilentTokenize(std::string source)
                 token.type = SilentTokenType::String;
                 token.value = tokenizeString(source, &line, &i);
             break;
+            case ':':
+                if(source[++i] = ':')
+                {
+                    token.type = SilentTokenType::ScopeResolution;
+                    token.value = "::";
+                }
+                else
+                {
+                    i--;
+                    token.type = SilentTokenType::Unrecognised;
+                    token.value = ":";
+                }
+            break;
             default:
                 if(isalpha(source[i]))
                 {
