@@ -2,7 +2,7 @@
 #include "SilentTokenizer.hpp"
 #include "SilentParser.hpp"
 #include "SilentCleanup.hpp"
-#include "Assembler/SilentAssembler.hpp"
+#include "SilentAssembler.hpp"
 #include "SilentCodeGen.hpp"
 #include "SilentIntCode.hpp"
 #include "SilentConsole.hpp"

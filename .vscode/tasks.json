@@ -17,7 +17,6 @@
                 "args": [
                     "-g",
                     "SilentCompiler/src/*.cpp",
-                    "SilentCompiler/src/Assembler/*.cpp",
                     "-std=c++11",
                     "-o","SilentCompiler/bin/SilentC",
                 ],
@@ -28,7 +27,6 @@
                 "args": [
                     "-g",
                     "SilentCompiler/src/*.cpp",
-                    "SilentCompiler/src/Assembler/*.cpp",
                     "-std=c++11",
                     "-o","SilentCompiler/bin/SilentC",
                 ],
