@@ -22,21 +22,8 @@ SOURCES = \
 OBJECTS = $(SOURCES:$(SRC_PATH)/%.cpp=$(OBJ_PATH)/%.o)
 DEPENDENCIES = $(OBJECTS:.o=.d)
 
-
-.PHONY: cleanOBJ
-cleanOBJ:
-	@$(RM) -r $(OBJ_PATH)/*
-
-# .PHONY: dirs
-
-# dirs: $(OBJ_PATH)
-
-# $(OBJ_PATH):
-# 	$(MKDIR) $(OBJ_PATH)
-
 .PHONY: all
-#all: dirs $(EXE)
-all: dirs $(EXE)
+all: $(EXE)
 
 $(EXE) : $(OBJECTS)
 	$(CC) $(OBJECTS) -o $@
@@ -46,3 +33,11 @@ $(EXE) : $(OBJECTS)
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.cpp
 	$(CC) $(CFLAGS) -MP -MMD -c $< -o $@
 
+.PHONY: debug
+debug: CFLAGS += -g
+debug: all
+
+
+.PHONY: clean
+clean:
+	@$(RM) -r $(OBJ_PATH)/*

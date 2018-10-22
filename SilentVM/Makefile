@@ -1,17 +1,38 @@
-compiler = gcc
-source = src/*.c
-output = bin/SilentVM
-standard = -std=c99
-flags = -Wall
+CC = gcc
+CFLAGS = -std=c99 
+LIBS = -ldl
+SRC_PATH = src
+OBJ_PATH = obj
+OUT_PATH = bin
+EXE_NAME = SilentVM
+EXE = $(OUT_PATH)/$(EXE_NAME)
+MKDIR = mkdir
 
-all:
-	$(compiler) $(standard) $(flags) $(source) -o $(output)
+SOURCES = \
+	$(SRC_PATH)/main.c \
+	$(SRC_PATH)/SilentLib.c \
+	$(SRC_PATH)/SilentVector.c \
+	$(SRC_PATH)/SilentVM2.c
+	
+OBJECTS = $(SOURCES:$(SRC_PATH)/%.c=$(OBJ_PATH)/%.o)
+DEPENDENCIES = $(OBJECTS:.o=.d)
 
-release:
-	$(compiler) $(standard) $(flags) $(source) -O3 -o $(output)
+.PHONY: all
+all: $(EXE)
 
-winLib:
-	gcc -shared -o lib/silentLib.dll lib/silentLib.c
+$(EXE) : $(OBJECTS)
+	$(CC) $(OBJECTS) $(LIBS) -o $@
 
-linLib:
-	gcc -shared -fpic lib/silentLib.c -o lib/silentLib.so
+-include $(DEPENDENCIES)
+
+$(OBJ_PATH)/%.o: $(SRC_PATH)/%.c
+	$(CC) $(CFLAGS) -MP -MMD -c $< -o $@
+
+.PHONY: debug
+debug: CFLAGS += -g
+debug: all 
+
+
+.PHONY: clean
+clean:
+	@$(RM) -r $(OBJ_PATH)/*

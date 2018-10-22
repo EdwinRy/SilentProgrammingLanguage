@@ -24,7 +24,7 @@ LibFunc SilentLoadFunc(void* lib, char* name)
     #ifdef _WIN32
     function = (LibFunc)GetProcAddress(lib,name);
     #else
-    function = (dllFunc)dlsym(lib, name);
+    function = (LibFunc)dlsym(lib, name);
     #endif
     if(!function){ printf("Couldn't load function: %s\n", name); return NULL; }
     return function;
