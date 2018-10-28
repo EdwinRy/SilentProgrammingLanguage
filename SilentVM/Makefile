@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 
+CFLAGS = -std=c99 -Wall
 LIBS = -ldl
 SRC_PATH = src
 OBJ_PATH = obj

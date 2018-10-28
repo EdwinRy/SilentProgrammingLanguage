@@ -8,5 +8,5 @@ namespace Silent
         
     };
 
-    SilentIntCode* SilentTransform(SilentParserInfo* parsedCode);
+    //SilentIntCode* SilentTransform(SilentParserInfo* parsedCode);
 }

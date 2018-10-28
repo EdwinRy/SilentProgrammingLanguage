@@ -206,42 +206,24 @@ void silentVMStart(SilentVM* vm)
 				//Get pointer to the subroutine
 				memcpy(&reg.l, program + pc, 8);
 				pc += 8;
-				//Get total size of arguments
+				//Get number of arguments
 				memcpy(&reg2.l, program + pc, 8);
+				pc += 8;
+				//Get total size of arguments
+				memcpy(&reg3.l, program + pc, 8);
 				pc += 7;
 
-				uint64 argumentSize = 0;
-				uint64 typeSize = 0;
-				for(uint64 i = 0; i < reg2.l; i++)
-				{
-					//SilentPopBack(stackT);
-					reg3.c = SilentGetTypeSize(stackT->data[stackT->ptr-typeSize-1]);
-					if(reg3.c != 0)
-					{
-						argumentSize += reg3.c;
-						typeSize += 1;
-					}
-					else
-					{
-						//get custom data size
-						uint64 datSize;
-						memcpy(&datSize, stackT->data + stackT->ptr -1, 8);
-						argumentSize += datSize;
-						typeSize += 10;
-					}
-				}
-				reg2.l = argumentSize;
-
-				//save return address
-				SilentPushBack(callPos, &pc);
-				//save frame pointer
+				//Push arguments
+				fp -= reg3.l;
+				//Save frame pointer
 				SilentPushBack(stackF, &fp);
-				fp = sp - reg2.l;
-				reg4.l = stackT->ptr-typeSize;
-				//save stack type pointer
-				SilentPushBack(saveStackT, &reg4.l);
-
-				pc = reg.l-1;
+				//Save stack type pointer
+				reg3.l = stackT->ptr - reg2.l;
+				SilentPushBack(saveStackT, &reg3.l);
+				//Save return address
+				SilentPushBack(callPos, &pc);
+				//Set program counter to run called subroutine's code
+				pc = reg.l - 1;
 
 				#if DEBUG
 					printf("Call\n");
@@ -254,46 +236,33 @@ void silentVMStart(SilentVM* vm)
 			case Return:
 				pc++;
 				//Number of return values
+				//Get number of return values
 				memcpy(&reg.l, program + pc, 8);
-				reg2.l = 0;
+				pc += 8;
+				//Get size of return values
+				memcpy(&reg2.l, program + pc, 8);
+				pc += 7;
 
-				//Get return sizes
-				uint64 stackReturnSize = 0;
-				uint64 stackTReturnSize = 0;
-				uint64 returnValues = reg.l;
-				for(uint64 i = 0; i < returnValues; i++)
-				{
-					//SilentPopBack(stackT);
-					reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-stackTReturnSize-1]);
-					if(reg.c != 0)
-					{
-						stackReturnSize += reg.c;
-						stackTReturnSize += 1;
-					}
-					else
-					{
-						//get custom data size
-						memcpy(&reg2.l, stackT->data + stackT->ptr -1, 8);
-						stackReturnSize += reg.l;
-						stackTReturnSize += 10;
-					}
-				}
-				//Move memory
-				memmove(stack + fp, stack + sp - stackReturnSize, stackReturnSize);
-				sp = fp + stackReturnSize;
-				SilentPopBack(saveStackT);
-				uint64 oldStackT = 0; 
-				memcpy(&oldStackT, saveStackT->data + saveStackT->ptr,8);
+				//get return values
+				memmove(stack + fp, stack + sp - reg2.l, reg2.l);
+				sp = fp + reg2.l;
+
+				//get return types
+				memcpy(&reg3.l, saveStackT->data + saveStackT->ptr, 8);
 				memmove(
-					stackT->data + oldStackT, 
-					stackT->data + stackT->ptr - stackTReturnSize,
-					stackTReturnSize
+					stackT->data + reg3.l, 
+					stackT->data + stackT->ptr - reg.l,
+					reg.l
 				);
-				stackT->ptr = oldStackT + stackTReturnSize;
-				SilentPopBack(callPos);
-				memcpy(&pc, callPos->data + callPos->ptr, 8);
+				stackT->ptr = reg3.l + reg.l;
+
+				//Pop back old saved values
 				SilentPopBack(stackF);
+				SilentPopBack(callPos);
+				//Restore old frame pointer
 				memcpy(&fp, stackF->data + stackF->ptr, 8);
+				//Go to return address
+				memcpy(&pc, callPos->data + callPos->ptr, 8);
 
 				#if DEBUG
 					printf("Return\n");
@@ -403,200 +372,385 @@ void silentVMStart(SilentVM* vm)
 				pc = vm->programCounter-1;
 			break;
 
-			case Push:
-				switch(program[++pc])
-				{
-					case INT8:
-						stack[sp++] = program[++pc];
-						SilentPushBack(stackT,dt + INT8);
-					break;
-					case UINT8:
-						stack[sp++] = program[++pc];               
-						SilentPushBack(stackT,dt + UINT8);
-					break;
-					case INT16:
-						memcpy(stack + sp, program + ++pc, 2);
-						sp += 2;
-						pc++;
-						SilentPushBack(stackT,dt + INT16);
-					break;
-					case UINT16:
-						memcpy(stack + sp, program + ++pc, 2);
-						sp += 2;
-						pc++;
-						SilentPushBack(stackT,dt + UINT16);
-					break;
-					case INT32:
-						memcpy(stack + sp, program + ++pc, 4);
-						sp += 4;
-						pc += 3;
-						SilentPushBack(stackT,dt + INT32);
-					break;
-					case UINT32:
-						memcpy(stack + sp, program + ++pc, 4);
-						sp += 4;
-						pc += 3;
-						SilentPushBack(stackT,dt + UINT32);
-					break;
-					case INT64:
-						memcpy(stack + sp, program + ++pc, 8);
-						sp += 8;
-						pc += 7;
-						SilentPushBack(stackT,dt + INT64);
-					break;
-					case UINT64:
-						memcpy(stack + sp, program + ++pc, 8);
-						sp += 8;
-						pc += 7;
-						SilentPushBack(stackT,dt + UINT64);
-					break;
-					case FLOAT32:
-						memcpy(stack + sp, program + ++pc, 4);
-						sp += 4;
-						pc += 3;
-						SilentPushBack(stackT,dt + FLOAT32);
-					break;
-					case FLOAT64:
-						memcpy(stack + sp, program + ++pc, 8);
-						sp += 8;
-						pc += 7;
-						SilentPushBack(stackT,dt + FLOAT64);
-					break;
-					case POINTER:
-						memcpy(stack + sp, program + ++pc, 8);
-						sp += 8;
-						pc += 7;
-						SilentPushBack(stackT,dt + POINTER);
-					break;
-					case UNDEFINED:
-						//Data size
-						memcpy(&reg.l, program + ++pc, 8);
-						pc += 8;
-						//ActualData
-						memcpy(stack + sp, program + pc, reg.l);
-						sp += reg.l;
-						pc += reg.l-1;
-						SilentPushBack(stackT, dt + UNDEFINED);
-						SilentPushMultiple(stackT, 8, &reg.l);
-						SilentPushBack(stackT, dt + UNDEFINED);
-					break;
-				}
-				#if DEBUG
-					printf("push\n");
-					printf("sp: %i\n",sp);
-				#endif
-			break;
+			// case Push:
+			// 	switch(program[++pc])
+			// 	{
+			// 		case INT8:
+			// 			stack[sp++] = program[++pc];
+			// 			SilentPushBack(stackT,dt + INT8);
+			// 		break;
+			// 		case UINT8:
+			// 			stack[sp++] = program[++pc];               
+			// 			SilentPushBack(stackT,dt + UINT8);
+			// 		break;
+			// 		case INT16:
+			// 			memcpy(stack + sp, program + ++pc, 2);
+			// 			sp += 2;
+			// 			pc++;
+			// 			SilentPushBack(stackT,dt + INT16);
+			// 		break;
+			// 		case UINT16:
+			// 			memcpy(stack + sp, program + ++pc, 2);
+			// 			sp += 2;
+			// 			pc++;
+			// 			SilentPushBack(stackT,dt + UINT16);
+			// 		break;
+			// 		case INT32:
+			// 			memcpy(stack + sp, program + ++pc, 4);
+			// 			sp += 4;
+			// 			pc += 3;
+			// 			SilentPushBack(stackT,dt + INT32);
+			// 		break;
+			// 		case UINT32:
+			// 			memcpy(stack + sp, program + ++pc, 4);
+			// 			sp += 4;
+			// 			pc += 3;
+			// 			SilentPushBack(stackT,dt + UINT32);
+			// 		break;
+			// 		case INT64:
+			// 			memcpy(stack + sp, program + ++pc, 8);
+			// 			sp += 8;
+			// 			pc += 7;
+			// 			SilentPushBack(stackT,dt + INT64);
+			// 		break;
+			// 		case UINT64:
+			// 			memcpy(stack + sp, program + ++pc, 8);
+			// 			sp += 8;
+			// 			pc += 7;
+			// 			SilentPushBack(stackT,dt + UINT64);
+			// 		break;
+			// 		case FLOAT32:
+			// 			memcpy(stack + sp, program + ++pc, 4);
+			// 			sp += 4;
+			// 			pc += 3;
+			// 			SilentPushBack(stackT,dt + FLOAT32);
+			// 		break;
+			// 		case FLOAT64:
+			// 			memcpy(stack + sp, program + ++pc, 8);
+			// 			sp += 8;
+			// 			pc += 7;
+			// 			SilentPushBack(stackT,dt + FLOAT64);
+			// 		break;
+			// 		case POINTER:
+			// 			memcpy(stack + sp, program + ++pc, 8);
+			// 			sp += 8;
+			// 			pc += 7;
+			// 			SilentPushBack(stackT,dt + POINTER);
+			// 		break;
+			// 		case UNDEFINED:
+			// 			//Data size
+			// 			memcpy(&reg.l, program + ++pc, 8);
+			// 			pc += 8;
+			// 			//ActualData
+			// 			memcpy(stack + sp, program + pc, reg.l);
+			// 			sp += reg.l;
+			// 			pc += reg.l-1;
+			// 			SilentPushBack(stackT, dt + UNDEFINED);
+			// 			SilentPushMultiple(stackT, 8, &reg.l);
+			// 			SilentPushBack(stackT, dt + UNDEFINED);
+			// 		break;
+			// 	}
+			// 	#if DEBUG
+			// 		printf("push\n");
+			// 		printf("sp: %i\n",sp);
+			// 	#endif
+			// break;
 
-			case Pop:
-				reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
-				if(reg.c != 0)
-				{
-					sp -= reg.c;
-					SilentPopBack(stackT);
-				}
-				else
-				{
-					memcpy(&reg.l, stackT->data + (stackT->ptr-9),8);
-					sp -= reg.l;
-					SilentPopMultiple(stackT,10);
-				}
-			break;
-
-			case Store:
-				reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
-				memcpy(&reg2.l, program + ++pc, 8);
-				pc += 7;
-				if(reg.c != 0)
-				{
-					memcpy(stack + reg2.l + fp, stack + (sp -= reg.c), reg.c);
-					SilentPopBack(stackT);
-				}
-				else
-				{
-					memcpy(&reg.l, stackT->data + (stackT->ptr-9),8);
-					memcpy(stack + reg2.l + fp, stack + (sp -= reg.l), reg.l);
-					SilentPopMultiple(stackT,10);
-				}
-			break;
-
-			case Load:
+			case Push1:
 				SilentPushBack(stackT, dt + program[++pc]);
-				reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
-				if(reg.c != 0)
-				{
-					//get position
-					memcpy(&reg2.l, program + ++pc, 8);
-					pc += 7;
-					//load data
-					memcpy(stack + sp, stack + fp + reg2.l, reg.c);
-					sp += reg.c;
-					#if DEBUG
-						printf("Load\n");
-						printf("sp: %i\n",sp);
-						printf("size: %i\n",reg.c);
-						printf("position: %i\n", reg2.l);
-						printf("data: %i\n", *(int*)(stack+sp-4));
-					#endif
-				}
-				else
-				{
-					//get type size
-					memcpy(&reg.l, program + ++pc, 8);
-					pc += 8;
-					SilentPushMultiple(stackT,8,&reg.l);
-					SilentPushBack(stackT, dt + UNDEFINED_END);
-					//get position
-					memcpy(&reg2.l, program + pc, 8);
-					//load data
-					memcpy(stack + sp, stack + fp + reg2.l, reg.l);
-					sp += reg.l;
-					pc += 7;
-				}
+				stack[sp++] = program[++pc];
 			break;
 
-			case StoreGlobal:
-				reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
-				memcpy(&reg2.l, program + ++pc, 8);
-				pc += 7;
-				if(reg.c != 0)
-				{
-					memcpy(stack + reg2.l, stack + (sp -= reg.c), reg.c);
-					SilentPopBack(stackT);
-				}
-				else
-				{
-					memcpy(&reg.l, stackT->data + (stackT->ptr-9), 8);
-					memcpy(stack + reg2.l, stack + (sp -= reg.l), reg.l);
-					SilentPopMultiple(stackT,10);
-				}
-			break;
-
-			case LoadGlobal:
+			case Push2:
 				SilentPushBack(stackT, dt + program[++pc]);
-				reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
-				if(reg.c != 0)
-				{
-					//get position
-					memcpy(&reg2.l, program + ++pc, 8);
-					pc += 7;
-					//load data
-					memcpy(stack + sp, stack + reg2.l, reg.c);
-					sp += reg.c;
-				}
-				else
-				{
-					//get type size
-					memcpy(&reg.l, program + ++pc, 8);
-					pc += 8;
-					SilentPushMultiple(stackT,8,&reg.l);
-					SilentPushBack(stackT, dt + UNDEFINED_END);
-					//get position
-					memcpy(&reg2.l, program + pc, 8);
-					//load data
-					memcpy(stack + sp, stack + reg2.l, reg.l);
-					sp += reg.l;
-					pc += 7;
-				}
+				memcpy(stack + sp, program + pc, 2);
+				sp += 2;
+				pc++;
+			break;
+
+			case Push4:
+				SilentPushBack(stackT, dt + program[++pc]);
+				memcpy(stack + sp, program + pc, 4);
+				sp += 4;
+				pc += 3;
+			break;
+
+			case Push8:
+				SilentPushBack(stackT, dt + program[++pc]);
+				memcpy(stack + sp, program + pc, 8);
+				sp += 8;
+				pc += 7;
+			break;
+
+			// case Pop:
+			// 	reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+			// 	if(reg.c != 0)
+			// 	{
+			// 		sp -= reg.c;
+			// 		SilentPopBack(stackT);
+			// 	}
+			// 	else
+			// 	{
+			// 		memcpy(&reg.l, stackT->data + (stackT->ptr-9),8);
+			// 		sp -= reg.l;
+			// 		SilentPopMultiple(stackT,10);
+			// 	}
+			// break;
+
+			case Pop1:
+				SilentPopBack(stackT);
+				sp -= 1;
+			break;
+
+			case Pop2:
+				SilentPopBack(stackT);
+				sp -= 2;
+			break;
+
+			case Pop4:
+				SilentPopBack(stackT);
+				sp -= 4;
+			break;
+
+			case Pop8:
+				SilentPopBack(stackT);
+				sp -= 8;
+			break;
+
+
+			// case Store:
+			// 	reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+			// 	memcpy(&reg2.l, program + ++pc, 8);
+			// 	pc += 7;
+			// 	if(reg.c != 0)
+			// 	{
+			// 		memcpy(stack + reg2.l + fp, stack + (sp -= reg.c), reg.c);
+			// 		SilentPopBack(stackT);
+			// 	}
+			// 	else
+			// 	{
+			// 		memcpy(&reg.l, stackT->data + (stackT->ptr-9),8);
+			// 		memcpy(stack + reg2.l + fp, stack + (sp -= reg.l), reg.l);
+			// 		SilentPopMultiple(stackT,10);
+			// 	}
+			// break;
+
+
+			case Store1:
+				SilentPopBack(stackT);
+				memcpy(&reg2.l, program + (++pc), 8);
+				pc += 7;
+				memcpy(stack + fp + reg2.l, stack + --sp, 1);
+			break;
+
+			case Store2:
+				SilentPopBack(stackT);
+				memcpy(&reg2.l, program + (++pc), 8);
+				pc += 7;
+				sp -= 2;
+				memcpy(stack + fp + reg2.l, stack + sp, 2);
+			break;
+
+			case Store4:
+				SilentPopBack(stackT);
+				memcpy(&reg2.l, program + (++pc), 8);
+				pc += 7;
+				sp -= 4;
+				memcpy(stack + fp + reg2.l, stack + sp, 4);
+			break;
+
+			case Store8:
+				SilentPopBack(stackT);
+				memcpy(&reg2.l, program + (++pc), 8);
+				pc += 7;
+				sp -= 8;
+				memcpy(stack + fp + reg2.l, stack + sp, 8);
+			break;
+
+			// case Load:
+			// 	SilentPushBack(stackT, dt + program[++pc]);
+			// 	reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+			// 	if(reg.c != 0)
+			// 	{
+			// 		//get position
+			// 		memcpy(&reg2.l, program + ++pc, 8);
+			// 		pc += 7;
+			// 		//load data
+			// 		memcpy(stack + sp, stack + fp + reg2.l, reg.c);
+			// 		sp += reg.c;
+			// 		#if DEBUG
+			// 			printf("Load\n");
+			// 			printf("sp: %i\n",sp);
+			// 			printf("size: %i\n",reg.c);
+			// 			printf("position: %i\n", reg2.l);
+			// 			printf("data: %i\n", *(int*)(stack+sp-4));
+			// 		#endif
+			// 	}
+			// 	else
+			// 	{
+			// 		//get type size
+			// 		memcpy(&reg.l, program + ++pc, 8);
+			// 		pc += 8;
+			// 		SilentPushMultiple(stackT,8,&reg.l);
+			// 		SilentPushBack(stackT, dt + UNDEFINED_END);
+			// 		//get position
+			// 		memcpy(&reg2.l, program + pc, 8);
+			// 		//load data
+			// 		memcpy(stack + sp, stack + fp + reg2.l, reg.l);
+			// 		sp += reg.l;
+			// 		pc += 7;
+			// 	}
+			// break;
+
+			case Load1:
+				SilentPushBack(stackT, dt + program[++pc]);
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				memcpy(stack + sp, stack + fp + reg.l, 1);
+				sp++;
+			break;
+
+			case Load2:
+				SilentPushBack(stackT, dt + program[++pc]);
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				memcpy(stack + sp, stack + fp + reg.l, 2);
+				sp += 2;
+			break;
+
+			case Load4:
+				SilentPushBack(stackT, dt + program[++pc]);
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				memcpy(stack + sp, stack + fp + reg.l, 4);
+				sp += 4;
+			break;
+
+			case Load8:
+				SilentPushBack(stackT, dt + program[++pc]);
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				memcpy(stack + sp, stack + fp + reg.l, 9);
+				sp += 8;
+			break;
+			
+
+			// case StoreGlobal:
+			// 	reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+			// 	memcpy(&reg2.l, program + ++pc, 8);
+			// 	pc += 7;
+			// 	if(reg.c != 0)
+			// 	{
+			// 		memcpy(stack + reg2.l, stack + (sp -= reg.c), reg.c);
+			// 		SilentPopBack(stackT);
+			// 	}
+			// 	else
+			// 	{
+			// 		memcpy(&reg.l, stackT->data + (stackT->ptr-9), 8);
+			// 		memcpy(stack + reg2.l, stack + (sp -= reg.l), reg.l);
+			// 		SilentPopMultiple(stackT,10);
+			// 	}
+			// break;
+
+			case StoreGlobal1:
+				//Get global offset
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				//Store
+				sp -= 1;
+				memcpy(stack + reg.l, stack + sp, 1);
+				SilentPopBack(stackT);
+			break;
+			
+			case StoreGlobal2:
+				//Get global offset
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				//Store
+				sp -= 2;
+				memcpy(stack + reg.l, stack + sp, 2);
+				SilentPopBack(stackT);
+			break;
+
+			case StoreGlobal4:
+				//Get global offset
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				//Store
+				sp -= 4;
+				memcpy(stack + reg.l, stack + sp, 4);
+				SilentPopBack(stackT);
+			break;
+
+			case StoreGlobal8:
+				//Get global offset
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				//Store
+				sp -= 8;
+				memcpy(stack + reg.l, stack + sp, 8);
+				SilentPopBack(stackT);
+			break;
+
+
+			// case LoadGlobal:
+			// 	SilentPushBack(stackT, dt + program[++pc]);
+			// 	reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+			// 	if(reg.c != 0)
+			// 	{
+			// 		//get position
+			// 		memcpy(&reg2.l, program + ++pc, 8);
+			// 		pc += 7;
+			// 		//load data
+			// 		memcpy(stack + sp, stack + reg2.l, reg.c);
+			// 		sp += reg.c;
+			// 	}
+			// 	else
+			// 	{
+			// 		//get type size
+			// 		memcpy(&reg.l, program + ++pc, 8);
+			// 		pc += 8;
+			// 		SilentPushMultiple(stackT,8,&reg.l);
+			// 		SilentPushBack(stackT, dt + UNDEFINED_END);
+			// 		//get position
+			// 		memcpy(&reg2.l, program + pc, 8);
+			// 		//load data
+			// 		memcpy(stack + sp, stack + reg2.l, reg.l);
+			// 		sp += reg.l;
+			// 		pc += 7;
+			// 	}
+			// break;
+
+			case LoadGlobal1:
+				SilentPushBack(stackT, dt + program[++pc]);
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				memcpy(stack + sp, stack + reg.l, 1);
+				sp++;
+			break;
+
+			case LoadGlobal2:
+				SilentPushBack(stackT, dt + program[++pc]);
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				memcpy(stack + sp, stack + reg.l, 2);
+				sp += 2;
+			break;
+
+			case LoadGlobal4:
+				SilentPushBack(stackT, dt + program[++pc]);
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				memcpy(stack + sp, stack + reg.l, 4);
+				sp += 4;
+			break;
+
+			case LoadGlobal8:
+				SilentPushBack(stackT, dt + program[++pc]);
+				memcpy(&reg.l, program + ++pc, 8);
+				pc += 7;
+				memcpy(stack + sp, stack + reg.l, 8);
+				sp += 8;
 			break;
 
 			case Alloc:

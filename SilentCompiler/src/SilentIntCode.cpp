@@ -76,6 +76,9 @@ std::string transformExpression(SilentOperand& expression)
         case SilentOperandType::Variable:
             output += "l " + expression.variable->name+"\n";
         break;
+
+        default:
+        break;
     }
 
     #if DEBUG
@@ -205,25 +208,25 @@ std::string transformNamespace(SilentNamespace& scope)
     return output;
 }
 
-std::string Silent::SilentGenerateIntCode(SilentParserInfo* parsedCode)
-{
-    #if DEBUG
-        std::cout << "Generating intermediate code...\n";
-    #endif
+// std::string Silent::SilentGenerateIntCode(SilentParserInfo* parsedCode)
+// {
+//     #if DEBUG
+//         std::cout << "Generating intermediate code...\n";
+//     #endif
 
-    std::string output = "goto main\n";
+//     std::string output = "goto main\n";
 
-    output += transformNamespace(*parsedCode->globalNamespace);
+//     output += transformNamespace(*parsedCode->globalNamespace);
 
-    if(parsedCode->main != NULL)
-    output += transformFunction(*parsedCode->main);
+//     if(parsedCode->main != NULL)
+//     output += transformFunction(*parsedCode->main);
 
-    #if DEBUG
-        std::cout << "Done generating intermediate code...\n";
-        std::cout << "Generated code:\n" << output;
-    #endif
-    return output;
-}
+//     #if DEBUG
+//         std::cout << "Done generating intermediate code...\n";
+//         std::cout << "Generated code:\n" << output;
+//     #endif
+//     return output;
+// }
 
 std::vector<std::string> splitString(std::string str, char splitChar)
 {

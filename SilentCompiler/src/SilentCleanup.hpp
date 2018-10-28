@@ -4,5 +4,16 @@
 
 namespace Silent
 {
-    void SilentCleanupParserInfo(SilentParserInfo* info);
+    class SilentCleaner
+    {
+        private:
+        void FreeVariable(SilentVariable* variable);
+        void FreeLocalScope(SilentLocalScope* scope);
+        void FreeStructure(SilentStructure* structure);
+        void FreeFunction(SilentFunction* function);
+        void FreeNamespace(SilentNamespace* scope);
+        public:
+        SilentCleaner(){}
+        void CleanupParser(SilentParser* parser);
+    };
 }

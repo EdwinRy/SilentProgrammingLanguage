@@ -21,14 +21,34 @@ void SilentCompiler::Compile(SilentCompileMode mode)
             char* source = readAllText(this->path);
             this->source.assign(source,strlen(source)+1);
         }
-        std::vector<SilentToken>* tokens = SilentTokenize(this->source);
-        SilentParserInfo* parserOutput = SilentParse(*tokens);
-        std::string intCode = SilentGenerateIntCode(parserOutput);
-        writeAllText("package.spck", intCode.data());
-        this->libOutput = intCode;
-        this->output = SilentCompileAST(*parserOutput);
+
+        //std::vector<SilentToken>* tokens = tokenizer.Tokenize(this->source);
+        SilentTokenizer tokenizer;
+        if(!tokenizer.Tokenize(this->source))
+        {
+            std::cout << "Could not tokenize source\n";
+        }
+
+        SilentParser parser;
+        if(!parser.SilentParse(tokenizer.GetTokens()))
+        {
+            std::cout << "Parsing unsuccessful\n";
+        }
+
+        SilentCodeGenerator codeGen;
+        codeGen.Compile(&parser);
+
+        //std::string intCode = SilentGenerateIntCode(parser.GetGlobalNamespace());
+
+        //SilentParserInfo* parserOutput = SilentParse(tokenizer.GetTokens());
+        //std::string intCode = SilentGenerateIntCode(parserOutput);
+        //writeAllText("package.spck", intCode.data());
+        //this->libOutput = intCode;
+        //this->output = SilentCompileAST(*parserOutput);
         //this->output = SilentGenerateAssembly(intCode->code);
-        SilentCleanupParserInfo(parserOutput);
+
+        SilentCleaner cleaner;
+        cleaner.CleanupParser(&parser);
     }
     else
     {

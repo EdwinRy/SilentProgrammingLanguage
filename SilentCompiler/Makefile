@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -std=c++11
+CFLAGS = -std=c++11 -Wall
 SRC_PATH = src
 OBJ_PATH = obj
 OUT_PATH = bin

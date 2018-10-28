@@ -158,26 +158,45 @@ namespace Silent
         std::string name;
     }SilentNamespace;
 
-    typedef struct SilentParserInfo
+    class SilentParser
     {
-        SilentFunction* main;
+        public:
+        SilentParser(); ~SilentParser();
+        bool SilentParse(std::vector<Silent::SilentToken> tokens);
+        SilentNamespace* GetGlobalNamespace();
+
+        private:
+        void ErrorMsg(std::string msg);
+        SilentNamespace* GetNamespace(std::string name);
+        SilentStructure* GetStructure(std::string name);
+        SilentDataType GetType(std::string name);
+        SilentFunction* GetLocalFunction(std::string name);
+        SilentFunction* GetFunction(std::string name);
+        uint64 GetTypeSize(std::string name);
+        bool IsPrimitive(std::string name);
+        bool IsValidType(std::string name);
+        uint64 GetLocalPos(SilentLocalScope &scope);
+        void NextToken();
+        bool AcceptToken(SilentTokenType type);
+        bool ExpectToken(SilentTokenType type, std::string msg);
+        SilentOperand* ParseFactor();
+        SilentOperand* ParseTerm();
+        SilentOperand* ParseExpression();
+        //SilentStatement* ParseStatement(SilentLocalScope &scope);
+        SilentVariable* ParseVariable(
+            SilentLocalScope &scope, bool init, bool expectEnd);
+        SilentStructure* ParseStruct(SilentNamespace &scope);
+        SilentLocalScope* ParseParameters(SilentNamespace &scope);
+        SilentLocalScope* ParseLocalScope(SilentNamespace &scope);
+        SilentFunction* ParseFunction(SilentNamespace& scope);
+        SilentNamespace* ParseNamespace(SilentNamespace &scope);
+
         SilentNamespace* globalNamespace;
-        //std::vector<SilentNamespace*> namespaces;
-    }SilentParserInfo;
+        SilentToken ct; //Current token
+        uint64 tokenCursor;
+        std::vector<SilentNamespace*> accessibleNamespaces;
+        std::vector<Silent::SilentToken> *tokensPtr;
 
-    SilentStatement* SilentParseStatement(SilentLocalScope &scope);
-
-    SilentVariable* SilentParseVar(
-        SilentLocalScope &scope,
-        bool init,
-        bool expectEnd
-    );
-
-    SilentStructure* SilentParseStruct(SilentNamespace &scope);
-    SilentLocalScope* SilentParseParameters(SilentNamespace &scope);
-    SilentLocalScope* SilentParseLocalScope(SilentNamespace &scope);
-    SilentLocalScope* SilentParseFunctionScope(SilentNamespace& scope);
-    SilentFunction* SilentParseFunction(SilentNamespace &scope);
-    SilentNamespace* SilentParseNamespace(SilentNamespace &scope);
-    SilentParserInfo* SilentParse(std::vector<Silent::SilentToken> tokens);
+        
+    };
 }

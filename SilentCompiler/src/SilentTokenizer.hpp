@@ -3,6 +3,7 @@
 #include <vector>
 namespace Silent
 {
+    typedef unsigned long long uint64;
     enum class SilentTokenType
     {
         Unrecognised,
@@ -38,6 +39,18 @@ namespace Silent
         unsigned long long line;
     }SilentToken;
 
-    std::vector<SilentToken>* SilentTokenize(std::string source);
 
+    class SilentTokenizer
+    {
+        private:
+            std::string TokenizeString(std::string source, uint64 &index);
+            std::vector<SilentToken> tokens;
+            uint64 line;
+
+        public:
+            SilentTokenizer();
+            bool Tokenize(std::string source);
+            std::vector<SilentToken> GetTokens();
+
+    };
 }
