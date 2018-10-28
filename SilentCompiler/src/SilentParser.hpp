@@ -144,6 +144,7 @@ namespace Silent
         {
             SilentIfStatement* ifStatement;
             SilentWhileLoop* whileLoop;
+            SilentVariable* variable;
         };
         
     }SilentStatement;

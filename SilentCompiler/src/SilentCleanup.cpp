@@ -9,7 +9,7 @@ namespace Silent
         #if DEBUG
         std::cout << "Cleaning variable:" << variable->name << "\n";
         #endif
-        free(variable);
+        if(variable != NULL) free(variable);
         #if DEBUG
         std::cout << "Done cleaning variable:" << variable->name << "\n";
         #endif
