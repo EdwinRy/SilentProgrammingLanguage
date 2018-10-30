@@ -35,14 +35,14 @@ void SilentCompiler::Compile(SilentCompileMode mode)
             std::cout << "Parsing unsuccessful\n";
         }
 
-        SilentCodeGenerator codeGen;
-        codeGen.Compile(&parser);
+        //SilentCodeGenerator codeGen;
+        //codeGen.Compile(&parser);
 
         //std::string intCode = SilentGenerateIntCode(parser.GetGlobalNamespace());
 
         //SilentParserInfo* parserOutput = SilentParse(tokenizer.GetTokens());
         //std::string intCode = SilentGenerateIntCode(parserOutput);
-        writeAllText("package.si", codeGen.GetOutput());
+        //writeAllText("package.si", codeGen.GetOutput());
         //this->libOutput = intCode;
         //this->output = SilentCompileAST(*parserOutput);
         //this->output = SilentGenerateAssembly(intCode->code);

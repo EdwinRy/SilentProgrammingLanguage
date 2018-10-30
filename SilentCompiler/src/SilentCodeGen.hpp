@@ -86,6 +86,17 @@ namespace Silent
         UNDEFINED_END
     };
 
+    class SilentCode
+    {
+        public:
+        void AddPush();
+        template<typename T>
+        void AddNumber(T val);
+
+        private:
+        std::vector<char> code;
+    };
+
     class SilentCodeGenerator
     {
         public:
@@ -103,7 +114,8 @@ namespace Silent
         std::vector<SilentNamespace*> namespaces;
         std::unordered_map<std::string, uint64> symTable;
         std::string currentFunction;
-        std::string code;
+        //std::string code;
+        SilentCode code;
         SilentDataType currentType;
         uint64 cp; //code pointer
     };
