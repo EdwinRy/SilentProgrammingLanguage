@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <fstream>
 #include <string.h>
 char* readAllText(char* path)
 {
@@ -22,16 +23,12 @@ char* readAllText(char* path)
     return text;
 }
 
-void writeAllText(const char* path, const char* text)
+void writeAllText(const char* path, std::string text)
 {
-    FILE *f;
-    if((f = fopen(path,"w"))==NULL)
-    {
-        printf("File %s could not be opened!\n", path);
-        exit(-1);
-    }
-    fprintf(f, text);
-    fclose(f);
+    std::ofstream outFile;
+    outFile.open(path, std::ios::out | std::ios::binary);
+    outFile << text;
+    outFile.close();
 }
 
 char* readAllBytes(char* path)

@@ -398,13 +398,27 @@ namespace Silent
             //Parse statement
             if(AcceptToken(SilentTokenType::Assign))
             {    
+                SilentStatement* statement = new SilentStatement();
+                statement->type = SilentStatementType::Expression;
+
                 NextToken();
-                var->expresion = new SilentOperand();
-                var->expresion->type = SilentOperandType::Assign;
-                var->expresion->left = new SilentOperand();
-                var->expresion->left->type = SilentOperandType::Variable;
-                var->expresion->left->variable = var;
-                var->expresion->right = ParseExpression();
+                //var->expresion = new SilentOperand();
+                //var->expresion->type = SilentOperandType::Assign;
+                //var->expresion->left = new SilentOperand();
+                //var->expresion->left->type = SilentOperandType::Variable;
+                //var->expresion->left->variable = var;
+                //var->expresion->right = ParseExpression();
+
+                //statement->expression = var->expresion;
+                statement->expression = new SilentOperand();
+                statement->expression->type = SilentOperandType::Assign;
+                statement->expression->left = new SilentOperand();
+                statement->expression->left->type = SilentOperandType::Variable;
+                statement->expression->left->variable = var;
+                statement->expression->right = ParseExpression();
+                scope.statements.push_back(statement);
+
+
                 if(ExpectToken(SilentTokenType::Semicolon,
                     "Expected \";\" at the end of expression")
                 )
@@ -413,7 +427,7 @@ namespace Silent
                     NextToken();
                     #if DEBUG
                         std::cout << "Syntax tree:\n";
-                        SilentPrintTree(var->expresion);
+                        SilentPrintTree(statement->expression);
                         std::cout << "Finished parsing var " << var->name << "\n\n";
                     #endif
                     return var;
@@ -537,17 +551,25 @@ namespace Silent
             {
                 case SilentTokenType::Identifier:
                 case SilentTokenType::Primitive:
+                {
+                    if(IsValidType(ct.value))
                     {
+                        SilentStatement* statement = new SilentStatement();
+                        statement->type = SilentStatementType::VarInit;
+                        localScope->statements.push_back(statement);
+
                         SilentVariable* var = 
                             ParseVariable(*localScope, false, true);
 
-                        SilentStatement* statement = new SilentStatement();
-                        statement->type = SilentStatementType::VarInit;
                         statement->variable = var;
                         localScope->variables.push_back(var);
-                        if(var->initialised) 
-                            localScope->statements.push_back(statement);
                     }
+                    else
+                    {
+                        
+                    }
+                    
+                }
                 break;
 
                 default:

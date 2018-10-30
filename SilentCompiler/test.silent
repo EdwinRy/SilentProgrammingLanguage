@@ -5,6 +5,7 @@ int8 kek;
 namespace testNamespace
 {
     func int16 nFunc();
+
 }
 
 struct sampleText

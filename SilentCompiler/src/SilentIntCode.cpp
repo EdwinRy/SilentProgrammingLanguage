@@ -1,247 +1,227 @@
-#include "SilentCodeGen.hpp"
+//#include "SilentCodeGen.hpp"
+#include "SilentIntCode.hpp"
 #include <iostream>
 #include <string>
 #include <iomanip>
 #include <vector>
-using namespace Silent;
 typedef unsigned long long uint64;
 typedef unsigned int uint32;
 
 #define DEBUG 1
-std::string currentIntNamespace = "";
 
-std::string typeToString(SilentPrimitives dt)
+namespace Silent
 {
-    switch(dt)
+    bool SilentIntCode::SilentTransform(SilentParser *parser)
     {
-        case SilentPrimitives::int8: return "int8"; break;
-        case SilentPrimitives::uint8: return "uint8"; break;
-        case SilentPrimitives::int16: return "int16"; break;
-        case SilentPrimitives::uint16: return "uint16"; break;
-        case SilentPrimitives::int32: return "int32"; break;
-        case SilentPrimitives::uint32: return "uint32"; break;
-        case SilentPrimitives::int64: return "int64"; break;
-        case SilentPrimitives::uint64: return "uint64"; break;
-        case SilentPrimitives::float32: return "float32"; break;
-        case SilentPrimitives::float64: return "float64"; break;
-        case SilentPrimitives::string: return "string"; break;
-        case SilentPrimitives::pointer: return "pointer"; break;
-        default : return "null"; break;
-    }
-}
+        #if DEBUG
+        std::cout << "Generating intermediate code...\n";
+        #endif
 
-std::string transformExpression(SilentOperand& expression)
-{
-    std::string output;
-    #if DEBUG
+        std::string output = "goto main\n";
+        code = "goto main\n";
+
+        TransformNamespace(*parser->GetGlobalNamespace());
+
+        //if(parsedCode->main != NULL)
+        //code += transformFunction(*parsedCode->main);
+
+        #if DEBUG
+        std::cout << "Done generating intermediate code...\n";
+        std::cout << "Generated code:\n" << code;
+        #endif
+        return true;
+    }
+
+    std::string SilentIntCode::TypeToString(SilentPrimitives dt)
+    {
+        switch(dt)
+        {
+            case SilentPrimitives::int8: return "int8"; break;
+            case SilentPrimitives::uint8: return "uint8"; break;
+            case SilentPrimitives::int16: return "int16"; break;
+            case SilentPrimitives::uint16: return "uint16"; break;
+            case SilentPrimitives::int32: return "int32"; break;
+            case SilentPrimitives::uint32: return "uint32"; break;
+            case SilentPrimitives::int64: return "int64"; break;
+            case SilentPrimitives::uint64: return "uint64"; break;
+            case SilentPrimitives::float32: return "float32"; break;
+            case SilentPrimitives::float64: return "float64"; break;
+            case SilentPrimitives::string: return "string"; break;
+            case SilentPrimitives::pointer: return "pointer"; break;
+            default : return "null"; break;
+        }
+    }
+
+    void SilentIntCode::TransformExpression(SilentOperand &expression)
+    {
+        #if DEBUG
         std::cout << "Transforming expression\n";
-    #endif
+        #endif
 
-    switch(expression.type)
-    {
-        case SilentOperandType::Assign:
-            output += transformExpression(*expression.left);
-            output += transformExpression(*expression.right);
-            output += "=\n";
-        break;
-
-        case SilentOperandType::Add:
-            output += transformExpression(*expression.left);
-            output += transformExpression(*expression.right);
-            output += "+\n";
-        break;
-
-        case SilentOperandType::Subtract:
-            output += transformExpression(*expression.left);
-            output += transformExpression(*expression.right);
-            output += "-\n";
-        break;
-
-        case SilentOperandType::Multiply:
-            output += transformExpression(*expression.left);
-            output += transformExpression(*expression.right);
-            output += "*\n";
-        break;
-
-        case SilentOperandType::Divide:
-            output += transformExpression(*expression.left);
-            output += transformExpression(*expression.right);
-            output += "/\n";
-        break;
-
-        case SilentOperandType::Number:
-            output += "p " + expression.token->value+"\n";
-        break;
-
-        case SilentOperandType::Variable:
-            output += "l " + expression.variable->name+"\n";
-        break;
-
-        default:
-        break;
-    }
-
-    #if DEBUG
-        std::cout << "Done transforming expression\n";
-    #endif
-    return output;
-}
-
-std::string transformVariable(SilentVariable& var)
-{
-    std::string output = "";
-    #if DEBUG
-        std::cout << "Transforming variable:" << var.name << "\n";
-    #endif
-
-    currentIntNamespace += "::"+var.name;
-    output += "v " + var.name + " " + std::to_string(var.size) + "\n";
-
-    if(var.initialised) output += transformExpression(*var.expresion);
-
-    for(uint64 i = 0; i < var.name.length()+2; i++) currentIntNamespace.pop_back();
-
-    #if DEBUG
-        std::cout << "Done transforming variable:" << var.name << "\n";
-    #endif
-    return output;
-}
-
-std::string transformLocalScope(SilentLocalScope& scope)
-{
-    std::string output = "";
-    #if DEBUG
-        std::cout << "Transforming local scope\n";
-    #endif
-
-    uint64 currentVar = 0;
-
-    for(SilentStatement* statement : scope.statements)
-    {
-        switch(statement->type)
+        switch(expression.type)
         {
-            case SilentStatementType::VarInit:
-                output += transformVariable(*scope.variables[currentVar]);
-                currentVar++;
+            case SilentOperandType::Assign:
+                TransformExpression(*expression.left);
+                TransformExpression(*expression.right);
+                code += "=\n";
             break;
+
+            case SilentOperandType::Add:
+                TransformExpression(*expression.left);
+                TransformExpression(*expression.right);
+                code += "+\n";
+            break;
+
+            case SilentOperandType::Subtract:
+                TransformExpression(*expression.left);
+                TransformExpression(*expression.right);
+                code += "-\n";
+            break;
+
+            case SilentOperandType::Multiply:
+                TransformExpression(*expression.left);
+                TransformExpression(*expression.right);
+                code += "*\n";
+            break;
+
+            case SilentOperandType::Divide:
+                TransformExpression(*expression.left);
+                TransformExpression(*expression.right);
+                code += "/\n";
+            break;
+
+            case SilentOperandType::Number:
+                code += "p " + expression.token->value+"\n";
+            break;
+
+            case SilentOperandType::Variable:
+                code += "l " + expression.variable->name+"\n";
+            break;
+
             default:
-                std::cout << "default type parse\n";
             break;
         }
+
+        #if DEBUG
+            std::cout << "Done transforming expression\n";
+        #endif
     }
 
-    #if DEBUG
-        std::cout << "Done transforming local scope\n";
-    #endif
-    return output;
-}
-
-std::string transformFunction(SilentFunction& function)
-{
-    std::string output = "";
-    #if DEBUG
-        std::cout << "Transforming function:" << function.name << "\n";
-    #endif
-
-    output += "f " + function.name + "\n";
-
-    output += "a\n";
-    output += transformLocalScope(*function.parameters);
-    output += "e a\n";
-    output += transformLocalScope(*function.scope);
-    output += "e f " + function.name + "\n";
-
-    #if DEBUG
-        std::cout << "Done transforming function:" << function.name << "\n";
-    #endif
-    return output;
-}
-
-std::string transformStructure(SilentStructure& structure)
-{
-    std::string output = "";
-    #if DEBUG
-        std::cout << "Transforming structure:" << structure.name << "\n";
-    #endif
-
-    output += "s " + std::to_string(structure.size) + " " + structure.name + "\n";
-    output += transformLocalScope(*structure.variables);
-    output += "e s " + structure.name + "\n";
-
-    #if DEBUG
-        std::cout << "Done transforming structure:" << structure.name << "\n";
-    #endif
-    return output;
-}
-
-std::string transformNamespace(SilentNamespace& scope)
-{
-    std::string output = "";
-    #if DEBUG
-        std::cout << "Transforming namespace:" << scope.name << "\n";
-    #endif
-
-    currentIntNamespace += "::"+scope.name;
-    output += "n " + scope.name + "\n";
-
-    if(currentIntNamespace.length() == 0) currentIntNamespace = scope.name;
-
-    for(SilentNamespace* scope : scope.namespaces) 
-        output += transformNamespace(*scope);
-
-    for(SilentStructure* structure : scope.types) 
-        output += transformStructure(*structure);
-
-    for(SilentFunction* function : scope.functions)
-        output += transformFunction(*function);
-
-    for(uint64 i = 0; i < scope.name.length()+2; i++) 
+    void SilentIntCode::TransformVariable(SilentVariable &var)
     {
-        currentIntNamespace.pop_back();
-    };
+        #if DEBUG
+        std::cout << "Transforming variable:" << var.name << "\n";
+        #endif
 
-    output += "e n " + scope.name + "\n";
+        code += "v " + var.name + " " + std::to_string(var.size) + "\n";
 
-    #if DEBUG
-        std::cout << "Done transforming namespace:" << scope.name << "\n";
-    #endif
-    return output;
-}
+        //if(var.initialised) TransformExpression(*var.expression);
 
-// std::string Silent::SilentGenerateIntCode(SilentParserInfo* parsedCode)
-// {
-//     #if DEBUG
-//         std::cout << "Generating intermediate code...\n";
-//     #endif
+        #if DEBUG
+        std::cout << "Done transforming variable:" << var.name << "\n";
+        #endif
+    }
 
-//     std::string output = "goto main\n";
-
-//     output += transformNamespace(*parsedCode->globalNamespace);
-
-//     if(parsedCode->main != NULL)
-//     output += transformFunction(*parsedCode->main);
-
-//     #if DEBUG
-//         std::cout << "Done generating intermediate code...\n";
-//         std::cout << "Generated code:\n" << output;
-//     #endif
-//     return output;
-// }
-
-std::vector<std::string> splitString(std::string str, char splitChar)
-{
-
-    std::vector<std::string> output;
-    std::string buffer = "";
-
-    for(char& c : str)
+    void SilentIntCode::TransformLocalScope(SilentLocalScope &scope)
     {
-        if(c == splitChar)
+        #if DEBUG
+        std::cout << "Transforming local scope\n";
+        #endif
+
+        uint64 currentVar = 0;
+
+        for(SilentStatement* statement : scope.statements)
         {
-            output.push_back(buffer);
-            buffer.clear();
+            switch(statement->type)
+            {
+                case SilentStatementType::VarInit:
+                    TransformVariable(*scope.variables[currentVar]);
+                    currentVar++;
+                break;
+                default:
+                    std::cout << "default type parse\n";
+                break;
+            }
         }
-        buffer += c;
+
+        #if DEBUG
+        std::cout << "Done transforming local scope\n";
+        #endif
     }
-    return output;
+
+    void SilentIntCode::TransformFunction(SilentFunction &function)
+    {
+        #if DEBUG
+        std::cout << "Transforming function:" << function.name << "\n";
+        #endif
+
+        code += "f " + function.name + "\n";
+
+        code += "a\n";
+        TransformLocalScope(*function.parameters);
+        code += "e a\n";
+        TransformLocalScope(*function.scope);
+        code += "e f " + function.name + "\n";
+
+        #if DEBUG
+        std::cout << "Done transforming function:" << function.name << "\n";
+        #endif
+    }
+
+    void SilentIntCode::TransformStructure(SilentStructure &structure)
+    {
+        #if DEBUG
+        std::cout << "Transforming structure:" << structure.name << "\n";
+        #endif
+
+        code += "s " + std::to_string(structure.size) + " " + structure.name + "\n";
+        TransformLocalScope(*structure.variables);
+        code += "e s " + structure.name + "\n";
+
+        #if DEBUG
+        std::cout << "Done transforming structure:" << structure.name << "\n";
+        #endif
+    }
+
+    void SilentIntCode::TransformNamespace(SilentNamespace &scope)
+    {
+        #if DEBUG
+        std::cout << "Transforming namespace:" << scope.name << "\n";
+        #endif
+
+        code += "n " + scope.name + "\n";
+
+        for(SilentNamespace* scope : scope.namespaces) 
+            TransformNamespace(*scope);
+
+        for(SilentStructure* structure : scope.types) 
+            TransformStructure(*structure);
+
+        for(SilentFunction* function : scope.functions)
+            TransformFunction(*function);
+
+        code += "e n " + scope.name + "\n";
+
+        #if DEBUG
+        std::cout << "Done transforming namespace:" << scope.name << "\n";
+        #endif
+    }
+
+    std::vector<std::string> SilentIntCode::SplitString(
+        std::string str, char splitChar)
+    {
+        std::vector<std::string> output;
+        std::string buffer = "";
+
+        for(char& c : str)
+        {
+            if(c == splitChar)
+            {
+                output.push_back(buffer);
+                buffer.clear();
+            }
+            buffer += c;
+        }
+        return output;
+    }
 }

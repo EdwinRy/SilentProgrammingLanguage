@@ -42,7 +42,7 @@ void SilentCompiler::Compile(SilentCompileMode mode)
 
         //SilentParserInfo* parserOutput = SilentParse(tokenizer.GetTokens());
         //std::string intCode = SilentGenerateIntCode(parserOutput);
-        //writeAllText("package.spck", intCode.data());
+        writeAllText("package.si", codeGen.GetOutput());
         //this->libOutput = intCode;
         //this->output = SilentCompileAST(*parserOutput);
         //this->output = SilentGenerateAssembly(intCode->code);

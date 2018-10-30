@@ -29,8 +29,7 @@ namespace Silent
         string,
         pointer,
         null,
-        undefined,
-        structType
+        undefined
     };
 
     enum class SilentOperandType
@@ -77,7 +76,7 @@ namespace Silent
         unsigned long long size;
         unsigned long long localPos;
         std::string name;
-        SilentOperand* expresion;
+        //SilentOperand* expresion;
         SilentDataType type;
         bool initialised;
     }SilentVariable;
@@ -145,6 +144,7 @@ namespace Silent
             SilentIfStatement* ifStatement;
             SilentWhileLoop* whileLoop;
             SilentVariable* variable;
+            SilentOperand* expression;
         };
         
     }SilentStatement;
