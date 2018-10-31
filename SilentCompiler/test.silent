@@ -19,8 +19,9 @@ sampleText var1;
 
 func int8 meme(int8 swag, int16 memes)
 {
-    int8 y;
-    int8 x = 2 * (2 + 3);
+    int8 y = 5;
+    int16 x = 5;
+    //int8 x = 2 * (2 + 3);
 }
 func int16 kek();
 int32 x;

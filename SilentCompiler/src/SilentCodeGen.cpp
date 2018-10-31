@@ -14,9 +14,104 @@ typedef unsigned int uint32;
 
 namespace Silent
 {
-    void SilentCode::AddPush()
-    {
 
+    SilentVMType SilentCode::ToVMType(SilentPrimitives p)
+    {
+        switch(p)
+        {
+            case SilentPrimitives::int8: return SilentVMType::INT8; break;
+            case SilentPrimitives::uint8: return SilentVMType::UINT8; break;
+            case SilentPrimitives::int16: return SilentVMType::INT16; break;
+            case SilentPrimitives::uint16: return SilentVMType::UINT16; break;
+            case SilentPrimitives::int32: return SilentVMType::INT32; break;
+            case SilentPrimitives::uint32: return SilentVMType::UINT32; break;
+            case SilentPrimitives::int64: return SilentVMType::INT64; break;
+            case SilentPrimitives::uint64: return SilentVMType::UINT64; break;
+            case SilentPrimitives::float32: return SilentVMType::FLOAT32; break;
+            case SilentPrimitives::float64: return SilentVMType::FLOAT64; break;
+        }
+    }
+
+    SilentBytecode SilentCode::ToBytecodePush(SilentPrimitives p)
+    {
+        switch(p)
+        {
+            case SilentPrimitives::int8:
+            case SilentPrimitives::uint8: return SilentBytecode::Push1; break;
+            case SilentPrimitives::int16:
+            case SilentPrimitives::uint16: return SilentBytecode::Push2; break;
+            case SilentPrimitives::int32:
+            case SilentPrimitives::uint32: 
+            case SilentPrimitives::float32: return SilentBytecode::Push4; break;
+            case SilentPrimitives::int64:
+            case SilentPrimitives::uint64: 
+            case SilentPrimitives::float64: return SilentBytecode::Push8; break;
+        }
+    }
+
+    void SilentCode::AddData(SilentDataType dt, std::string val)
+    {
+        switch(dt.primitive)
+        {
+            case SilentPrimitives::int8:
+            AddNumber<char>(std::stoi(val,nullptr,10));break;
+            case SilentPrimitives::uint8:
+            AddNumber<unsigned char>(std::stoi(val,nullptr,10));break;
+            case SilentPrimitives::int16:
+            AddNumber<short>(std::stoi(val,nullptr,10));break;
+            case SilentPrimitives::uint16:
+            AddNumber<unsigned short>(std::stoi(val,nullptr,10));break;
+            case SilentPrimitives::int32:
+            AddNumber<int>(std::stol(val,nullptr,10));break;
+            case SilentPrimitives::uint32:
+            AddNumber<unsigned int>(std::stoul(val,nullptr,10));break;
+            case SilentPrimitives::int64:
+            AddNumber<long long>(std::stoll(val,nullptr,10));break;
+            case SilentPrimitives::uint64:
+            AddNumber<uint64>(std::stoull(val,nullptr,10));break;
+            case SilentPrimitives::float32:
+            AddNumber<float>(std::stof(val,nullptr));break;
+            case SilentPrimitives::float64:
+            AddNumber<long double>(std::stold(val,nullptr));break;
+            default: break;
+        }
+    }
+
+    SilentBytecode SilentCode::ToBytecodeLoad(SilentPrimitives p)
+    {
+        switch(p)
+        {
+            case SilentPrimitives::int8:
+            case SilentPrimitives::uint8: return SilentBytecode::Load1; break;
+            case SilentPrimitives::int16:
+            case SilentPrimitives::uint16: return SilentBytecode::Load2; break;
+            case SilentPrimitives::int32:
+            case SilentPrimitives::uint32: 
+            case SilentPrimitives::float32: return SilentBytecode::Load4; break;
+            case SilentPrimitives::int64:
+            case SilentPrimitives::uint64: 
+            case SilentPrimitives::float64: return SilentBytecode::Load8; break;
+        }
+    }
+
+    void SilentCode::AddPush(SilentDataType dt, std::string val)
+    {
+        if(dt.isPrimitive)
+        {
+            AddNumber<char>((char)ToBytecodePush(dt.primitive));
+            AddNumber<char>((char)ToVMType(dt.primitive));
+            AddData(dt, val);
+        }
+    }
+
+    void SilentCode::AddLoad(SilentDataType dt, uint64 localPos)
+    {
+        if(dt.isPrimitive)
+        {
+            AddNumber<char>((char)ToBytecodeLoad(dt.primitive));
+            AddNumber<char>((char)ToVMType(dt.primitive));
+            AddNumber<uint64>(localPos);
+        }
     }
 
     template<typename T>
@@ -26,14 +121,18 @@ namespace Silent
         memcpy(code.data() + code.size() - sizeof(T), &val, sizeof(T));
     }
 
-    void SilentCodeGenerator::Compile(SilentParser *parser)
+    std::string SilentCode::GetCode()
     {
-        // cp = 0;
-        // code = "";
-        // CompileNamespace(*parser->GetGlobalNamespace());
+        std::string str(code.begin(), code.end());
+        return str;
     }
 
-    //std::string SilentCodeGenerator::GetOutput() { return code; }
+    void SilentCodeGenerator::Compile(SilentParser *parser)
+    {
+        CompileNamespace(*parser->GetGlobalNamespace());
+    }
+
+    std::string SilentCodeGenerator::GetOutput() { return code.GetCode(); }
 
     std::string SilentCodeGenerator::GenScopeName(std::string id)
     {
@@ -59,7 +158,7 @@ namespace Silent
             case SilentOperandType::Assign:
                 currentType = 
                     expression.left->variable->type;
-                printf("Assignment of type %i\n",currentType.primitive);
+                printf("Assignment of type %i\n",(int)currentType.primitive);
             break;
 
             case SilentOperandType::Add:
@@ -76,128 +175,7 @@ namespace Silent
             break;
 
             case SilentOperandType::Number:
-                if(currentType.isPrimitive)
-                {
-                    switch(currentType.primitive)
-                    {
-                        case SilentPrimitives::int8:
-                        code.AddNumber<char>((char)SilentBytecode::Push1);  
-                        code.AddNumber<char>((char)SilentVMType::INT8);
-                        code.AddNumber<char>(
-                            std::stoi(expression.token->value,nullptr,10));
-                        break;
-
-                        case SilentPrimitives::uint8:
-                        // code += (char)SilentBytecode::Push1;
-                        // code += (char)SilentVMType::UINT8;
-                        // code += (unsigned char)
-                        //     std::stoi(expression.token->value,nullptr,10);
-                        break;
-
-                        case SilentPrimitives::int16:
-                        // code += (char)SilentBytecode::Push2;
-                        // code += (char)SilentVMType::INT16;
-                        // code += (short)
-                        //     std::stoi(expression.token->value,nullptr,10);
-                        break;
-                        case SilentPrimitives::uint16:
-                        // code += (char)SilentBytecode::Push2;
-                        // code += (char)SilentVMType::UINT16;
-                        // code += (unsigned short)
-                        //     std::stoi(expression.token->value,nullptr,10);
-                        break;
-
-                        case SilentPrimitives::int32:
-                        // code += (char)SilentBytecode::Push4;
-                        // code += (char)SilentVMType::INT32;
-                        // code += (int)
-                        //     std::stoi(expression.token->value,nullptr,10);
-                        break;
-
-                        case SilentPrimitives::uint32:
-                        // code += (char)SilentBytecode::Push4;
-                        // code += (char)SilentVMType::UINT32;
-                        // code += (unsigned int)
-                        //     std::stoi(expression.token->value,nullptr,10);
-                        break;
-
-                        case SilentPrimitives::int64:
-                        // code += (char)SilentBytecode::Push8;
-                        // code += (char)SilentVMType::INT64;
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        break;
-
-                        case SilentPrimitives::uint64:
-                        // code += (char)SilentBytecode::Push8;
-                        // code += (char)SilentVMType::UINT64;
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        break;
-
-                        case SilentPrimitives::float32:
-                        // code += (char)SilentBytecode::Push4;
-                        // code += (char)SilentVMType::FLOAT32;
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        break;
-
-                        case SilentPrimitives::float64:
-                        // code += (char)SilentBytecode::Push8;
-                        // code += (char)SilentVMType::FLOAT64;
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        break;
-
-                        case SilentPrimitives::string:
-                        // code += (char)SilentBytecode::Push8;
-                        // code += (char)SilentVMType::POINTER;
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        break;
-
-                        case SilentPrimitives::pointer:
-                        // code += (char)SilentBytecode::Push8;
-                        // code += (char)SilentVMType::POINTER;
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        // code += '\0';
-                        break;
-
-                        default: break;
-                    }
-                }
+                code.AddPush(currentType, expression.token->value);
             break;
 
             default: break;
@@ -280,23 +258,20 @@ namespace Silent
                         code.AddNumber<double>(0);
                         break;
 
-                        case SilentPrimitives::string:
-                        break;
-
-                        case SilentPrimitives::pointer:
-                        break;
-
                         default: break;
                     }
                 }
                 else
                 {
-
+            
                 }
             break;
 
             case SilentStatementType::Expression:
                 CompileExpression(*statement.expression);
+            break;
+
+            case SilentStatementType::If:
             break;
 
             default: break;

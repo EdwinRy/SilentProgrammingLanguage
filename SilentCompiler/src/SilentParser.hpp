@@ -177,7 +177,10 @@ namespace Silent
         bool IsPrimitive(std::string name);
         bool IsValidType(std::string name);
         uint64 GetLocalPos(SilentLocalScope &scope);
+        SilentVariable* GetLocalVariable(
+            SilentLocalScope &scope, std::string name);
         void NextToken();
+        SilentToken PeakToken();
         bool AcceptToken(SilentTokenType type);
         bool ExpectToken(SilentTokenType type, std::string msg);
         SilentOperand* ParseFactor();

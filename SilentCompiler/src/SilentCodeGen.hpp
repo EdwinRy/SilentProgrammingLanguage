@@ -89,11 +89,17 @@ namespace Silent
     class SilentCode
     {
         public:
-        void AddPush();
+        void AddPush(SilentDataType dt, std::string val);
+        void AddLoad(SilentDataType dt, uint64 localPos);
         template<typename T>
         void AddNumber(T val);
+        std::string GetCode();
 
         private:
+        void AddData(SilentDataType dt, std::string val);
+        SilentBytecode ToBytecodePush(SilentPrimitives p);
+        SilentBytecode ToBytecodeLoad(SilentPrimitives p);
+        SilentVMType ToVMType(SilentPrimitives p);
         std::vector<char> code;
     };
 
@@ -114,9 +120,7 @@ namespace Silent
         std::vector<SilentNamespace*> namespaces;
         std::unordered_map<std::string, uint64> symTable;
         std::string currentFunction;
-        //std::string code;
         SilentCode code;
         SilentDataType currentType;
-        uint64 cp; //code pointer
     };
 }

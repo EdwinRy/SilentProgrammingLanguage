@@ -221,10 +221,22 @@ namespace Silent
 
     uint64 SilentParser::GetLocalPos(SilentLocalScope &scope)
     {
-        //uint64 scopeSize = scope.variables.size();
-        uint64 localPos = 0;
-        for(auto& var : scope.variables) localPos += var->size;
-        return localPos;
+        if(scope.variables.size() > 0)
+        {
+            SilentVariable* lastVar = scope.variables.back();
+            return lastVar->localPos + lastVar->size;
+        }
+        else return 0;
+    }
+
+    SilentVariable* SilentParser::GetLocalVariable(
+        SilentLocalScope &scope, std::string name)
+    {
+        for(SilentVariable* var : scope.variables)
+        {
+            if(var->name == name) return var;
+        }
+        return NULL;
     }
 
     void SilentParser::NextToken()
@@ -232,6 +244,11 @@ namespace Silent
         tokenCursor++;
         if(tokenCursor == tokensPtr->size()) tokenCursor--;
         ct = (*tokensPtr)[tokenCursor];
+    }
+
+    SilentToken SilentParser::PeakToken()
+    {
+        return (*tokensPtr)[tokenCursor+1];
     }
 
     bool SilentParser::AcceptToken(SilentTokenType type)
@@ -372,6 +389,10 @@ namespace Silent
         var->localPos = GetLocalPos(scope);
 
         NextToken();
+        if(GetLocalVariable(scope, ct.value)!=NULL)
+        {
+            ErrorMsg("Redefinition of variable: " + ct.value);
+        }
         var->name = ct.value;
         NextToken();
 
@@ -402,14 +423,6 @@ namespace Silent
                 statement->type = SilentStatementType::Expression;
 
                 NextToken();
-                //var->expresion = new SilentOperand();
-                //var->expresion->type = SilentOperandType::Assign;
-                //var->expresion->left = new SilentOperand();
-                //var->expresion->left->type = SilentOperandType::Variable;
-                //var->expresion->left->variable = var;
-                //var->expresion->right = ParseExpression();
-
-                //statement->expression = var->expresion;
                 statement->expression = new SilentOperand();
                 statement->expression->type = SilentOperandType::Assign;
                 statement->expression->left = new SilentOperand();
@@ -549,9 +562,21 @@ namespace Silent
         {
             switch(ct.type)
             {
-                case SilentTokenType::Identifier:
                 case SilentTokenType::Primitive:
                 {
+                    SilentStatement* statement = new SilentStatement();
+                    statement->type = SilentStatementType::VarInit;
+                    localScope->statements.push_back(statement);
+
+                    SilentVariable* var = 
+                        ParseVariable(*localScope, false, true);
+
+                    statement->variable = var;
+                    localScope->variables.push_back(var);
+                }
+                break;
+
+                case SilentTokenType::Identifier:
                     if(IsValidType(ct.value))
                     {
                         SilentStatement* statement = new SilentStatement();
@@ -566,14 +591,14 @@ namespace Silent
                     }
                     else
                     {
-                        
+                        SilentVariable* var = GetLocalVariable(
+                            *localScope, PeakToken().value);
                     }
-                    
-                }
                 break;
 
                 default:
                     ErrorMsg("Unexpected token in the local scope");
+                    NextToken();
                 break;
 
                 //Add other statements
