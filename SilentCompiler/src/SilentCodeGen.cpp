@@ -194,77 +194,7 @@ namespace Silent
         switch(statement.type)
         {
             case SilentStatementType::VarInit:
-                if(statement.variable->type.isPrimitive)
-                {
-                    switch(statement.variable->type.primitive)
-                    {
-                        case SilentPrimitives::int8:
-                        code.AddNumber<char>((char)SilentBytecode::Push1);  
-                        code.AddNumber<char>((char)SilentVMType::INT8);
-                        code.AddNumber<char>(0);
-                        break;
-
-                        case SilentPrimitives::uint8:
-                        code.AddNumber<char>((char)SilentBytecode::Push1);  
-                        code.AddNumber<char>((char)SilentVMType::UINT8);
-                        code.AddNumber<char>(0);
-                        break;
-
-                        case SilentPrimitives::int16:
-                        code.AddNumber<char>((char)SilentBytecode::Push2);  
-                        code.AddNumber<char>((char)SilentVMType::INT16);
-                        code.AddNumber<short>(0);
-                        break;
-
-                        case SilentPrimitives::uint16:
-                        code.AddNumber<char>((char)SilentBytecode::Push2);  
-                        code.AddNumber<char>((char)SilentVMType::UINT16);
-                        code.AddNumber<short>(0);
-                        break;
-
-                        case SilentPrimitives::int32:
-                        code.AddNumber<char>((char)SilentBytecode::Push4);  
-                        code.AddNumber<char>((char)SilentVMType::INT32);
-                        code.AddNumber<int>(0);
-                        break;
-
-                        case SilentPrimitives::uint32:
-                        code.AddNumber<char>((char)SilentBytecode::Push4);  
-                        code.AddNumber<char>((char)SilentVMType::UINT32);
-                        code.AddNumber<int>(0);
-                        break;
-
-                        case SilentPrimitives::int64:
-                        code.AddNumber<char>((char)SilentBytecode::Push8);  
-                        code.AddNumber<char>((char)SilentVMType::INT64);
-                        code.AddNumber<long long>(0);
-                        break;
-
-                        case SilentPrimitives::uint64:
-                        code.AddNumber<char>((char)SilentBytecode::Push8);  
-                        code.AddNumber<char>((char)SilentVMType::UINT64);
-                        code.AddNumber<long long>(0);
-                        break;
-
-                        case SilentPrimitives::float32:
-                        code.AddNumber<char>((char)SilentBytecode::Push4);  
-                        code.AddNumber<char>((char)SilentVMType::INT64);
-                        code.AddNumber<float>(0);
-                        break;
-
-                        case SilentPrimitives::float64:
-                        code.AddNumber<char>((char)SilentBytecode::Push4);  
-                        code.AddNumber<char>((char)SilentVMType::INT64);
-                        code.AddNumber<double>(0);
-                        break;
-
-                        default: break;
-                    }
-                }
-                else
-                {
-            
-                }
+                code.AddPush(statement.variable->type,"\0");
             break;
 
             case SilentStatementType::Expression:

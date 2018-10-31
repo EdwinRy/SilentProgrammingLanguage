@@ -342,28 +342,45 @@ namespace Silent
         SilentOperand* temp;
         operand->left = ParseTerm();
 
-        while(true)
+        bool parsingExpression = true;
+        while(parsingExpression)
         {
-            if(AcceptToken(SilentTokenType::Add))
+            switch(ct.type)
             {
-                operand->type = SilentOperandType::Add;
-                NextToken();
-                operand->right = ParseTerm();
-                temp = operand;
-                operand = new SilentOperand();
-                operand->left = temp;
+                case SilentTokenType::Assign:
+                    operand->type = SilentOperandType::Assign;
+                    NextToken();
+                    operand->right = ParseTerm();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                break;
                 
+                case SilentTokenType::Add:
+                {
+                    operand->type = SilentOperandType::Add;
+                    NextToken();
+                    operand->right = ParseTerm();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+
+                case SilentTokenType::Subtract:
+                {
+                    operand->type = SilentOperandType::Subtract;
+                    NextToken();
+                    operand->right = ParseTerm();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+
+                default: parsingExpression = false; break;
+
             }
-            else if(AcceptToken(SilentTokenType::Subtract))
-            {
-                operand->type = SilentOperandType::Subtract;
-                NextToken();
-                operand->right = ParseTerm();
-                temp = operand;
-                operand = new SilentOperand();
-                operand->left = temp;
-            }
-            else break;
         }
         temp = operand->left;
         return temp;
@@ -593,6 +610,12 @@ namespace Silent
                     {
                         SilentVariable* var = GetLocalVariable(
                             *localScope, PeakToken().value);
+                        if(var == NULL) ErrorMsg("Use of invalid type");
+                        //NextToken();
+                        SilentStatement* statement = new SilentStatement();
+                        statement->type = SilentStatementType::Expression;
+                        statement->expression = ParseExpression(); 
+                        localScope->statements.push_back(statement);
                     }
                 break;
 
