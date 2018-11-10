@@ -17,36 +17,29 @@ namespace Silent
 
     SilentVMType SilentCode::ToVMType(SilentPrimitives p)
     {
-        switch(p)
-        {
-            case SilentPrimitives::int8: return SilentVMType::INT8; break;
-            case SilentPrimitives::uint8: return SilentVMType::UINT8; break;
-            case SilentPrimitives::int16: return SilentVMType::INT16; break;
-            case SilentPrimitives::uint16: return SilentVMType::UINT16; break;
-            case SilentPrimitives::int32: return SilentVMType::INT32; break;
-            case SilentPrimitives::uint32: return SilentVMType::UINT32; break;
-            case SilentPrimitives::int64: return SilentVMType::INT64; break;
-            case SilentPrimitives::uint64: return SilentVMType::UINT64; break;
-            case SilentPrimitives::float32: return SilentVMType::FLOAT32; break;
-            case SilentPrimitives::float64: return SilentVMType::FLOAT64; break;
-        }
+        if(char(p) < 10) return (SilentVMType)p;
+        else return SilentVMType::INT32;
     }
 
-    SilentBytecode SilentCode::ToBytecodePush(SilentPrimitives p)
+    SilentBytecode SilentCode::ToBytecode(
+        SilentPrimitives p, SilentBytecode base)
     {
+        char index;
         switch(p)
         {
             case SilentPrimitives::int8:
-            case SilentPrimitives::uint8: return SilentBytecode::Push1; break;
+            case SilentPrimitives::uint8: index = 0; break;
             case SilentPrimitives::int16:
-            case SilentPrimitives::uint16: return SilentBytecode::Push2; break;
+            case SilentPrimitives::uint16: index = 1; break;
             case SilentPrimitives::int32:
             case SilentPrimitives::uint32: 
-            case SilentPrimitives::float32: return SilentBytecode::Push4; break;
+            case SilentPrimitives::float32: index = 2; break;
             case SilentPrimitives::int64:
             case SilentPrimitives::uint64: 
-            case SilentPrimitives::float64: return SilentBytecode::Push8; break;
+            case SilentPrimitives::float64: index = 3; break;
+            default: index = 2; break;
         }
+        return (SilentBytecode)((char)base+index);
     }
 
     void SilentCode::AddData(SilentDataType dt, std::string val)
@@ -77,28 +70,13 @@ namespace Silent
         }
     }
 
-    SilentBytecode SilentCode::ToBytecodeLoad(SilentPrimitives p)
-    {
-        switch(p)
-        {
-            case SilentPrimitives::int8:
-            case SilentPrimitives::uint8: return SilentBytecode::Load1; break;
-            case SilentPrimitives::int16:
-            case SilentPrimitives::uint16: return SilentBytecode::Load2; break;
-            case SilentPrimitives::int32:
-            case SilentPrimitives::uint32: 
-            case SilentPrimitives::float32: return SilentBytecode::Load4; break;
-            case SilentPrimitives::int64:
-            case SilentPrimitives::uint64: 
-            case SilentPrimitives::float64: return SilentBytecode::Load8; break;
-        }
-    }
-
     void SilentCode::AddPush(SilentDataType dt, std::string val)
     {
         if(dt.isPrimitive)
         {
-            AddNumber<char>((char)ToBytecodePush(dt.primitive));
+            // AddNumber<char>((char)ToBytecodePush(dt.primitive));
+            AddNumber<char>(
+                (char)ToBytecode(dt.primitive,SilentBytecode::Push1));
             AddNumber<char>((char)ToVMType(dt.primitive));
             AddData(dt, val);
         }
@@ -108,8 +86,21 @@ namespace Silent
     {
         if(dt.isPrimitive)
         {
-            AddNumber<char>((char)ToBytecodeLoad(dt.primitive));
+            AddNumber<char>(
+                (char)ToBytecode(dt.primitive,SilentBytecode::Load1)
+            );
             AddNumber<char>((char)ToVMType(dt.primitive));
+            AddNumber<uint64>(localPos);
+        }
+    }
+
+    void SilentCode::AddStore(SilentDataType dt, uint64 localPos)
+    {
+        if(dt.isPrimitive)
+        {
+            AddNumber<char>(
+                (char)ToBytecode(dt.primitive,SilentBytecode::Store1)
+            );
             AddNumber<uint64>(localPos);
         }
     }
@@ -159,23 +150,47 @@ namespace Silent
                 currentType = 
                     expression.left->variable->type;
                 printf("Assignment of type %i\n",(int)currentType.primitive);
+                CompileExpression(*expression.right);
+                code.AddStore(currentType,expression.left->variable->localPos);
             break;
 
             case SilentOperandType::Add:
-
+                printf("Addition\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::Add);
             break;
 
             case SilentOperandType::Subtract:
+                printf("Subtraction\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::Sub);
             break;
 
             case SilentOperandType::Multiply:
+                printf("Multiplication\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::Mul);
             break;
 
             case SilentOperandType::Divide:
+                printf("Division\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::Div);
             break;
 
             case SilentOperandType::Number:
                 code.AddPush(currentType, expression.token->value);
+            break;
+
+            case SilentOperandType::Variable:
+                printf("GOT A VARIABLE IN COMPILING %s\n", 
+                    expression.variable->name.data());
+                code.AddLoad(expression.variable->type,
+                    expression.variable->localPos);
             break;
 
             default: break;
@@ -194,7 +209,7 @@ namespace Silent
         switch(statement.type)
         {
             case SilentStatementType::VarInit:
-                code.AddPush(statement.variable->type,"\0");
+                code.AddPush(statement.variable->type,"0");
             break;
 
             case SilentStatementType::Expression:

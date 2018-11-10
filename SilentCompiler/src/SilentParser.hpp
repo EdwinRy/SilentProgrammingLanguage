@@ -93,12 +93,8 @@ namespace Silent
     {
         std::vector<SilentVariable*> variables;
         std::vector<SilentStatement*> statements;
-        bool usesScopeParent;
-        union
-        {
-            SilentLocalScope* scopeParent;
-            SilentNamespace* namespaceParent;
-        };
+        bool hasParent;
+        SilentLocalScope* scopeParent;
     }SilentLocalScope;
 
     typedef struct SilentFunction
@@ -157,6 +153,7 @@ namespace Silent
         std::vector<SilentStructure*> types;
         SilentLocalScope* globals;
         std::string name;
+        uint64 globalPos;
     }SilentNamespace;
 
     class SilentParser
@@ -179,25 +176,29 @@ namespace Silent
         uint64 GetLocalPos(SilentLocalScope &scope);
         SilentVariable* GetLocalVariable(
             SilentLocalScope &scope, std::string name);
+        SilentVariable* GetVariable(std::string name);
         void NextToken();
+        void PreviousToken();
         SilentToken PeakToken();
         bool AcceptToken(SilentTokenType type);
         bool ExpectToken(SilentTokenType type, std::string msg);
         SilentOperand* ParseFactor();
         SilentOperand* ParseTerm();
-        SilentOperand* ParseExpression();
-        //SilentStatement* ParseStatement(SilentLocalScope &scope);
+        SilentOperand* ParseSum();
+        SilentOperand* ParseExpression(); 
+        SilentStatement* ParseStatement(SilentLocalScope &scope);
         SilentVariable* ParseVariable(
             SilentLocalScope &scope, bool init, bool expectEnd);
         SilentStructure* ParseStruct(SilentNamespace &scope);
-        SilentLocalScope* ParseParameters(SilentNamespace &scope);
-        SilentLocalScope* ParseLocalScope(SilentNamespace &scope);
+        SilentLocalScope* ParseParameters();
+        void ParseLocalScope(SilentLocalScope &scope);
         SilentFunction* ParseFunction(SilentNamespace& scope);
         SilentNamespace* ParseNamespace(SilentNamespace &scope);
 
         SilentNamespace* globalNamespace;
         SilentToken ct; //Current token
         uint64 tokenCursor;
+        uint64 globalVarPointer;
         std::vector<SilentNamespace*> accessibleNamespaces;
         std::vector<Silent::SilentToken> *tokensPtr;
 

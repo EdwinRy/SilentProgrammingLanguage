@@ -9,7 +9,7 @@ namespace Silent
         #if DEBUG
         std::cout << "Cleaning variable:" << variable->name << "\n";
         #endif
-        if(variable != NULL) free(variable);
+        //if(variable != NULL) free(variable);
         #if DEBUG
         std::cout << "Done cleaning variable:" << variable->name << "\n";
         #endif
@@ -19,10 +19,10 @@ namespace Silent
         #if DEBUG
         std::cout << "Cleaning local scope\n";
         #endif
-        for(SilentVariable* var : scope->variables) FreeVariable(var);
-        //for(SilentStatement* statement : scope->statements)
-        //freeStatement(statement);
-        free(scope);
+        // for(SilentVariable* var : scope->variables) FreeVariable(var);
+        // //for(SilentStatement* statement : scope->statements)
+        // //freeStatement(statement);
+        // free(scope);
         #if DEBUG
         std::cout << "Done cleaning local scope\n";
         #endif

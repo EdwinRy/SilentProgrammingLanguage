@@ -54,17 +54,20 @@ namespace Silent
         Free,
         GetPtr,
         Add,
-        Sub,	
-        Mul,	
+        Sub,
+        Mul,
         Div,
         Convert,
         SmallerThan,
+        SmallerThanOrEqual,
         LargerThan,
+        LargerThanOrEqual,
         Equal,
         If,
         IfNot,
         And,
         Or,
+        Xor,
         Not
     };
 
@@ -91,14 +94,14 @@ namespace Silent
         public:
         void AddPush(SilentDataType dt, std::string val);
         void AddLoad(SilentDataType dt, uint64 localPos);
+        void AddStore(SilentDataType dt, uint64 localPos);
         template<typename T>
         void AddNumber(T val);
         std::string GetCode();
 
         private:
         void AddData(SilentDataType dt, std::string val);
-        SilentBytecode ToBytecodePush(SilentPrimitives p);
-        SilentBytecode ToBytecodeLoad(SilentPrimitives p);
+        SilentBytecode ToBytecode(SilentPrimitives p, SilentBytecode base);
         SilentVMType ToVMType(SilentPrimitives p);
         std::vector<char> code;
     };

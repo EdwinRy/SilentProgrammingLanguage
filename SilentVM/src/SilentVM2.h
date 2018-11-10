@@ -17,13 +17,6 @@ typedef enum SilentBytecode
 	FreeDll,
 	CallDllFunc,
 
-	// Push,
-	// Pop,
-	// Store,
-	// Load,
-	// StoreGlobal,
-	// LoadGlobal,
-
 	Push1,
 	Push2,
 	Push4,
@@ -61,17 +54,20 @@ typedef enum SilentBytecode
 	Free,
 	GetPtr,
 	Add,
-	Sub,	
-	Mul,	
+	Sub,
+	Mul,
 	Div,
 	Convert,
 	SmallerThan,
+	SmallerThanOrEqual,
 	LargerThan,
+	LargerThanOrEqual,
 	Equal,
 	If,
 	IfNot,
 	And,
 	Or,
+	Xor,
 	Not
 }SilentBytecode;
 

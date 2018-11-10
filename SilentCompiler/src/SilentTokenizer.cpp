@@ -115,24 +115,116 @@ namespace Silent
                     token.value = ",";
                 break;
                 case '=':
-                    token.type = SilentTokenType::Assign;
-                    token.value = "=";
+                    if(source[i+1] == '=')
+                    {
+                        i++;
+                        token.type = SilentTokenType::Equal;
+                        token.value = "==";
+                    }
+                    else
+                    {
+                        token.type = SilentTokenType::Assign;
+                        token.value = "=";
+                    }
+                break;
+                case '&':
+                    token.type = SilentTokenType::And;
+                    token.value = "&";
+                break;
+                case '|':
+                    token.type = SilentTokenType::Or;
+                    token.value = "|";
+                break;
+                case '!':
+                    if(source[i+1] == '=')
+                    {
+                        i++;
+                        token.type = SilentTokenType::NotEqual;
+                        token.value = "!=";
+                    }
+                    else
+                    {
+                        token.type = SilentTokenType::Not;
+                        token.value = "!";
+                    }
                 break;
                 case '+':
-                    token.type = SilentTokenType::Add;
-                    token.value = "+";
+                    if(source[i+1] == '=')
+                    {
+                        i++;
+                        token.type = SilentTokenType::AddAssign;
+                        token.value = "+=";
+                    }
+                    else
+                    {
+                        token.type = SilentTokenType::Add;
+                        token.value = "+";
+                    }
                 break;
                 case '-':
-                    token.type = SilentTokenType::Subtract;
-                    token.value = "-";
+                    if(source[i+1] == '=')
+                    {
+                        i++;
+                        token.type = SilentTokenType::SubtractAssign;
+                        token.value = "-=";
+                    }
+                    else
+                    {
+                        token.type = SilentTokenType::Subtract;
+                        token.value = "-";
+                    }
                 break;
                 case '*':
-                    token.type = SilentTokenType::Multiply;
-                    token.value = "*";
+                    if(source[i+1] == '=')
+                    {
+                        i++;
+                        token.type = SilentTokenType::MultiplyAssign;
+                        token.value = "*=";
+                    }
+                    else
+                    {
+                        token.type = SilentTokenType::Multiply;
+                        token.value = "*";
+                    }
                 break;
                 case '/':
-                    token.type = SilentTokenType::Divide;
-                    token.value = "/";
+                    if(source[i+1] == '=')
+                    {
+                        i++;
+                        token.type = SilentTokenType::DivideAssign;
+                        token.value = "/=";
+                    }
+                    else
+                    {
+                        token.type = SilentTokenType::Divide;
+                        token.value = "/";
+                    }
+                break;
+                case '<':
+                    if(source[i+1] == '=')
+                    {
+                        i++;
+                        token.type = SilentTokenType::SmallerOrEqual;
+                        token.value = "<=";
+                    }
+                    else
+                    {
+                        token.type = SilentTokenType::Smaller;
+                        token.value = "<";
+                    }
+                break;
+                case '>':
+                    if(source[i+1] == '=')
+                    {
+                        i++;
+                        token.type = SilentTokenType::LargerOrEqual;
+                        token.value = ">=";
+                    }
+                    else
+                    {
+                        token.type = SilentTokenType::Larger;
+                        token.value = ">";
+                    }
                 break;
                 case '(':
                     token.type = SilentTokenType::OpenParam;
@@ -179,6 +271,14 @@ namespace Silent
                         if(token.value == "func")
                         {
                             token.type = SilentTokenType::Function;
+                        }
+                        else if(token.value == "if")
+                        {
+                            token.type = SilentTokenType::If;
+                        }
+                        else if(token.value == "while")
+                        {
+                            token.type = SilentTokenType::While;
                         }
                         else if(token.value == "struct")
                         {
