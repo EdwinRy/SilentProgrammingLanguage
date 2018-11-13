@@ -63,6 +63,7 @@ typedef enum SilentBytecode
 	LargerThan,
 	LargerThanOrEqual,
 	Equal,
+	NotEqual,
 	If,
 	IfNot,
 	And,

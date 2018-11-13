@@ -39,7 +39,17 @@ namespace Silent
         Subtract,
         Multiply,
         Divide,
-        FunctionCall,
+        Equal,
+        NotEqual,
+        Larger,
+        LargerOrEqual,
+        Smaller,
+        SmallerOrEqual,
+        And,
+        Or,
+        Xor,
+        Not,
+        FunctionCall,  
         Number,
         String,
         Variable
@@ -47,9 +57,11 @@ namespace Silent
 
     enum class SilentExpressionType
     {
-        arithmetic,
-        logical,
-        memory
+        Arithmetic,
+        Logical,
+        Comparison,
+        Data,
+        Memory
     };
 
     typedef struct SilentVariable SilentVariable;
@@ -99,8 +111,10 @@ namespace Silent
 
     typedef struct SilentFunction
     {
-        SilentLocalScope* parameters;
+        //SilentLocalScope* parameters;
         SilentLocalScope* scope;
+        uint64 parameterCount;
+        uint64 parameterSize;
         std::string name;
         unsigned long long returnTypePtr;
         unsigned long long returnSize;
@@ -110,6 +124,7 @@ namespace Silent
 
     typedef struct SilentOperand
     {
+        SilentExpressionType expressionType;
         SilentOperandType type;
         SilentOperand *left, *right;
         union
@@ -164,27 +179,34 @@ namespace Silent
         SilentNamespace* GetGlobalNamespace();
 
         private:
+
         void ErrorMsg(std::string msg);
+
         SilentNamespace* GetNamespace(std::string name);
         SilentStructure* GetStructure(std::string name);
         SilentDataType GetType(std::string name);
         SilentFunction* GetLocalFunction(std::string name);
         SilentFunction* GetFunction(std::string name);
         uint64 GetTypeSize(std::string name);
-        bool IsPrimitive(std::string name);
-        bool IsValidType(std::string name);
         uint64 GetLocalPos(SilentLocalScope &scope);
         SilentVariable* GetLocalVariable(
             SilentLocalScope &scope, std::string name);
         SilentVariable* GetVariable(std::string name);
+
+        bool IsPrimitive(std::string name);
+        bool IsValidType(std::string name);
+
         void NextToken();
         void PreviousToken();
         SilentToken PeakToken();
         bool AcceptToken(SilentTokenType type);
         bool ExpectToken(SilentTokenType type, std::string msg);
+        
         SilentOperand* ParseFactor();
         SilentOperand* ParseTerm();
         SilentOperand* ParseSum();
+        SilentOperand* ParseLogic();
+        SilentOperand* ParseComparison();
         SilentOperand* ParseExpression(); 
         SilentStatement* ParseStatement(SilentLocalScope &scope);
         SilentVariable* ParseVariable(
@@ -192,6 +214,7 @@ namespace Silent
         SilentStructure* ParseStruct(SilentNamespace &scope);
         SilentLocalScope* ParseParameters();
         void ParseLocalScope(SilentLocalScope &scope);
+        void ParseIfStatement(SilentLocalScope &scope);
         SilentFunction* ParseFunction(SilentNamespace& scope);
         SilentNamespace* ParseNamespace(SilentNamespace &scope);
 

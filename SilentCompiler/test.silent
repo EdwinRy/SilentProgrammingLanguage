@@ -21,7 +21,7 @@ func int8 meme(int8 swag)
 {
     int8 x = 5;
     int8 y = 6;
-    y = x + 6;
+    y = x + 6 | 5;
 }
 
 func int16 kek();

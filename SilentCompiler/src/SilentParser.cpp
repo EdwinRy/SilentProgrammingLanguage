@@ -200,40 +200,6 @@ namespace Silent
         return -1;
     }
 
-    bool SilentParser::IsPrimitive(std::string name)
-    {
-        if(name == "int8") return true;
-        else if(name == "uint8") return true;
-        else if(name == "int16") return true;
-        else if(name == "uint16") return true;
-        else if(name == "int32") return true;
-        else if(name == "uint32") return true;
-        else if(name == "int64") return true;
-        else if(name == "uint64") return true;
-        else if(name == "float32") return true;
-        else if(name == "float64") return true;
-        else if(name == "string") return true;
-        else if(name == "pointer") return true;
-        else if(name == "void") return true;
-        else return false;
-    }
-
-    bool SilentParser::IsValidType(std::string name)
-    {
-        if(IsPrimitive(name)) return true;
-        else
-        {
-            for(SilentNamespace* scope : accessibleNamespaces)
-            {
-                for(Silent::SilentStructure* structure : scope->types)
-                {
-                    if(structure->name == name) return true;
-                }
-            }
-            return false;
-        }
-    }
-
     uint64 SilentParser::GetLocalPos(SilentLocalScope &scope)
     {
         if(scope.variables.size() > 0)
@@ -271,6 +237,42 @@ namespace Silent
         return NULL;
     }
 
+    bool SilentParser::IsPrimitive(std::string name)
+    {
+        if(name == "int8") return true;
+        else if(name == "uint8") return true;
+        else if(name == "int16") return true;
+        else if(name == "uint16") return true;
+        else if(name == "int32") return true;
+        else if(name == "uint32") return true;
+        else if(name == "int64") return true;
+        else if(name == "uint64") return true;
+        else if(name == "float32") return true;
+        else if(name == "float64") return true;
+        else if(name == "string") return true;
+        else if(name == "pointer") return true;
+        else if(name == "void") return true;
+        else return false;
+    }
+
+    bool SilentParser::IsValidType(std::string name)
+    {
+        if(IsPrimitive(name)) return true;
+        else
+        {
+            for(SilentNamespace* scope : accessibleNamespaces)
+            {
+                for(Silent::SilentStructure* structure : scope->types)
+                {
+                    if(structure->name == name) return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    
+
     void SilentParser::NextToken()
     {
         tokenCursor++;
@@ -302,44 +304,58 @@ namespace Silent
         return false;
     }
 
+
     SilentOperand* SilentParser::ParseFactor()
     {
         #if DEBUG
         std::cout << ct.value.data() << "\n";
         #endif
 
-        if(AcceptToken(SilentTokenType::Number))
+        switch(ct.type)
         {
-            SilentOperand* operand = new SilentOperand();
-            operand->type = SilentOperandType::Number;
-            operand->token = new SilentToken;
-            *(operand->token) = ct;
-            NextToken();
-            return operand;
+            case SilentTokenType::Number:
+            {
+                SilentOperand* operand = new SilentOperand();
+                operand->expressionType = SilentExpressionType::Data;
+                operand->type = SilentOperandType::Number;
+                operand->token = new SilentToken;
+                *(operand->token) = ct;
+                NextToken();
+                return operand;
+            }
+            break;
+
+            case SilentTokenType::Identifier:
+            {
+                SilentOperand* operand = new SilentOperand();
+                operand->type = SilentOperandType::Variable;
+                operand->expressionType = SilentExpressionType::Data;
+                operand->variable = GetVariable(ct.value);
+                if(operand->variable == NULL) 
+                    ErrorMsg("Use of undeclared variable");
+                //printf("GOTTEN VARIABLE %S\n",operand->variable->name.data());
+                //operand->variable = GetLocalVariable()
+                NextToken();
+                return operand;
+            }
+            break;
+
+            case SilentTokenType::OpenParam:
+            {
+                NextToken();
+                SilentOperand* operand = ParseExpression();
+                ExpectToken(SilentTokenType::CloseParam, "Expected token ')'");
+                NextToken();
+                return operand;
+            }
+            break;
+
+            default:
+                ErrorMsg("Syntax Error");
+                NextToken();
+                return NULL;
+            break;
         }
-        else if(AcceptToken(SilentTokenType::Identifier))
-        {
-            SilentOperand* operand = new SilentOperand();
-            operand->type = SilentOperandType::Variable;
-            operand->variable = GetVariable(ct.value);
-            if(operand->variable == NULL) 
-                ErrorMsg("Use of undeclared variable");
-            //printf("GOTTEN VARIABLE %S\n",operand->variable->name.data());
-            //operand->variable = GetLocalVariable()
-            NextToken();
-            return operand;
-        }
-        else if(AcceptToken(SilentTokenType::OpenParam))
-        {
-            NextToken();
-            SilentOperand* operand = ParseExpression();
-            ExpectToken(SilentTokenType::CloseParam, "Expected token ')'");
-            NextToken();
-            return operand;
-        }
-        ErrorMsg("Syntax Error");
-        NextToken();
-        return NULL;
     }
 
     SilentOperand* SilentParser::ParseTerm()
@@ -353,6 +369,7 @@ namespace Silent
             if(AcceptToken(SilentTokenType::Multiply))
             {
                 operand->type = SilentOperandType::Multiply;
+                operand->expressionType = SilentExpressionType::Arithmetic;
                 NextToken();
                 operand->right = ParseFactor();
                 temp = operand;
@@ -362,6 +379,7 @@ namespace Silent
             else if(AcceptToken(SilentTokenType::Divide))
             {
                 operand->type = SilentOperandType::Divide;
+                operand->expressionType = SilentExpressionType::Arithmetic;
                 NextToken();
                 operand->right = ParseFactor();
                 temp = operand;
@@ -376,11 +394,13 @@ namespace Silent
 
     SilentOperant* SilentParser::ParseSum()
     {
-        if(AcceptToken(SilentTokenType::Add) ||
-            AcceptToken(SilentTokenType::Subtract)
-        )
+        switch(ct.type)
         {
-            NextToken();
+            case SilentTokenType::Add:
+            case SilentTokenType::Subtract:
+                NextToken();
+            break;
+            default: break;
         }
 
         SilentOperand* operand = new SilentOperand();
@@ -395,6 +415,7 @@ namespace Silent
                 case SilentTokenType::Add:
                 {
                     operand->type = SilentOperandType::Add;
+                    operand->expressionType = SilentExpressionType::Arithmetic;
                     NextToken();
                     operand->right = ParseTerm();
                     temp = operand;
@@ -406,8 +427,177 @@ namespace Silent
                 case SilentTokenType::Subtract:
                 {
                     operand->type = SilentOperandType::Subtract;
+                    operand->expressionType = SilentExpressionType::Arithmetic;
                     NextToken();
                     operand->right = ParseTerm();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+
+                default: parsingExpression = false; break;
+
+            }
+        }
+        temp = operand->left;
+        return temp;
+    }
+
+    SilentOperand* SilentParser::ParseLogic()
+    {
+        switch(ct.type)
+        {
+            case SilentTokenType::And:
+            case SilentTokenType::Or:
+            case SilentTokenType::Not: NextToken(); break;
+            default: break;
+        }
+
+        SilentOperand* operand = new SilentOperand();
+        SilentOperand* temp;
+        operand->left = ParseSum();
+
+        bool parsingExpression = true;
+        while(parsingExpression)
+        {
+            switch(ct.type)
+            {
+                case SilentTokenType::And:
+                {
+                    operand->type = SilentOperandType::And;
+                    operand->expressionType = SilentExpressionType::Logical;
+                    NextToken();
+                    operand->right = ParseSum();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+                case SilentTokenType::Or:
+                {
+                    operand->type = SilentOperandType::Or;
+                    operand->expressionType = SilentExpressionType::Logical;
+                    NextToken();
+                    operand->right = ParseSum();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+                case SilentTokenType::Xor:
+                {
+                    operand->type = SilentOperandType::Xor;
+                    operand->expressionType = SilentExpressionType::Logical;
+                    NextToken();
+                    operand->right = ParseSum();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+                case SilentTokenType::Not:
+                {
+                    operand->type = SilentOperandType::Not;
+                    operand->expressionType = SilentExpressionType::Logical;
+                    NextToken();
+                    operand->right = ParseSum();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+                default: parsingExpression = false; break;
+
+            }
+        }
+        temp = operand->left;
+        return temp;
+    }
+
+    SilentOperand* SilentParser::ParseComparison()
+    {
+        switch(ct.type)
+        {
+            case SilentTokenType::Equal:
+            case SilentTokenType::NotEqual:
+            case SilentTokenType::Larger:
+            case SilentTokenType::LargerOrEqual:
+            case SilentTokenType::Smaller:
+            case SilentTokenType::SmallerOrEqual: NextToken(); break;
+            default: break;
+        }
+
+        SilentOperand* operand = new SilentOperand();
+        SilentOperand* temp;
+        operand->left = ParseLogic();
+
+        bool parsingExpression = true;
+        while(parsingExpression)
+        {
+            switch(ct.type)
+            {
+                case SilentTokenType::Equal:
+                {
+                    operand->type = SilentOperandType::Equal;
+                    operand->expressionType = SilentExpressionType::Comparison;
+                    NextToken();
+                    operand->right = ParseLogic();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+                case SilentTokenType::NotEqual:
+                {
+                    operand->type = SilentOperandType::NotEqual;
+                    operand->expressionType = SilentExpressionType::Comparison;
+                    NextToken();
+                    operand->right = ParseLogic();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+                case SilentTokenType::Larger:
+                {
+                    operand->type = SilentOperandType::Larger;
+                    operand->expressionType = SilentExpressionType::Comparison;
+                    NextToken();
+                    operand->right = ParseLogic();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+                case SilentTokenType::LargerOrEqual:
+                {
+                    operand->type = SilentOperandType::LargerOrEqual;
+                    operand->expressionType = SilentExpressionType::Comparison;
+                    NextToken();
+                    operand->right = ParseLogic();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+                case SilentTokenType::Smaller:
+                {
+                    operand->type = SilentOperandType::Smaller;
+                    operand->expressionType = SilentExpressionType::Comparison;
+                    NextToken();
+                    operand->right = ParseLogic();
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+                case SilentTokenType::SmallerOrEqual: 
+                {
+                    operand->type = SilentOperandType::SmallerOrEqual;
+                    operand->expressionType = SilentExpressionType::Comparison;
+                    NextToken();
+                    operand->right = ParseLogic();
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -428,7 +618,7 @@ namespace Silent
 
         SilentOperand* operand = new SilentOperand();
         SilentOperand* temp;
-        operand->left = ParseSum();
+        operand->left = ParseComparison();
 
         bool parsingExpression = true;
         while(parsingExpression)
@@ -437,8 +627,9 @@ namespace Silent
             {
                 case SilentTokenType::Assign:
                     operand->type = SilentOperandType::Assign;
+                    operand->expressionType = SilentExpressionType::Memory;
                     NextToken();
-                    operand->right = ParseSum();
+                    operand->right = ParseComparison();
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -450,8 +641,6 @@ namespace Silent
         temp = operand->left;
         return temp;
     }
-
-    //Parse expression
 
     SilentStatement* SilentParser::ParseStatement(SilentLocalScope &scope)
     {
@@ -478,7 +667,6 @@ namespace Silent
             }
         }
         NextToken();
-        
         return statement;
     }
 
@@ -617,10 +805,10 @@ namespace Silent
         SilentLocalScope* parameters = new SilentLocalScope();
         while(ct.type != SilentTokenType::CloseParam)
         {
-            SilentStatement* statement = new SilentStatement();
-            statement->type = SilentStatementType::VarInit;
+            //SilentStatement* statement = new SilentStatement();
+            //statement->type = SilentStatementType::VarInit;
             ParseVariable(*parameters,true,false);
-            parameters->statements.push_back(statement);
+            //parameters->statements.push_back(statement);
             if(ct.value == ",") {NextToken(); continue;}
             else if(ct.type == SilentTokenType::CloseParam) break;
             else ErrorMsg("Got invalid token whilst parsing parameters");
@@ -632,6 +820,30 @@ namespace Silent
         #endif
         
         return parameters;
+    }
+
+    
+    void SilentParser::ParseIfStatement(SilentLocalScope &scope)
+    {
+        #if DEBUG
+        std::cout << "Parsing if statement\n";
+        #endif
+
+        SilentIfStatement* ifStatement = new SilentIfStatement();
+        SilentStatement* statement = new SilentStatement();
+        statement->type = SilentStatementType::If;
+        statement->ifStatement = ifStatement;
+        scope.statements.push_back(statement);
+
+        ifStatement->expression = ParseExpression();
+        ifStatement->scope = new SilentLocalScope();
+        ifStatement->scope->hasParent = true;
+        ifStatement->scope->scopeParent = &scope;
+        ParseLocalScope(*ifStatement->scope);
+
+        #if DEBUG
+        std::cout << "Finished parsing local scope\n\n";
+        #endif
     }
 
     void SilentParser::ParseLocalScope(SilentLocalScope &scope)
@@ -699,7 +911,7 @@ namespace Silent
         #endif
     }
 
-    SilentFunction* SilentParser::ParseFunction(SilentNamespace& scope)
+    SilentFunction* SilentParser::ParseFunction(SilentNamespace &scope)
     {
         #if DEBUG
         std::cout << "Parsing function\n";
@@ -724,10 +936,21 @@ namespace Silent
         if(!AcceptToken(SilentTokenType::OpenParam))
             ErrorMsg("Expected \"(\" for parameter declaration");
         NextToken();
-        function->parameters = ParseParameters();
-        function->scope = new SilentLocalScope();
+        //function->parameters = 
+        function->scope = ParseParameters();
+        if(function->scope->variables.size() > 0)
+        {
+            function->parameterCount = function->scope->variables.size();
+            SilentVariable* lastParam = function->scope->variables.back();
+            function->parameterSize = lastParam->localPos + lastParam->size;
+        }
+        else
+        {
+            function->parameterCount = 0;
+            function->parameterSize = 0;
+        }
         //function->scope->variables.assign(function->parameters);
-        function->scope->variables = function->parameters->variables;
+        //function->scope->variables = function->parameters->variables;
         //Parse function scope
         if(!AcceptToken(SilentTokenType::OpenScope))
         {

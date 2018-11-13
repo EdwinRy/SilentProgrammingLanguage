@@ -63,6 +63,7 @@ namespace Silent
         LargerThan,
         LargerThanOrEqual,
         Equal,
+        NotEqual,
         If,
         IfNot,
         And,

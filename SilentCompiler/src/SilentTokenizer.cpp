@@ -135,6 +135,10 @@ namespace Silent
                     token.type = SilentTokenType::Or;
                     token.value = "|";
                 break;
+                case '^':
+                    token.type = SilentTokenType::Xor;
+                    token.value = "^";
+                break;
                 case '!':
                     if(source[i+1] == '=')
                     {

@@ -37,6 +37,7 @@ namespace Silent
         SmallerOrEqual,
         And,
         Or,
+        Xor,
         Not,
         Function,
         Struct,

@@ -14,7 +14,6 @@ SOURCES = \
 	$(SRC_PATH)/SilentConsole.cpp \
 	$(SRC_PATH)/SilentDebugger.cpp \
 	$(SRC_PATH)/SilentIntCode.cpp \
-	$(SRC_PATH)/SilentIntCodeParser.cpp \
 	$(SRC_PATH)/SilentParser.cpp \
 	$(SRC_PATH)/SilentTokenizer.cpp \
 	$(SRC_PATH)/SilentAssembler.cpp 

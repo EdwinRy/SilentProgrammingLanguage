@@ -182,13 +182,83 @@ namespace Silent
                 code.AddNumber<char>((char)SilentBytecode::Div);
             break;
 
+            case SilentOperandType::Equal:
+                printf("Equal\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::Equal);
+            break;
+
+            case SilentOperandType::NotEqual:
+                printf("Not Equal\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::NotEqual);
+            break;
+
+            case SilentOperandType::Larger:
+                printf("Larger than\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::LargerThan);
+            break;
+
+            case SilentOperandType::LargerOrEqual:
+                printf("Larger than or equal to\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::LargerThanOrEqual);
+            break;
+
+            case SilentOperandType::Smaller:
+                printf("Smaller than\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::SmallerThan);
+            break;
+
+            case SilentOperandType::SmallerOrEqual:
+                printf("Smaller than or equal to\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::SmallerThanOrEqual);
+            break;
+
+            case SilentOperandType::And:
+                printf("AND\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::And);
+            break;
+
+            case SilentOperandType::Or:
+                printf("OR\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::Or);
+            break;
+            
+            case SilentOperandType::Xor:
+                printf("XOR\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::Xor);
+            break;
+
+            case SilentOperandType::Not:
+                printf("NOT\n");
+                CompileExpression(*expression.left);
+                CompileExpression(*expression.right);
+                code.AddNumber<char>((char)SilentBytecode::Not);
+            break;
+
             case SilentOperandType::Number:
                 code.AddPush(currentType, expression.token->value);
             break;
 
             case SilentOperandType::Variable:
-                printf("GOT A VARIABLE IN COMPILING %s\n", 
-                    expression.variable->name.data());
+                //printf("GOT A VARIABLE IN COMPILING %s\n", 
+                //     expression.variable->name.data());
                 code.AddLoad(expression.variable->type,
                     expression.variable->localPos);
             break;

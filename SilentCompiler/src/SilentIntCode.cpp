@@ -157,11 +157,11 @@ namespace Silent
 
         code += "f " + function.name + "\n";
 
-        code += "a\n";
-        TransformLocalScope(*function.parameters);
-        code += "e a\n";
-        TransformLocalScope(*function.scope);
-        code += "e f " + function.name + "\n";
+        // code += "a\n";
+        // TransformLocalScope(*function.parameters);
+        // code += "e a\n";
+        // TransformLocalScope(*function.scope);
+        // code += "e f " + function.name + "\n";
 
         #if DEBUG
         std::cout << "Done transforming function:" << function.name << "\n";
