@@ -210,32 +210,43 @@ namespace Silent
         else return 0;
     }
 
-    SilentVariable* SilentParser::GetLocalVariable(
-        SilentLocalScope &scope, std::string name)
+    SilentVariable* SilentParser::GetVariable(
+        SilentLocalScope &scope, std::string name
+    )
     {
         for(SilentVariable* var : scope.variables)
-        {
             if(var->name == name) return var;
+
+        switch(scope.parentType)
+        {
+            case ParentType::LocalScope:
+                return GetVariable(*scope.scopeParent, name);
+            break;
+
+            case ParentType::Namespace:
+                return GetVariable(*scope.namespaceParent, name);
+            break;
+
+            case ParentType::None:
+                return NULL;
+            break;
+
+            default: return NULL; break;
         }
-        return NULL;
     }
 
-    SilentVariable* SilentParser::GetVariable(std::string name)
+    SilentVariable* SilentParser::GetVariable(
+        SilentNamespace &scope, std::string name
+    )
     {
-        for(uint64 i = accessibleNamespaces.size()-1; i >= 0; i--)
-        {
-            SilentNamespace* scope = accessibleNamespaces[i];
-            for(SilentFunction* function : scope->functions)
-            {
-                SilentLocalScope* localScope = function->scope;
-                for(SilentVariable* var : localScope->variables)
-                {
-                    if(var->name == name) return var;
-                }
-            }
-        }
-        return NULL;
+        for(SilentVariable* var : scope.globals->variables)
+            if(var->name == name) return var;
+
+        if(scope.hasParent) return GetVariable(*scope.parent, name);
+        else return NULL;
     }
+
+
 
     bool SilentParser::IsPrimitive(std::string name)
     {
@@ -305,7 +316,7 @@ namespace Silent
     }
 
 
-    SilentOperand* SilentParser::ParseFactor()
+    SilentOperand* SilentParser::ParseFactor(SilentLocalScope &scope)
     {
         #if DEBUG
         std::cout << ct.value.data() << "\n";
@@ -330,7 +341,7 @@ namespace Silent
                 SilentOperand* operand = new SilentOperand();
                 operand->type = SilentOperandType::Variable;
                 operand->expressionType = SilentExpressionType::Data;
-                operand->variable = GetVariable(ct.value);
+                operand->variable = GetVariable(scope, ct.value);
                 if(operand->variable == NULL) 
                     ErrorMsg("Use of undeclared variable");
                 //printf("GOTTEN VARIABLE %S\n",operand->variable->name.data());
@@ -343,7 +354,7 @@ namespace Silent
             case SilentTokenType::OpenParam:
             {
                 NextToken();
-                SilentOperand* operand = ParseExpression();
+                SilentOperand* operand = ParseExpression(scope);
                 ExpectToken(SilentTokenType::CloseParam, "Expected token ')'");
                 NextToken();
                 return operand;
@@ -358,11 +369,11 @@ namespace Silent
         }
     }
 
-    SilentOperand* SilentParser::ParseTerm()
+    SilentOperand* SilentParser::ParseTerm(SilentLocalScope &scope)
     {
         SilentOperand* operand = new SilentOperand();
         SilentOperand* temp;
-        operand->left = ParseFactor();
+        operand->left = ParseFactor(scope);
 
         while(true)
         {
@@ -371,7 +382,7 @@ namespace Silent
                 operand->type = SilentOperandType::Multiply;
                 operand->expressionType = SilentExpressionType::Arithmetic;
                 NextToken();
-                operand->right = ParseFactor();
+                operand->right = ParseFactor(scope);
                 temp = operand;
                 operand = new SilentOperand();
                 operand->left = temp;
@@ -381,7 +392,7 @@ namespace Silent
                 operand->type = SilentOperandType::Divide;
                 operand->expressionType = SilentExpressionType::Arithmetic;
                 NextToken();
-                operand->right = ParseFactor();
+                operand->right = ParseFactor(scope);
                 temp = operand;
                 operand = new SilentOperand();
                 operand->left = temp;
@@ -392,7 +403,7 @@ namespace Silent
         return temp;
     }
 
-    SilentOperant* SilentParser::ParseSum()
+    SilentOperant* SilentParser::ParseSum(SilentLocalScope &scope)
     {
         switch(ct.type)
         {
@@ -405,7 +416,7 @@ namespace Silent
 
         SilentOperand* operand = new SilentOperand();
         SilentOperand* temp;
-        operand->left = ParseTerm();
+        operand->left = ParseTerm(scope);
 
         bool parsingExpression = true;
         while(parsingExpression)
@@ -417,7 +428,7 @@ namespace Silent
                     operand->type = SilentOperandType::Add;
                     operand->expressionType = SilentExpressionType::Arithmetic;
                     NextToken();
-                    operand->right = ParseTerm();
+                    operand->right = ParseTerm(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -429,7 +440,7 @@ namespace Silent
                     operand->type = SilentOperandType::Subtract;
                     operand->expressionType = SilentExpressionType::Arithmetic;
                     NextToken();
-                    operand->right = ParseTerm();
+                    operand->right = ParseTerm(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -444,7 +455,7 @@ namespace Silent
         return temp;
     }
 
-    SilentOperand* SilentParser::ParseLogic()
+    SilentOperand* SilentParser::ParseLogic(SilentLocalScope &scope)
     {
         switch(ct.type)
         {
@@ -456,7 +467,7 @@ namespace Silent
 
         SilentOperand* operand = new SilentOperand();
         SilentOperand* temp;
-        operand->left = ParseSum();
+        operand->left = ParseSum(scope);
 
         bool parsingExpression = true;
         while(parsingExpression)
@@ -468,7 +479,7 @@ namespace Silent
                     operand->type = SilentOperandType::And;
                     operand->expressionType = SilentExpressionType::Logical;
                     NextToken();
-                    operand->right = ParseSum();
+                    operand->right = ParseSum(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -479,7 +490,7 @@ namespace Silent
                     operand->type = SilentOperandType::Or;
                     operand->expressionType = SilentExpressionType::Logical;
                     NextToken();
-                    operand->right = ParseSum();
+                    operand->right = ParseSum(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -490,7 +501,7 @@ namespace Silent
                     operand->type = SilentOperandType::Xor;
                     operand->expressionType = SilentExpressionType::Logical;
                     NextToken();
-                    operand->right = ParseSum();
+                    operand->right = ParseSum(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -501,10 +512,7 @@ namespace Silent
                     operand->type = SilentOperandType::Not;
                     operand->expressionType = SilentExpressionType::Logical;
                     NextToken();
-                    operand->right = ParseSum();
-                    temp = operand;
-                    operand = new SilentOperand();
-                    operand->left = temp;
+                    operand->left = ParseSum(scope);
                 }
                 break;
                 default: parsingExpression = false; break;
@@ -515,7 +523,7 @@ namespace Silent
         return temp;
     }
 
-    SilentOperand* SilentParser::ParseComparison()
+    SilentOperand* SilentParser::ParseComparison(SilentLocalScope &scope)
     {
         switch(ct.type)
         {
@@ -530,7 +538,7 @@ namespace Silent
 
         SilentOperand* operand = new SilentOperand();
         SilentOperand* temp;
-        operand->left = ParseLogic();
+        operand->left = ParseLogic(scope);
 
         bool parsingExpression = true;
         while(parsingExpression)
@@ -542,7 +550,7 @@ namespace Silent
                     operand->type = SilentOperandType::Equal;
                     operand->expressionType = SilentExpressionType::Comparison;
                     NextToken();
-                    operand->right = ParseLogic();
+                    operand->right = ParseLogic(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -553,7 +561,7 @@ namespace Silent
                     operand->type = SilentOperandType::NotEqual;
                     operand->expressionType = SilentExpressionType::Comparison;
                     NextToken();
-                    operand->right = ParseLogic();
+                    operand->right = ParseLogic(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -564,7 +572,7 @@ namespace Silent
                     operand->type = SilentOperandType::Larger;
                     operand->expressionType = SilentExpressionType::Comparison;
                     NextToken();
-                    operand->right = ParseLogic();
+                    operand->right = ParseLogic(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -575,7 +583,7 @@ namespace Silent
                     operand->type = SilentOperandType::LargerOrEqual;
                     operand->expressionType = SilentExpressionType::Comparison;
                     NextToken();
-                    operand->right = ParseLogic();
+                    operand->right = ParseLogic(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -586,7 +594,7 @@ namespace Silent
                     operand->type = SilentOperandType::Smaller;
                     operand->expressionType = SilentExpressionType::Comparison;
                     NextToken();
-                    operand->right = ParseLogic();
+                    operand->right = ParseLogic(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -597,7 +605,7 @@ namespace Silent
                     operand->type = SilentOperandType::SmallerOrEqual;
                     operand->expressionType = SilentExpressionType::Comparison;
                     NextToken();
-                    operand->right = ParseLogic();
+                    operand->right = ParseLogic(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -612,13 +620,13 @@ namespace Silent
         return temp;
     }
 
-    SilentOperand* SilentParser::ParseExpression()
+    SilentOperand* SilentParser::ParseExpression(SilentLocalScope &scope)
     {
         if(AcceptToken(SilentTokenType::Assign)) NextToken();
 
         SilentOperand* operand = new SilentOperand();
         SilentOperand* temp;
-        operand->left = ParseComparison();
+        operand->left = ParseComparison(scope);
 
         bool parsingExpression = true;
         while(parsingExpression)
@@ -629,7 +637,7 @@ namespace Silent
                     operand->type = SilentOperandType::Assign;
                     operand->expressionType = SilentExpressionType::Memory;
                     NextToken();
-                    operand->right = ParseComparison();
+                    operand->right = ParseComparison(scope);
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
@@ -653,7 +661,7 @@ namespace Silent
             {
                 case SilentTokenType::Identifier:
                     statement->type = SilentStatementType::Expression;
-                    statement->expression = ParseExpression();
+                    statement->expression = ParseExpression(scope);
                 break;
 
                 case SilentTokenType::Semicolon:
@@ -685,7 +693,7 @@ namespace Silent
         var->localPos = GetLocalPos(scope);
 
         NextToken();
-        if(GetLocalVariable(scope, ct.value)!=NULL)
+        if(GetVariable(scope, ct.value)!=NULL)
         {
             ErrorMsg("Redefinition of variable: " + ct.value);
         }
@@ -825,9 +833,14 @@ namespace Silent
     
     void SilentParser::ParseIfStatement(SilentLocalScope &scope)
     {
-        #if DEBUG
+        #if DEBUG 
         std::cout << "Parsing if statement\n";
         #endif
+
+        NextToken();
+        if(ct.type != SilentTokenType::OpenParam)
+            ErrorMsg("Expected opening parentheses of the \"if\" statement");
+        NextToken();
 
         SilentIfStatement* ifStatement = new SilentIfStatement();
         SilentStatement* statement = new SilentStatement();
@@ -835,10 +848,16 @@ namespace Silent
         statement->ifStatement = ifStatement;
         scope.statements.push_back(statement);
 
-        ifStatement->expression = ParseExpression();
+        ifStatement->expression = ParseExpression(scope);
+
+        if(ct.type != SilentTokenType::CloseParam)
+            ErrorMsg("Expected closing parentheses of the \"if\" statement");
+        NextToken();
+
         ifStatement->scope = new SilentLocalScope();
-        ifStatement->scope->hasParent = true;
+        ifStatement->scope->parentType = ParentType::LocalScope;
         ifStatement->scope->scopeParent = &scope;
+        NextToken();
         ParseLocalScope(*ifStatement->scope);
 
         #if DEBUG
@@ -885,7 +904,7 @@ namespace Silent
                     }
                     else
                     {
-                        SilentVariable* var = GetLocalVariable(
+                        SilentVariable* var = GetVariable(
                             scope, ct.value.data());
                         if(var == NULL) ErrorMsg("Use of invalid type");
                         //NextToken();
@@ -897,12 +916,14 @@ namespace Silent
                     }
                 break;
 
+                case SilentTokenType::If: ParseIfStatement(scope); break;
+
+
+
                 default:
                     ErrorMsg("Unexpected token in the local scope");
                     NextToken();NextToken();
                 break;
-
-                //Add other statements
             }
         }
         //nextToken();
@@ -965,7 +986,8 @@ namespace Silent
         {
             function->initialised = true;
             NextToken();
-            function->scope->hasParent = false;
+            function->scope->parentType = ParentType::Namespace;
+            function->scope->namespaceParent = &scope;
             ParseLocalScope(*function->scope);
             std::cout << "v: "<<function->scope->variables.size()<<"\n";
             std::cout << "s: "<<function->scope->statements.size()<<"\n";
@@ -989,6 +1011,8 @@ namespace Silent
         #endif
 
         SilentNamespace* newNamespace = new SilentNamespace();
+        newNamespace->parent = &scope;
+        newNamespace->hasParent = true;
         accessibleNamespaces.push_back(newNamespace);
 
         //Get namespace name

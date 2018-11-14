@@ -99,6 +99,8 @@ namespace Silent
         template<typename T>
         void AddNumber(T val);
         std::string GetCode();
+        std::vector<char>* GetPtrToCode();
+        uint64 GetCodePointer();
 
         private:
         void AddData(SilentDataType dt, std::string val);

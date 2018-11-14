@@ -118,6 +118,11 @@ namespace Silent
         return str;
     }
 
+    std::vector<char>* SilentCode::GetPtrToCode() { return &this->code; }
+
+    uint64 SilentCode::GetCodePointer() { return this->code.size(); }
+
+
     void SilentCodeGenerator::Compile(SilentParser *parser)
     {
         CompileNamespace(*parser->GetGlobalNamespace());
@@ -257,8 +262,6 @@ namespace Silent
             break;
 
             case SilentOperandType::Variable:
-                //printf("GOT A VARIABLE IN COMPILING %s\n", 
-                //     expression.variable->name.data());
                 code.AddLoad(expression.variable->type,
                     expression.variable->localPos);
             break;
@@ -287,6 +290,17 @@ namespace Silent
             break;
 
             case SilentStatementType::If:
+            {
+                CompileExpression(*statement.ifStatement->expression);
+                code.AddNumber<char>((char)SilentBytecode::If);
+                uint64 ifPtrIndex = code.GetCodePointer();
+                code.AddNumber<uint64>(0ll);
+                CompileLocalScope(*statement.ifStatement->scope);
+                uint64 ifEndPtrIndex = code.GetCodePointer();
+
+                memcpy(code.GetPtrToCode()->data() + ifPtrIndex, 
+                    &ifEndPtrIndex, 8);
+            }
             break;
 
             default: break;

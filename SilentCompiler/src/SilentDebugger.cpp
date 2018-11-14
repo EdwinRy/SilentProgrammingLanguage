@@ -32,6 +32,36 @@ std::string getOperandType(SilentOperandType type)
         case SilentOperandType::Assign:
             return "=";
         break;
+        case SilentOperandType::Equal:
+            return "==";
+        break;
+        case SilentOperandType::NotEqual:
+            return "!=";
+        break;
+        case SilentOperandType::Larger:
+            return ">";
+        break;
+        case SilentOperandType::LargerOrEqual:
+            return ">=";
+        break;
+        case SilentOperandType::Smaller:
+            return "<";
+        break;
+        case SilentOperandType::SmallerOrEqual:
+            return "<=";
+        break;
+        case SilentOperandType::And:
+            return "&";
+        break;
+        case SilentOperandType::Or:
+            return "|";
+        break;
+        case SilentOperandType::Xor:
+            return "^";
+        break;
+        case SilentOperandType::Not:
+            return "!";
+        break;
         default:
             return "Unknown";
         break;
