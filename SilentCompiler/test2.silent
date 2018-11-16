@@ -1,0 +1,9 @@
+func int8 add1(int8 x)
+{
+    x = x + 5;
+}
+
+func int8 main()
+{
+    int16 b = 21 + add1(b + 2);
+}

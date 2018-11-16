@@ -125,7 +125,10 @@ namespace Silent
 
     void SilentCodeGenerator::Compile(SilentParser *parser)
     {
+        code.AddNumber<char>((char)SilentBytecode::Goto);
+        code.AddNumber<uint64>((uint64)0ll);
         CompileNamespace(*parser->GetGlobalNamespace());
+        code.AddNumber<char>((char)SilentBytecode::Halt);
     }
 
     std::string SilentCodeGenerator::GetOutput() { return code.GetCode(); }
@@ -291,8 +294,9 @@ namespace Silent
 
             case SilentStatementType::If:
             {
+                std::cout << "Compiling if statement\n";
                 CompileExpression(*statement.ifStatement->expression);
-                code.AddNumber<char>((char)SilentBytecode::If);
+                code.AddNumber<char>((char)SilentBytecode::IfNot);
                 uint64 ifPtrIndex = code.GetCodePointer();
                 code.AddNumber<uint64>(0ll);
                 CompileLocalScope(*statement.ifStatement->scope);
@@ -332,6 +336,13 @@ namespace Silent
         #if DEBUG
         std::cout << "Compiling function: " << func.name << "\n";
         #endif
+
+        if(func.name == "main")
+        {
+            char* codeData = code.GetPtrToCode()->data();
+            uint64 funcPtr = code.GetCodePointer();
+            memcpy(codeData + 1, &funcPtr, 8);
+        }
 
         std::cout << "Scope name: " << GenScopeName(func.name) << "\n";
         CompileLocalScope(*func.scope);

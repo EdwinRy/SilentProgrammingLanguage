@@ -90,6 +90,13 @@ namespace Silent
         bool isPrimitive;
     }SilentDataType;
 
+    typedef struct SilentFunctionCall
+    {
+        SilentFunction* function;
+        std::vector<SilentOperand*> arguments;
+
+    }SilentFunctionCall;
+
     typedef struct SilentVariable
     {
         unsigned long long size;
@@ -145,6 +152,7 @@ namespace Silent
         {
             SilentToken* token;
             SilentVariable* variable;
+            SilentFunctionCall* functionCall;
         };
     }SilentOperant;
 
@@ -218,6 +226,7 @@ namespace Silent
         bool AcceptToken(SilentTokenType type);
         bool ExpectToken(SilentTokenType type, std::string msg);
         
+        SilentFunctionCall* ParseFunctionCall(SilentLocalScope &scope);
         SilentOperand* ParseFactor(SilentLocalScope &scope);
         SilentOperand* ParseTerm(SilentLocalScope &scope);
         SilentOperand* ParseSum(SilentLocalScope &scope);
@@ -231,7 +240,7 @@ namespace Silent
         SilentLocalScope* ParseParameters();
         void ParseLocalScope(SilentLocalScope &scope);
         void ParseIfStatement(SilentLocalScope &scope);
-        SilentFunction* ParseFunction(SilentNamespace& scope);
+        void ParseFunction(SilentNamespace& scope);
         SilentNamespace* ParseNamespace(SilentNamespace &scope);
 
         SilentNamespace* globalNamespace;

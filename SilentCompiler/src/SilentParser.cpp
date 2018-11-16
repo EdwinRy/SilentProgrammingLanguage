@@ -49,9 +49,6 @@ namespace Silent
                 break;
 
                 case SilentTokenType::Function:
-                    // globalNamespace->functions.push_back(
-                    //     ParseFunction(*globalNamespace)
-                    // );
                     ParseFunction(*globalNamespace);
                 break;
 
@@ -315,6 +312,22 @@ namespace Silent
         return false;
     }
 
+    SilentFunctionCall* SilentParser::ParseFunctionCall(SilentLocalScope &scope)
+    {
+        SilentFunctionCall* functionCall = new SilentFunctionCall();
+        functionCall->function = GetFunction(ct.value);
+        NextToken();
+        NextToken();
+        while(ct.type != SilentTokenType::CloseParam)
+        {
+            //scope.statements.push_back(ParseStatement(scope));
+            functionCall->arguments.push_back(ParseExpression(scope));
+            if(ct.type == SilentTokenType::Comma) NextToken();
+            else break;
+        }
+        NextToken();
+        return functionCall;
+    }
 
     SilentOperand* SilentParser::ParseFactor(SilentLocalScope &scope)
     {
@@ -339,14 +352,21 @@ namespace Silent
             case SilentTokenType::Identifier:
             {
                 SilentOperand* operand = new SilentOperand();
-                operand->type = SilentOperandType::Variable;
-                operand->expressionType = SilentExpressionType::Data;
-                operand->variable = GetVariable(scope, ct.value);
-                if(operand->variable == NULL) 
-                    ErrorMsg("Use of undeclared variable");
-                //printf("GOTTEN VARIABLE %S\n",operand->variable->name.data());
-                //operand->variable = GetLocalVariable()
-                NextToken();
+                if(PeakToken().type == SilentTokenType::OpenParam)
+                {
+                    operand->type = SilentOperandType::FunctionCall;
+                    operand->expressionType = SilentExpressionType::Memory;
+                    operand->functionCall = ParseFunctionCall(scope);
+                }
+                else
+                {
+                    operand->type = SilentOperandType::Variable;
+                    operand->expressionType = SilentExpressionType::Data;
+                    operand->variable = GetVariable(scope, ct.value);
+                    if(operand->variable == NULL) 
+                        ErrorMsg("Use of undeclared variable");
+                    NextToken();
+                }
                 return operand;
             }
             break;
@@ -668,10 +688,7 @@ namespace Silent
                     parsingExpression = false;
                 break;
 
-                default:
-                    parsingExpression = false;
-                    ErrorMsg("Invalid statement"); 
-                break;
+                default: parsingExpression = false; break;
             }
         }
         NextToken();
@@ -736,11 +753,11 @@ namespace Silent
                 scope.statements.push_back(statement);
 
                 var->initialised = true;
-                #if DEBUG
-                    std::cout << "Syntax tree:\n";
-                    SilentPrintTree(statement->expression);
-                    std::cout << "Finished parsing var " << var->name << "\n\n";
-                #endif
+                // #if DEBUG
+                //     std::cout << "Syntax tree:\n";
+                //     SilentPrintTree(statement->expression);
+                //     std::cout << "Finished parsing var " << var->name << "\n\n";
+                // #endif
                 return var;
             }
         }
@@ -859,6 +876,7 @@ namespace Silent
         ifStatement->scope->scopeParent = &scope;
         NextToken();
         ParseLocalScope(*ifStatement->scope);
+        NextToken();
 
         #if DEBUG
         std::cout << "Finished parsing local scope\n\n";
@@ -932,7 +950,7 @@ namespace Silent
         #endif
     }
 
-    SilentFunction* SilentParser::ParseFunction(SilentNamespace &scope)
+    void SilentParser::ParseFunction(SilentNamespace &scope)
     {
         #if DEBUG
         std::cout << "Parsing function\n";
@@ -1001,7 +1019,6 @@ namespace Silent
         #if DEBUG
         std::cout << "Finished parsing function\n\n";
         #endif
-        return function;
     }
 
     SilentNamespace* SilentParser::ParseNamespace(SilentNamespace &scope)

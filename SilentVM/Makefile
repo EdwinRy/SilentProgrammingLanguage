@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -std=c99 -Wall
-LIBS = -ldl
+#LIBS = -ldl
 SRC_PATH = src
 OBJ_PATH = obj
 OUT_PATH = bin

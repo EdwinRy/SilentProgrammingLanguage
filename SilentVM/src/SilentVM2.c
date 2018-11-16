@@ -5,7 +5,7 @@
 #include <math.h>
 
 #define DEBUG 0
-#define STACK_OUTPUT 0
+#define STACK_OUTPUT 1
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;
@@ -691,7 +691,9 @@ void silentVMStart(SilentVM* vm)
 					case INT8:
 					case UINT8:
 						sp--;
-						stack[sp] += program[pc+1];
+						//stack[sp] += program[pc+1];
+						(*(unsigned short*)(stack + sp-1)) +=
+						(*(unsigned short*)(stack + sp));
 					break;
 					case INT16:
 					case UINT16:
@@ -736,7 +738,8 @@ void silentVMStart(SilentVM* vm)
 					case INT8:
 					case UINT8:
 						sp--;
-						stack[sp] -= program[pc+1];
+						(*(unsigned short*)(stack + sp-1)) -=
+						(*(unsigned short*)(stack + sp));
 					break;
 					case INT16:
 					case UINT16:
@@ -781,7 +784,8 @@ void silentVMStart(SilentVM* vm)
 					case INT8:
 					case UINT8:
 						sp--;
-						stack[sp] *= program[pc+1];
+						(*(unsigned short*)(stack + sp-1)) *=
+						(*(unsigned short*)(stack + sp));
 					break;
 					case INT16:
 					case UINT16:
@@ -882,6 +886,117 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Convert:
+				SilentPopBack(stackT);
+				// reg2.l = 0;
+				switch(stackT->data[stackT->ptr])
+				{
+					case INT8:
+						switch(program[pc++])
+						{
+							case INT8: SilentPushBack(stackT, dt + INT8); break;
+							case UINT8:
+								SilentPushBack(stackT, dt + UINT8);
+							break;
+							
+							case INT16:
+								stack[sp++] = 0;
+								SilentPushBack(stackT, dt + INT16);
+							break;
+
+							case UINT16:
+								stack[sp++] = 0;
+								SilentPushBack(stackT, dt + INT16);
+							break;
+							case INT32:
+								memset(stack + sp, 0, 3);
+								sp += 3;
+						}
+					break;
+					case UINT8:
+						sp--;
+						reg.c = (unsigned char)stack[sp];
+					break;
+					case INT16:
+						sp -= 2;
+						reg.s = (short)*((short*)(stack+sp));
+					break;
+					case UINT16:
+						sp -= 2;
+						reg.s = (unsigned short)*((unsigned short*)(stack+sp));
+					break;
+					case INT32:
+						sp -= 4;
+						reg.i = (int)*((int*)(stack+sp));
+					break;
+					case UINT32:
+						sp -= 4;
+						reg.i = (unsigned int)*((unsigned int*)(stack+sp));
+					break;
+					case INT64:
+						sp -= 8;
+						reg.l = (long long)*((long long*)(stack+sp));
+					break;
+					case UINT64:
+					case POINTER:
+						sp -= 8;
+						reg.l = (uint64)*((uint64*)(stack+sp));
+					break;
+					case FLOAT32:
+						sp -= 4;
+						reg.f = (float)*((float*)(stack+sp));
+					break;
+					case FLOAT64:
+						sp -= 8;
+						reg.d = (long double)*((long double*)(stack+sp));
+					break; 
+				}
+
+				switch(program[++pc])
+				{
+					case INT8:
+						reg2.c = (char)reg2.l;
+						stack[sp] = reg2.c;
+						sp += 1;
+						SilentPushBack(stackT, dt + INT8);
+					break;
+					case UINT8:
+						reg3.c = (unsigned char)stack[sp];
+						stack[sp] = reg3.c;
+						sp += 1;
+						SilentPushBack(stackT, dt + UINT8);
+					break;
+					case INT16:
+						reg.s = (short)*((short*)(stack+sp));
+						memcpy(stack + sp, &reg.s, 2);
+						sp += 2;
+						SilentPushBack(stackT, dt + INT16);
+					break;
+					case UINT16:
+						reg.s = (unsigned short)*((unsigned short*)(stack+sp));
+						memcpy(stack + sp, &reg.s, 2);
+						sp += 2;
+						SilentPushBack(stackT, dt + INT16);
+					break;
+					case INT32:
+						
+					break;
+					case UINT32:
+						
+					break;
+					case INT64:
+						
+					break;
+					case UINT64:
+					case POINTER:
+						
+					break;
+					case FLOAT32:
+						
+					break;
+					case FLOAT64:
+						
+					break;
+				}
 			break;
 
 			case SmallerThan:
@@ -1063,6 +1178,7 @@ void silentVMStart(SilentVM* vm)
 						(*(double*)(stack + sp+8));
 					break;
 				}
+				printf("RESULT = %i\n", reg.c);
 				stack[sp++] = reg.c;
 				SilentPushBack(stackT, dt + UINT8);
 			break;
