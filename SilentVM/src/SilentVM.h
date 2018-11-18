@@ -7,14 +7,13 @@ typedef enum SilentBytecode
 {
     Halt = 0,
 	Goto,
-	Sweep,
 
 	Call,
 	Return,
-	LoadDll,
-	LoadDllFunc,
-	FreeDll,
-	CallDllFunc,
+	LoadDll,//
+	LoadDllFunc,//
+	FreeDll,//
+	CallDllFunc,//
 
 	Push1,
 	Push2,
@@ -46,12 +45,25 @@ typedef enum SilentBytecode
 	LoadGlobal4,
 	LoadGlobal8,
 
-	//Alloc,
-	//LoadPtr,
-	//StorePtr,
-	//FreePtr,
-	//Free,
-	//GetPtr,
+	Alloc1,
+	Alloc2,
+	Alloc4,
+	Alloc8,
+	AllocX,
+
+	LoadPtr1,
+	LoadPtr2,
+	LoadPtr4,
+	LoadPtr8,
+	LoadPtrX,
+
+	StorePtr1,
+	StorePtr2,
+	StorePtr4,
+	StorePtr8,
+	StorePtrX,
+	Free,
+	GetPtr,
 
     AddI1,
     AddI2,
@@ -115,6 +127,22 @@ typedef enum SilentDataType
 	UNDEFINED_END
 }SilentDataType;
 
+typedef struct SilentMemoryBlock
+{
+	char occupied;
+	char marked;
+	char* data;
+}SilentMemoryBlock;
+
+typedef struct SilentGC
+{
+	SilentMemoryBlock* heap;
+	unsigned long long heapPtr;
+	unsigned long long lastFree;
+}SilentGC;
+
 void SilentStartVM();
+unsigned long long SilentAlloc(SilentGC* gc, unsigned long long size);
+void SilentFree(SilentGC* gc, unsigned long long pos);
 
 #endif //SILENT_VM

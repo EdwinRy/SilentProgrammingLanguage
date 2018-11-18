@@ -8,7 +8,6 @@ namespace Silent
     {
         Halt = 0,
         Goto,
-        Sweep,
 
         Call,
         Return,
@@ -47,12 +46,25 @@ namespace Silent
         LoadGlobal4,
         LoadGlobal8,
 
-        //Alloc,
-        //LoadPtr,
-        //StorePtr,
-        //FreePtr,
-        //Free,
-        //GetPtr,
+        Alloc1,
+        Alloc2,
+        Alloc4,
+        Alloc8,
+        AllocX,
+
+        LoadPtr1,
+        LoadPtr2,
+        LoadPtr4,
+        LoadPtr8,
+        LoadPtrX,
+
+        StorePtr1,
+        StorePtr2,
+        StorePtr4,
+        StorePtr8,
+        StorePtrX,
+        Free,
+        GetPtr,
 
         AddI1,
         AddI2,

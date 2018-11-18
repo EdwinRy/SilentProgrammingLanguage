@@ -1,17 +1,23 @@
 #include "SilentVM.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 typedef unsigned long long uint64;
-typedef unsigned long long int64;
+typedef long long int64;
 void SilentStartVM(char* program)
 {
     char* stack = malloc(10000);
-    unsigned long long sp = 0;
-    unsigned long long fp = 0;
-    unsigned long long pc = 0;
+    uint64 sp = 0;	//stack pointer
+    uint64 fp = 0;	//frame pointer
+    uint64 pc = 0;	//program counter
 
-    unsigned long long *saveSfData = malloc(90000); //old stack frame data
-    unsigned long long saveSfDataPtr = 0;
+    uint64 *saveSfData = malloc(90000); //old stack frame data
+    uint64 saveSfDataPtr = 0;
 
+	SilentGC gc;
+	gc.heap = malloc(1000 * sizeof(SilentMemoryBlock));
+	gc.heapPtr = 0;
+	gc.lastFree = 0;
 
     union Registers
 	{
@@ -21,13 +27,12 @@ void SilentStartVM(char* program)
 		long long l;
 		float f;
 		double d;
-	}reg, reg2, reg3, reg4;
+	}reg, reg2;//, reg3, reg4;
 
     char running = 1;
 
     while(running)
     {
-        
         switch (program[pc])
         {
             case Halt:
@@ -74,7 +79,6 @@ void SilentStartVM(char* program)
 
             case Push1:
                 stack[sp++] = program[++pc];
-				//printf("%i\n", stack[sp-1]);
             break;
 
             case Push2:
@@ -171,13 +175,12 @@ void SilentStartVM(char* program)
 				//memcpy(&reg.l, program + ++pc, 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				memcpy(stack + sp, stack + fp + reg.l, 9);
+				memcpy(stack + sp, stack + fp + reg.l, 8);
 				sp += 8;
 			break;
 
 			case StoreGlobal1:
 				//Get global offset
-				//memcpy(&reg.l, program + ++pc, 8);
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				//Store
@@ -187,44 +190,32 @@ void SilentStartVM(char* program)
 			
 			case StoreGlobal2:
 				//Get global offset
-				//memcpy(&reg.l, program + ++pc, 8);
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				//Store
 				sp -= 2;
 				memcpy(stack + reg.l, stack + sp, 2);
-				//SilentPopBack(stackT);
-				//stackTPtr--;
 			break;
 
 			case StoreGlobal4:
 				//Get global offset
-				//memcpy(&reg.l, program + ++pc, 8);
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				//Store
 				sp -= 4;
 				memcpy(stack + reg.l, stack + sp, 4);
-				//SilentPopBack(stackT);
-				//stackTPtr--;
 			break;
 
 			case StoreGlobal8:
 				//Get global offset
-				//memcpy(&reg.l, program + ++pc, 8);
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				//Store
 				sp -= 8;
 				memcpy(stack + reg.l, stack + sp, 8);
-				//SilentPopBack(stackT);
-				//stackTPtr--;
 			break;
 
 			case LoadGlobal1:
-				//SilentPushBack(stackT, dt + program[++pc]);
-				//stackT[stackTPtr++] = program[++pc];
-				//memcpy(&reg.l, program + ++pc, 8);
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				memcpy(stack + sp, stack + reg.l, 1);
@@ -232,9 +223,6 @@ void SilentStartVM(char* program)
 			break;
 
 			case LoadGlobal2:
-				//SilentPushBack(stackT, dt + program[++pc]);
-				//stackT[stackTPtr++] = program[++pc];
-				//memcpy(&reg.l, program + ++pc, 8);
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				memcpy(stack + sp, stack + reg.l, 2);
@@ -242,9 +230,6 @@ void SilentStartVM(char* program)
 			break;
 
 			case LoadGlobal4:
-				//SilentPushBack(stackT, dt + program[++pc]);
-				//stackT[stackTPtr++] = program[++pc];
-				//memcpy(&reg.l, program + ++pc, 8);
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				memcpy(stack + sp, stack + reg.l, 4);
@@ -252,12 +237,153 @@ void SilentStartVM(char* program)
 			break;
 
 			case LoadGlobal8:
-				//SilentPushBack(stackT, dt + program[++pc]);
-				//stackT[stackTPtr++] = program[++pc];
-				//memcpy(&reg.l, program + ++pc, 8);
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				memcpy(stack + sp, stack + reg.l, 8);
+				sp += 8;
+			break;
+
+			case Alloc1:
+				reg.l = SilentAlloc(&gc, 1);
+				pc += 7;
+				memcpy(stack + sp, &reg.l, 8);
+				sp += 8;
+			break;
+
+			case Alloc2:
+				reg.l = SilentAlloc(&gc, 2);
+				pc += 7;
+				memcpy(stack + sp, &reg.l, 8);
+				sp += 8;
+			break;
+
+			case Alloc4:
+				reg.l = SilentAlloc(&gc, 4);
+				pc += 7;
+				memcpy(stack + sp, &reg.l, 8);
+				sp += 8;
+			break;
+
+			case Alloc8:
+				reg.l = SilentAlloc(&gc, 8);
+				pc += 7;
+				memcpy(stack + sp, &reg.l, 8);
+				sp += 8;
+			break;
+
+			case AllocX:
+				//Get alloc size
+				reg.l = SilentAlloc(&gc, (uint64)*((uint64*)(program+(++pc))));
+				pc += 7;
+				memcpy(stack + sp, &reg.l, 8);
+				sp += 8;
+			break;
+
+			case LoadPtr1:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(stack + (sp)));
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+				memcpy(stack+sp, gc.heap[reg.l].data + reg2.l, 1);
+				sp++;
+			break;
+
+			case LoadPtr2:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(stack + (sp)));
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+				memcpy(stack+sp, gc.heap[reg.l].data + reg2.l, 2);
+				sp += 2;
+			break;
+
+			case LoadPtr4:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(stack + (sp)));
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+				memcpy(stack+sp, gc.heap[reg.l].data + reg2.l, 4);
+				sp += 4;
+			break;
+
+			case LoadPtr8:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(stack + (sp)));
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+				memcpy(stack+sp, gc.heap[reg.l].data + reg2.l, 8);
+				sp += 8;
+			break;
+
+			case LoadPtrX:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 8;
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+
+				memcpy(stack+sp, 
+					gc.heap[(uint64)*((uint64*)(stack + (sp)))].data + reg2.l, 
+					reg.l);
+				sp += reg.l;
+			break;
+
+			case StorePtr1:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(stack + (sp)));
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+				sp--;
+				memcpy(gc.heap[reg.l].data + reg2.l, stack+sp, 1);
+			break;
+
+			case StorePtr2:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(stack + (sp)));
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+				sp -= 2;
+				memcpy(gc.heap[reg.l].data + reg2.l, stack+sp, 2);
+			break;
+
+			case StorePtr4:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(stack + (sp)));
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+				sp -= 4;
+				memcpy(gc.heap[reg.l].data + reg2.l, stack+sp, 7);
+			break;
+
+			case StorePtr8:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(stack + (sp)));
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+				sp -= 8;
+				memcpy(gc.heap[reg.l].data + reg2.l, stack+sp, 8);
+			break;
+
+			case StorePtrX:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 8;
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+				sp -= reg.l;
+				memcpy(gc.heap[(uint64)*((uint64*)(stack+(sp)))].data + reg2.l, 
+					stack+sp, reg.l);
+			break;
+
+			case Free:
+				SilentFree(&gc, (uint64)*((uint64*)(program + (++pc))));
+				pc += 7;
+			break;
+
+			case GetPtr:
+				sp -= 8;
+				reg.l = (uint64)*((uint64*)(stack + (sp)));
+				memcpy(stack + sp, &gc.heap[reg.l].data, 8);
 				sp += 8;
 			break;
 
@@ -409,6 +535,238 @@ void SilentStartVM(char* program)
 				(*(double*)(stack + sp));
 			break;
 
+			case SmallerThan:
+				switch(program[++pc])
+				{
+					case INT8:
+						sp-=2;
+						reg.c = (*(char*)(stack + sp)) <
+						(*(char*)(stack + sp+1));
+					break;
+					case UINT8:
+						sp-=2;
+						reg.c = (*(unsigned char*)(stack + sp)) <
+						(*(unsigned char*)(stack + sp+1));
+					break;
+					case INT16:
+						sp -= 4;
+						reg.c = (*(short*)(stack + sp)) <
+						(*(short*)(stack + sp+2));
+					break;
+					case UINT16:
+						sp -= 4;
+						reg.c = (*(unsigned short*)(stack + sp)) <
+						(*(unsigned short*)(stack + sp+2));
+					break;
+					case INT32:
+						sp -= 8;
+						reg.c = (*(int*)(stack + sp)) <
+						(*(int*)(stack + sp+4));
+					break;
+					case UINT32:
+						sp -= 8;
+						reg.c = (*(unsigned int*)(stack + sp)) <
+						(*(unsigned int*)(stack + sp+4));
+					break;
+					case INT64:
+						sp -= 16;
+						reg.c = (*(int64*)(stack + sp)) <
+						(*(int64*)(stack + sp+8));
+					break;
+					case UINT64:
+					case POINTER:
+						sp -= 16;
+						reg.c = (*(uint64*)(stack + sp)) <
+						(*(uint64*)(stack + sp+8));
+					break;
+					case FLOAT32:
+						sp -= 8;
+						reg.c = (*(float*)(stack + sp)) <
+						(*(float*)(stack + sp+4));
+					break;
+					case FLOAT64:
+						sp -= 16;
+						reg.c = (*(double*)(stack + sp)) <
+						(*(double*)(stack + sp+8));
+					break;
+				}
+				stack[sp++] = reg.c;
+			break;
+
+			case SmallerThanOrEqual:
+				switch(program[++pc])
+				{
+					case INT8:
+						sp-=2;
+						reg.c = (*(char*)(stack + sp)) <=
+						(*(char*)(stack + sp+1));
+					break;
+					case UINT8:
+						sp-=2;
+						reg.c = (*(unsigned char*)(stack + sp)) <=
+						(*(unsigned char*)(stack + sp+1));
+					break;
+					case INT16:
+						sp -= 4;
+						reg.c = (*(short*)(stack + sp)) <=
+						(*(short*)(stack + sp+2));
+					break;
+					case UINT16:
+						sp -= 4;
+						reg.c = (*(unsigned short*)(stack + sp)) <=
+						(*(unsigned short*)(stack + sp+2));
+					break;
+					case INT32:
+						sp -= 8;
+						reg.c = (*(int*)(stack + sp)) <=
+						(*(int*)(stack + sp+4));
+					break;
+					case UINT32:
+						sp -= 8;
+						reg.c = (*(unsigned int*)(stack + sp)) <=
+						(*(unsigned int*)(stack + sp+4));
+					break;
+					case INT64:
+						sp -= 16;
+						reg.c = (*(int64*)(stack + sp)) <=
+						(*(int64*)(stack + sp+8));
+					break;
+					case UINT64:
+					case POINTER:
+						sp -= 16;
+						reg.c = (*(uint64*)(stack + sp)) <=
+						(*(uint64*)(stack + sp+8));
+					break;
+					case FLOAT32:
+						sp -= 8;
+						reg.c = (*(float*)(stack + sp)) <=
+						(*(float*)(stack + sp+4));
+					break;
+					case FLOAT64:
+						sp -= 16;
+						reg.c = (*(double*)(stack + sp)) <=
+						(*(double*)(stack + sp+8));
+					break;
+				}
+				stack[sp++] = reg.c;
+			break;
+
+			case LargerThan:
+				switch(program[++pc])
+				{
+					case INT8:
+						sp-=2;
+						reg.c = (*(char*)(stack + sp)) >
+						(*(char*)(stack + sp+1));
+					break;
+					case UINT8:
+						sp-=2;
+						reg.c = (*(unsigned char*)(stack + sp)) >
+						(*(unsigned char*)(stack + sp+1));
+					break;
+					case INT16:
+						sp -= 4;
+						reg.c = (*(short*)(stack + sp)) >
+						(*(short*)(stack + sp+2));
+					break;
+					case UINT16:
+						sp -= 4;
+						reg.c = (*(unsigned short*)(stack + sp)) >
+						(*(unsigned short*)(stack + sp+2));
+					break;
+					case INT32:
+						sp -= 8;
+						reg.c = (*(int*)(stack + sp)) >
+						(*(int*)(stack + sp+4));
+					break;
+					case UINT32:
+						sp -= 8;
+						reg.c = (*(unsigned int*)(stack + sp)) >
+						(*(unsigned int*)(stack + sp+4));
+					break;
+					case INT64:
+						sp -= 16;
+						reg.c = (*(int64*)(stack + sp)) >
+						(*(int64*)(stack + sp+8));
+					break;
+					case UINT64:
+					case POINTER:
+						sp -= 16;
+						reg.c = (*(uint64*)(stack + sp)) >
+						(*(uint64*)(stack + sp+8));
+					break;
+					case FLOAT32:
+						sp -= 8;
+						reg.c = (*(float*)(stack + sp)) >
+						(*(float*)(stack + sp+4));
+					break;
+					case FLOAT64:
+						sp -= 16;
+						reg.c = (*(double*)(stack + sp)) >
+						(*(double*)(stack + sp+8));
+					break;
+				}
+				stack[sp++] = reg.c;
+			break;
+
+			case LargerThanOrEqual:
+				switch(program[++pc])
+				{
+					case INT8:
+						sp-=2;
+						reg.c = (*(char*)(stack + sp)) >=
+						(*(char*)(stack + sp+1));
+					break;
+					case UINT8:
+						sp-=2;
+						reg.c = (*(unsigned char*)(stack + sp)) >=
+						(*(unsigned char*)(stack + sp+1));
+					break;
+					case INT16:
+						sp -= 4;
+						reg.c = (*(short*)(stack + sp)) >=
+						(*(short*)(stack + sp+2));
+					break;
+					case UINT16:
+						sp -= 4;
+						reg.c = (*(unsigned short*)(stack + sp)) >=
+						(*(unsigned short*)(stack + sp+2));
+					break;
+					case INT32:
+						sp -= 8;
+						reg.c = (*(int*)(stack + sp)) >=
+						(*(int*)(stack + sp+4));
+					break;
+					case UINT32:
+						sp -= 8;
+						reg.c = (*(unsigned int*)(stack + sp)) >=
+						(*(unsigned int*)(stack + sp+4));
+					break;
+					case INT64:
+						sp -= 16;
+						reg.c = (*(int64*)(stack + sp)) >=
+						(*(int64*)(stack + sp+8));
+					break;
+					case UINT64:
+					case POINTER:
+						sp -= 16;
+						reg.c = (*(uint64*)(stack + sp)) >=
+						(*(uint64*)(stack + sp+8));
+					break;
+					case FLOAT32:
+						sp -= 8;
+						reg.c = (*(float*)(stack + sp)) >=
+						(*(float*)(stack + sp+4));
+					break;
+					case FLOAT64:
+						sp -= 16;
+						reg.c = (*(double*)(stack + sp)) >=
+						(*(double*)(stack + sp+8));
+					break;
+				}
+				stack[sp++] = reg.c;
+			break;
+
 			case Equal:
 				switch(program[++pc])
 				{
@@ -467,6 +825,64 @@ void SilentStartVM(char* program)
 				stack[sp++] = reg.c;
 			break;
 
+			case NotEqual:
+				switch(program[++pc])
+				{
+					case INT8:
+						sp-=2;
+						reg.c = (*(char*)(stack + sp)) !=
+						(*(char*)(stack + sp+1));
+					break;
+					case UINT8:
+						sp-=2;
+						reg.c = (*(unsigned char*)(stack + sp)) !=
+						(*(unsigned char*)(stack + sp+1));
+					break;
+					case INT16:
+						sp -= 4;
+						reg.c = (*(short*)(stack + sp)) !=
+						(*(short*)(stack + sp+2));
+					break;
+					case UINT16:
+						sp -= 4;
+						reg.c = (*(unsigned short*)(stack + sp)) !=
+						(*(unsigned short*)(stack + sp+2));
+					break;
+					case INT32:
+						sp -= 8;
+						reg.c = (*(int*)(stack + sp)) !=
+						(*(int*)(stack + sp+4));
+					break;
+					case UINT32:
+						sp -= 8;
+						reg.c = (*(unsigned int*)(stack + sp)) !=
+						(*(unsigned int*)(stack + sp+4));
+					break;
+					case INT64:
+						sp -= 16;
+						reg.c = (*(int64*)(stack + sp)) !=
+						(*(int64*)(stack + sp+8));
+					break;
+					case UINT64:
+					case POINTER:
+						sp -= 16;
+						reg.c = (*(uint64*)(stack + sp)) !=
+						(*(uint64*)(stack + sp+8));
+					break;
+					case FLOAT32:
+						sp -= 8;
+						reg.c = (*(float*)(stack + sp)) !=
+						(*(float*)(stack + sp+4));
+					break;
+					case FLOAT64:
+						sp -= 16;
+						reg.c = (*(double*)(stack + sp)) !=
+						(*(double*)(stack + sp+8));
+					break;
+				}
+				stack[sp++] = reg.c;
+			break;
+
 			case If:
 				if(stack[--sp])
 				{
@@ -497,11 +913,39 @@ void SilentStartVM(char* program)
 				stack[sp-1] = stack[sp-1] | stack[sp];
 			break;
 
+			case Xor:
+				sp--;
+				stack[sp-1] = stack[sp-1] ^ stack[sp];
+			break;
+
 			case Not:
 				stack[sp-1] = !stack[sp-1];
 			break;
 		}
 		pc++;
     }
-	printf("%ul\n", (uint64)*(uint64*)(stack));
+	printf("%lu\n", (uint64)*(uint64*)(stack));
+}
+
+uint64 SilentAlloc(SilentGC* gc, uint64 size)
+{
+	uint64 returnPos = gc->lastFree;
+	gc->heap[gc->lastFree].marked = 0;
+	gc->heap[gc->lastFree].occupied = 1;
+	gc->heap[gc->lastFree].data = malloc(size);
+
+	for(uint64 i = gc->lastFree + 1; i < gc->heapPtr; i++)
+		if(gc->heap[i].occupied == 0) gc->lastFree = i;
+
+	//printf("Allocated %i bytes on location %i\n", size, returnPos);
+
+	return returnPos;
+}
+
+void SilentFree(SilentGC* gc, uint64 pos)
+{
+	gc->heap[pos].occupied = 0;
+	free(gc->heap[pos].data);
+	if(pos < gc->lastFree) gc->lastFree = pos;
+
 }
