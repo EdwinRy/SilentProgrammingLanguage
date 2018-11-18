@@ -4,22 +4,24 @@
 #include <string.h>
 typedef unsigned long long uint64;
 typedef long long int64;
-void SilentStartVM(char* program)
+void SilentStartVM(char* prog)
 {
-    char* stack = malloc(10000);
+    volatile char* stack = malloc(10000);
+	register char* program = prog;
+	//char* program = prog;
     uint64 sp = 0;	//stack pointer
     uint64 fp = 0;	//frame pointer
-    uint64 pc = 0;	//program counter
+    register uint64 pc = 0;	//program counter
 
     uint64 *saveSfData = malloc(90000); //old stack frame data
-    uint64 saveSfDataPtr = 0;
+    register uint64 saveSfDataPtr = 0;
 
 	SilentGC gc;
 	gc.heap = malloc(1000 * sizeof(SilentMemoryBlock));
 	gc.heapPtr = 0;
 	gc.lastFree = 0;
 
-    union Registers
+    typedef union Registers
 	{
 		char c;
 		short s;
@@ -27,16 +29,21 @@ void SilentStartVM(char* program)
 		long long l;
 		float f;
 		double d;
-	}reg, reg2;//, reg3, reg4;
+	}Registers;//, reg3, reg4;
 
-    char running = 1;
+	volatile Registers reg;
+	volatile Registers reg2;
 
-    while(running)
+    //char running = 1;
+
+    //while(running)
+	for(;;)
     {
-        switch (program[pc])
+        switch (*(program + pc))
         {
             case Halt:
-                running = 0;
+                //running = 0;
+				goto endLoop;
             break;
         
             case Goto:
@@ -94,7 +101,8 @@ void SilentStartVM(char* program)
 			break;
 
 			case Push8:
-				memcpy(stack + sp, program + (++pc), 8);
+				//memcpy(stack + sp, program + (++pc), 8);
+				(*(uint64*)(stack + sp)) = (*(uint64*)(program + (++pc)));
 				sp += 8;
 				pc += 7;
 			break;
@@ -151,7 +159,8 @@ void SilentStartVM(char* program)
 				//memcpy(&reg.l, program + ++pc, 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				memcpy(stack + sp, stack + fp + reg.l, 1);
+				//memcpy(stack + sp, stack + fp + reg.l, 1);
+				(*(char*)(stack + sp)) = (*(char*)(stack + fp + reg.l));
 				sp++;
 			break;
 
@@ -159,7 +168,8 @@ void SilentStartVM(char* program)
 				//memcpy(&reg.l, program + ++pc, 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				memcpy(stack + sp, stack + fp + reg.l, 2);
+				//memcpy(stack + sp, stack + fp + reg.l, 2);
+				(*(short*)(stack + sp)) = (*(short*)(stack + fp + reg.l));
 				sp += 2;
 			break;
 
@@ -167,7 +177,8 @@ void SilentStartVM(char* program)
 				//memcpy(&reg.l, program + ++pc, 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				memcpy(stack + sp, stack + fp + reg.l, 4);
+				//memcpy(stack + sp, stack + fp + reg.l, 4);
+				(*(int*)(stack + sp)) = (*(int*)(stack + fp + reg.l));
 				sp += 4;
 			break;
 
@@ -175,7 +186,8 @@ void SilentStartVM(char* program)
 				//memcpy(&reg.l, program + ++pc, 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				memcpy(stack + sp, stack + fp + reg.l, 8);
+				//memcpy(stack + sp, stack + fp + reg.l, 8);
+				(*(uint64*)(stack + sp)) = (*(uint64*)(stack + fp + reg.l));
 				sp += 8;
 			break;
 
@@ -244,39 +256,50 @@ void SilentStartVM(char* program)
 			break;
 
 			case Alloc1:
-				reg.l = SilentAlloc(&gc, 1);
+			{
+				uint64 temp = SilentAlloc(&gc, 1);
 				pc += 7;
-				memcpy(stack + sp, &reg.l, 8);
+				memcpy(stack + sp, &temp, 8);
 				sp += 8;
+			}
 			break;
 
 			case Alloc2:
-				reg.l = SilentAlloc(&gc, 2);
+			{
+				uint64 temp = SilentAlloc(&gc, 2);
 				pc += 7;
-				memcpy(stack + sp, &reg.l, 8);
+				memcpy(stack + sp, &temp, 8);
 				sp += 8;
+			}
 			break;
 
 			case Alloc4:
-				reg.l = SilentAlloc(&gc, 4);
+			{
+				uint64 temp = SilentAlloc(&gc, 4);
 				pc += 7;
-				memcpy(stack + sp, &reg.l, 8);
+				memcpy(stack + sp, &temp, 8);
 				sp += 8;
+			}
 			break;
 
 			case Alloc8:
-				reg.l = SilentAlloc(&gc, 8);
+			{
+				uint64 temp = SilentAlloc(&gc, 8);
 				pc += 7;
-				memcpy(stack + sp, &reg.l, 8);
+				memcpy(stack + sp, &temp, 8);
 				sp += 8;
+			}
 			break;
 
 			case AllocX:
+			{
 				//Get alloc size
-				reg.l = SilentAlloc(&gc, (uint64)*((uint64*)(program+(++pc))));
+				uint64 temp = 
+					SilentAlloc(&gc, (uint64)*((uint64*)(program+(++pc))));
 				pc += 7;
-				memcpy(stack + sp, &reg.l, 8);
+				memcpy(stack + sp, &temp, 8);
 				sp += 8;
+			}
 			break;
 
 			case LoadPtr1:
@@ -406,9 +429,10 @@ void SilentStartVM(char* program)
 			break;
 
 			case AddI8:
-				sp -= 8;
-				(*(uint64*)(stack + sp-8)) +=
-				(*(uint64*)(stack + sp));
+				sp -= 16;
+				(*(uint64*)(stack + sp)) +=
+				(*(uint64*)(stack + sp+8));
+				sp += 8;
 			break;
 
 			case AddF4:
@@ -444,8 +468,7 @@ void SilentStartVM(char* program)
 
 			case SubI8:
 				sp -= 8;
-				(*(uint64*)(stack + sp-8)) -=
-				(*(uint64*)(stack + sp));
+				(*(uint64*)(stack + sp-8)) -= (*(uint64*)(stack + sp));
 			break;
 
 			case SubF4:
@@ -768,7 +791,8 @@ void SilentStartVM(char* program)
 			break;
 
 			case Equal:
-				switch(program[++pc])
+				//switch(program[++pc])
+				switch(*(program + (++pc)))
 				{
 					case INT8:
 						sp-=2;
@@ -894,7 +918,7 @@ void SilentStartVM(char* program)
 			break;
 
 			case IfNot:
-				if(!stack[--sp])
+				if(!*(stack + (--sp)))
 				{
 					pc++;
 					pc = *((uint64*)(program + (pc)));
@@ -924,6 +948,7 @@ void SilentStartVM(char* program)
 		}
 		pc++;
     }
+	endLoop:
 	printf("%lu\n", (uint64)*(uint64*)(stack));
 }
 

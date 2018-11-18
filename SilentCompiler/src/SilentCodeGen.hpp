@@ -11,10 +11,10 @@ namespace Silent
 
         Call,
         Return,
-        LoadDll,
-        LoadDllFunc,
-        FreeDll,
-        CallDllFunc,
+        LoadDll,//
+        LoadDllFunc,//
+        FreeDll,//
+        CallDllFunc,//
 
         Push1,
         Push2,

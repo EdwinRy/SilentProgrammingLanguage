@@ -1,6 +1,10 @@
 CC = gcc
 CFLAGS = -std=c99 -Wall -O3
-#LIBS = -ldl
+ifeq ($(OS), Windows_NT)
+##LIBS = -ldl
+else
+LIBS = -ldl
+endif
 SRC_PATH = src
 OBJ_PATH = obj
 OUT_PATH = bin
@@ -20,7 +24,7 @@ DEPENDENCIES = $(OBJECTS:.o=.d)
 all: $(EXE)
 
 $(EXE) : $(OBJECTS)
-	$(CC) $(OBJECTS) $(LIBS) -o $@
+	$(CC) $(OBJECTS) $(LIBS) -pg -o $@
 
 -include $(DEPENDENCIES)
 
