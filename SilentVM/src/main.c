@@ -1,6 +1,7 @@
-#include "SilentVM2.h"
+#include "SilentVM.h"
 #include "SilentLib.h"
 #include <stdio.h>
+#include <time.h>
 char* readAllText(char* path)
 {
     char* text;
@@ -29,17 +30,25 @@ int main(int argc, char** argv)
 	}
 	char* program = readAllText(argv[1]);
 
-	SilentMemory* memory = createSilentMemory(8000,8000);
-	SilentGC* gc = createSilentGC(memory);
-	SilentVM* vm = createSilentVM(memory,program,gc);
+	//SilentMemory* memory = createSilentMemory(80000,80000);
+	//SilentGC* gc = createSilentGC(memory);
+	//SilentVM* vm = createSilentVM(memory,program,gc);
 
-	silentVMStart(vm);
 
-	printf("%i\n", vm->memory->stackPointer);
-	printf("%i\n", vm->memory->stack[0]);
+	clock_t start = clock();
+	SilentStartVM(program);
+	clock_t end = clock();
 
-	deleteSilentGC(gc);
-	deleteSilentMemory(memory);
+	double timeSpent = (double)(end-start) / CLOCKS_PER_SEC;
+
+	//printf("%i\n", vm->memory->stackPointer);
+	unsigned long long t;
+	//memcpy(&t, vm->memory->stack, 8);
+	//printf("%u\n", t);
+	printf("Time taken: %f seconds\n", timeSpent);
+
+	//deleteSilentGC(gc);
+	//deleteSilentMemory(memory);
 	//deleteSilentVM(vm);
 	
 

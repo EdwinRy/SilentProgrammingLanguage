@@ -25,6 +25,8 @@ namespace Silent
         tokenCursor = 0;
         ct = tokens[tokenCursor];
         tokensPtr = &tokens;
+        currentDataType.isPrimitive = true;
+        currentDataType.primitive = SilentPrimitives::int32;
 
         globalNamespace->globals = new SilentLocalScope();
         //globalNamespace->globals->namespaceParent = globalNamespace;
@@ -318,13 +320,25 @@ namespace Silent
         functionCall->function = GetFunction(ct.value);
         NextToken();
         NextToken();
-        while(ct.type != SilentTokenType::CloseParam)
+        SilentDataType oldType = currentDataType;
+        uint64 argPointer = 0;
+        while(ct.type != SilentTokenType::CloseParam ||
+            argPointer < functionCall->function->parameterCount)
         {
+            currentDataType = 
+                functionCall->function->scope->variables[argPointer]->type;
             //scope.statements.push_back(ParseStatement(scope));
             functionCall->arguments.push_back(ParseExpression(scope));
+            argPointer++;
             if(ct.type == SilentTokenType::Comma) NextToken();
             else break;
         }
+
+        if(argPointer < functionCall->function->parameterCount)
+            ErrorMsg("Not enough arguments provided to call function "+
+                functionCall->function->name);
+
+        currentDataType = oldType;
         NextToken();
         return functionCall;
     }
@@ -342,8 +356,9 @@ namespace Silent
                 SilentOperand* operand = new SilentOperand();
                 operand->expressionType = SilentExpressionType::Data;
                 operand->type = SilentOperandType::Number;
-                operand->token = new SilentToken;
-                *(operand->token) = ct;
+                operand->value = new SilentValue();
+                operand->value->data = ct.value;
+                operand->value->dataType = currentDataType;
                 NextToken();
                 return operand;
             }
@@ -643,17 +658,29 @@ namespace Silent
     SilentOperand* SilentParser::ParseExpression(SilentLocalScope &scope)
     {
         if(AcceptToken(SilentTokenType::Assign)) NextToken();
+        switch(ct.type)
+        {
+            case SilentTokenType::Assign:
+            case SilentTokenType::AddAssign:
+            case SilentTokenType::SubtractAssign:
+            case SilentTokenType::MultiplyAssign:
+            case SilentTokenType::DivideAssign:
+                NextToken();
+            break;
+            default: break;
+        }
 
         SilentOperand* operand = new SilentOperand();
         SilentOperand* temp;
         operand->left = ParseComparison(scope);
-
+        
         bool parsingExpression = true;
         while(parsingExpression)
         {
             switch(ct.type)
             {
                 case SilentTokenType::Assign:
+                    currentDataType = operand->left->variable->type;
                     operand->type = SilentOperandType::Assign;
                     operand->expressionType = SilentExpressionType::Memory;
                     NextToken();
@@ -687,6 +714,9 @@ namespace Silent
                 case SilentTokenType::Semicolon:
                     parsingExpression = false;
                 break;
+
+                // case SilentTokenType::Return:
+                // break;
 
                 default: parsingExpression = false; break;
             }
@@ -876,7 +906,7 @@ namespace Silent
         ifStatement->scope->scopeParent = &scope;
         NextToken();
         ParseLocalScope(*ifStatement->scope);
-        NextToken();
+        //NextToken();
 
         #if DEBUG
         std::cout << "Finished parsing local scope\n\n";
@@ -895,6 +925,7 @@ namespace Silent
             {
                 case SilentTokenType::Primitive:
                 {
+                    currentDataType = GetType(ct.value);
                     SilentStatement* statement = new SilentStatement();
                     statement->type = SilentStatementType::VarInit;
                     scope.statements.push_back(statement);
@@ -910,6 +941,7 @@ namespace Silent
                 case SilentTokenType::Identifier:
                     if(IsValidType(ct.value))
                     {
+                        currentDataType = GetType(ct.value);
                         SilentStatement* statement = new SilentStatement();
                         statement->type = SilentStatementType::VarInit;
 
@@ -924,18 +956,40 @@ namespace Silent
                     {
                         SilentVariable* var = GetVariable(
                             scope, ct.value.data());
+                        currentDataType = var->type;
                         if(var == NULL) ErrorMsg("Use of invalid type");
                         //NextToken();
                         printf("Token %s\n", ct.value.data());
-                        SilentStatement* statement = ParseStatement(scope);
+                        //SilentStatement* statement = ParseStatement(scope);
                         // statement->type = SilentStatementType::Expression;
                         // statement->expression = ParseExpression(); 
-                        scope.statements.push_back(statement);
+                        scope.statements.push_back(ParseStatement(scope));
                     }
                 break;
 
-                case SilentTokenType::If: ParseIfStatement(scope); break;
+                case SilentTokenType::If: 
+                    ParseIfStatement(scope); 
+                    NextToken();
+                break;
 
+                case SilentTokenType::Return:
+                {
+                    NextToken();
+                    currentDataType = currentFunction->returnType;
+                    //scope.statements.push_back(ParseStatement(scope));
+                    SilentStatement* retExpression = new SilentStatement();
+                    retExpression->type = SilentStatementType::Expression;
+                    retExpression->expression = ParseExpression(scope);
+                    scope.statements.push_back(retExpression);
+
+                    SilentStatement* statement = new SilentStatement();
+                    //statement->parentScope = &scope;
+                    statement->type = SilentStatementType::Return;
+                    statement->dataType = currentDataType;
+                    scope.statements.push_back(statement);
+                    NextToken();
+                }
+                break;
 
 
                 default:
@@ -944,7 +998,6 @@ namespace Silent
                 break;
             }
         }
-        //nextToken();
         #if DEBUG
         std::cout << "Finished parsing local scope\n\n";
         #endif
@@ -957,12 +1010,16 @@ namespace Silent
         #endif
         //Create function
         SilentFunction* function = new SilentFunction();
+        currentFunction = function;
 
         scope.functions.push_back(function);
 
         //Get function return type
         NextToken();
         function->returnType = GetType(ct.value);
+        function->returnType.size = GetTypeSize(ct.value);
+
+        currentDataType = function->returnType;
 
         //Get function name
         NextToken();
@@ -975,8 +1032,9 @@ namespace Silent
         if(!AcceptToken(SilentTokenType::OpenParam))
             ErrorMsg("Expected \"(\" for parameter declaration");
         NextToken();
-        //function->parameters = 
         function->scope = ParseParameters();
+
+        
         if(function->scope->variables.size() > 0)
         {
             function->parameterCount = function->scope->variables.size();
@@ -1014,6 +1072,8 @@ namespace Silent
         #if DEBUG
             std::cout << "Declared function " << function->name.data() << "\n";
         #endif
+
+        currentFunction = NULL;
 
         NextToken();
         #if DEBUG

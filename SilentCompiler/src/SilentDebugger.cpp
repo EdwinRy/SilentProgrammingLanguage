@@ -85,7 +85,7 @@ void printGen()
         if(generations[currentGen].operands[j]->type == SilentOperandType::Number)
         {
             std::cout
-            << generations[currentGen].operands[j]->token->value.data() 
+            << generations[currentGen].operands[j]->value->data.data() 
             << " ";
         }
         else

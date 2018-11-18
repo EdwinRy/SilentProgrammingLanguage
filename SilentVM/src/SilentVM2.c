@@ -5,7 +5,7 @@
 #include <math.h>
 
 #define DEBUG 0
-#define STACK_OUTPUT 1
+#define STACK_OUTPUT 0
 
 typedef unsigned int uint;
 typedef unsigned long long uint64;
@@ -37,9 +37,9 @@ SilentMemory* createSilentMemory(
 	memory->stack 			= malloc(stackBufferSize);
 	memory->stackSize		= stackBufferSize;
 
-	memory->heap			= SilentCreateVector(heapBufferSize, 8);
-	memory->stackTypes		= SilentCreateVector(stackBufferSize/4, 1);
-	memory->stackFrame		= SilentCreateVector(stackBufferSize/4, 8);
+	//memory->heap			= SilentCreateVector(heapBufferSize, 8);
+	//memory->stackTypes		= SilentCreateVector(stackBufferSize/4, 1);
+	//memory->stackFrame		= SilentCreateVector(stackBufferSize/4, 8);
 	return memory; 
 }
 
@@ -154,12 +154,14 @@ void silentVMStart(SilentVM* vm)
 
 	char* 				program = vm->program;
 	char* 				stack 	= vm->memory->stack;
-	SilentVector*		heap	= vm->memory->heap;
-	SilentVector* 		stackT  = vm->memory->stackTypes;
-	SilentVector*		stackF	= vm->memory->stackFrame;
+	//SilentVector*		heap	= vm->memory->heap;
+	//SilentVector* 		stackT  = vm->memory->stackTypes;
+	char* stackT = malloc(8000);
+	uint64 stackTPtr = 0;
 
-	SilentVector*		callPos = SilentCreateVector(32, 8);
-	SilentVector*		saveStackT = SilentCreateVector(32, 8);
+	//SilentVector*		saveSFData = SilentCreateVector(32000, 8);
+	unsigned long long* saveSFData = malloc(80000);
+	unsigned long long  saveSFDataPtr = 0;
 
 	SilentDll*			dlls = vm->dlls;
 
@@ -213,16 +215,31 @@ void silentVMStart(SilentVM* vm)
 				memcpy(&reg3.l, program + pc, 8);
 				pc += 7;
 
-				//Push arguments
+				//Save old stackframe data
+				//SilentPushBack(saveSFData, &fp);
+				saveSFData[saveSFDataPtr++] = fp;
+				//Push arguments to new subroutine
+				fp = sp;
 				fp -= reg3.l;
-				//Save frame pointer
-				SilentPushBack(stackF, &fp);
-				//Save stack type pointer
-				reg3.l = stackT->ptr - reg2.l;
-				SilentPushBack(saveStackT, &reg3.l);
-				//Save return address
-				SilentPushBack(callPos, &pc);
-				//Set program counter to run called subroutine's code
+
+				
+
+				//stackT->ptr -= reg2.l;
+				//SilentPushBack(saveSFData, &stackT->ptr);
+				//stackT->ptr += reg2.l;
+				stackTPtr -= reg2.l;
+				saveSFData[saveSFDataPtr++] = stackTPtr;
+				stackTPtr += reg2.l;
+
+				sp -= reg3.l;
+				saveSFData[saveSFDataPtr++] = sp;
+				//SilentPushBack(saveSFData, &sp);
+				sp += reg3.l;
+
+				//Save return position
+				//SilentPushBack(saveSFData, &pc);
+
+				//Go to subroutine
 				pc = reg.l - 1;
 
 				#if DEBUG
@@ -241,28 +258,44 @@ void silentVMStart(SilentVM* vm)
 				pc += 8;
 				//Get size of return values
 				memcpy(&reg2.l, program + pc, 8);
-				pc += 7;
+				//pc += 7;
 
-				//get return values
-				memmove(stack + fp, stack + sp - reg2.l, reg2.l);
-				sp = fp + reg2.l;
+				//Go back to old subroutine
+				//SilentPopBack(saveSFData);
+				//memcpy(&pc, saveSFData->data + saveSFData->ptr, 8);
+				pc = saveSFData[--saveSFDataPtr];
 
-				//get return types
-				memcpy(&reg3.l, saveStackT->data + saveStackT->ptr, 8);
-				memmove(
-					stackT->data + reg3.l, 
-					stackT->data + stackT->ptr - reg.l,
-					reg.l
-				);
-				stackT->ptr = reg3.l + reg.l;
+				//Get old stack pointer
+				//SilentPopBack(saveSFData);
+				reg3.l = sp;
+				//memcpy(&sp, saveSFData->data + saveSFData->ptr, 8);
+				sp = saveSFData[--saveSFDataPtr];
 
-				//Pop back old saved values
-				SilentPopBack(stackF);
-				SilentPopBack(callPos);
-				//Restore old frame pointer
-				memcpy(&fp, stackF->data + stackF->ptr, 8);
-				//Go to return address
-				memcpy(&pc, callPos->data + callPos->ptr, 8);
+				//Move return data to stack pointer
+				memcpy(stack + sp, stack + reg3.l - reg2.l, reg2.l);
+				sp += reg2.l; //Add returned values to stack pointer
+
+				//Get old stack types
+				//SilentPopBack(saveSFData);
+				stackTPtr--;
+
+				//Get old stack types ptr
+				//reg3.l = stackT->ptr;
+				reg3.l = stackTPtr;
+				//memcpy(&stackT->ptr, saveSFData->data + saveSFData->ptr, 8);
+				stackTPtr = saveSFData[saveSFDataPtr];
+				//stackT->ptr += reg.l; //Add returned values to the pointer
+				saveSFDataPtr += reg.l;
+
+				//Move stack types to old pointer
+				//memcpy(stackT->data + stackT->ptr,
+				//	stackT->data + reg3.l - reg.l, reg.l);
+				memcpy(stackT + stackTPtr, stackT + reg3.l - reg.l, reg.l);
+
+				//Get old frame pointer
+				//SilentPopBack(saveSFData);
+				//memcpy(&fp, saveSFData->data + saveSFData->ptr, 8);
+				fp = saveSFData[--saveSFDataPtr];
 
 				#if DEBUG
 					printf("Return\n");
@@ -345,19 +378,21 @@ void silentVMStart(SilentVM* vm)
 				uint64 argSize = 0;
 				for(uint64 i = 0; i < reg3.l; i++)
 				{
-					reg4.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
-					if(reg4.c != 0)
-					{
+					//reg4.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+					reg4.c = SilentGetTypeSize(stackT[stackTPtr--]);
+					//if(reg4.c != 0)
+					//{
 						argSize += reg4.c;
-						SilentPopBack(stackT);
-					}
-					else
-					{
-						uint64 dSize;
-						memcpy(&dSize, stackT->data + stackT->ptr - 9, 8);
-						argSize += dSize;
-						SilentPopMultiple(stackT,10);
-					}
+					//	SilentPopBack(stackT);
+					//}
+					//else
+					//{
+						//uint64 dSize;
+						//memcpy(&dSize, stackT->data + stackT->ptr - 9, 8);
+						//argSize += dSize;
+					//	argSize += stackT[stackTPtr - 9];
+					//	SilentPopMultiple(stackT,10);
+					//}
 				}
 				reg3.l = argSize;
 				sp -= argSize;
@@ -373,60 +408,70 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Push1:
-				SilentPushBack(stackT, dt + program[++pc]);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
 				stack[sp++] = program[++pc];
 			break;
 
 			case Push2:
-				SilentPushBack(stackT, dt + program[++pc]);
-				memcpy(stack + sp, program + pc, 2);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
+				memcpy(stack + sp, program + (++pc), 2);
 				sp += 2;
 				pc++;
 			break;
 
 			case Push4:
-				SilentPushBack(stackT, dt + program[++pc]);
-				memcpy(stack + sp, program + pc, 4);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
+				memcpy(stack + sp, program + (++pc), 4);
 				sp += 4;
 				pc += 3;
 			break;
 
 			case Push8:
-				SilentPushBack(stackT, dt + program[++pc]);
-				memcpy(stack + sp, program + pc, 8);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
+				memcpy(stack + sp, program + (++pc), 8);
 				sp += 8;
 				pc += 7;
 			break;
 
 			case Pop1:
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				sp -= 1;
 			break;
 
 			case Pop2:
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				sp -= 2;
 			break;
 
 			case Pop4:
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				sp -= 4;
 			break;
 
 			case Pop8:
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				sp -= 8;
 			break;
 
 			case Store1:
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				memcpy(&reg2.l, program + (++pc), 8);
 				pc += 7;
 				memcpy(stack + fp + reg2.l, stack + --sp, 1);
 			break;
 
 			case Store2:
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				memcpy(&reg2.l, program + (++pc), 8);
 				pc += 7;
 				sp -= 2;
@@ -434,7 +479,8 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Store4:
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				memcpy(&reg2.l, program + (++pc), 8);
 				pc += 7;
 				sp -= 4;
@@ -442,7 +488,8 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Store8:
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				memcpy(&reg2.l, program + (++pc), 8);
 				pc += 7;
 				sp -= 8;
@@ -450,7 +497,8 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Load1:
-				SilentPushBack(stackT, dt + program[++pc]);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
 				memcpy(&reg.l, program + ++pc, 8);
 				pc += 7;
 				memcpy(stack + sp, stack + fp + reg.l, 1);
@@ -458,7 +506,8 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Load2:
-				SilentPushBack(stackT, dt + program[++pc]);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
 				memcpy(&reg.l, program + ++pc, 8);
 				pc += 7;
 				memcpy(stack + sp, stack + fp + reg.l, 2);
@@ -466,7 +515,8 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Load4:
-				SilentPushBack(stackT, dt + program[++pc]);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
 				memcpy(&reg.l, program + ++pc, 8);
 				pc += 7;
 				memcpy(stack + sp, stack + fp + reg.l, 4);
@@ -474,7 +524,8 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Load8:
-				SilentPushBack(stackT, dt + program[++pc]);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
 				memcpy(&reg.l, program + ++pc, 8);
 				pc += 7;
 				memcpy(stack + sp, stack + fp + reg.l, 9);
@@ -488,7 +539,8 @@ void silentVMStart(SilentVM* vm)
 				//Store
 				sp -= 1;
 				memcpy(stack + reg.l, stack + sp, 1);
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 			break;
 			
 			case StoreGlobal2:
@@ -498,7 +550,8 @@ void silentVMStart(SilentVM* vm)
 				//Store
 				sp -= 2;
 				memcpy(stack + reg.l, stack + sp, 2);
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 			break;
 
 			case StoreGlobal4:
@@ -508,7 +561,8 @@ void silentVMStart(SilentVM* vm)
 				//Store
 				sp -= 4;
 				memcpy(stack + reg.l, stack + sp, 4);
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 			break;
 
 			case StoreGlobal8:
@@ -518,11 +572,13 @@ void silentVMStart(SilentVM* vm)
 				//Store
 				sp -= 8;
 				memcpy(stack + reg.l, stack + sp, 8);
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 			break;
 
 			case LoadGlobal1:
-				SilentPushBack(stackT, dt + program[++pc]);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
 				memcpy(&reg.l, program + ++pc, 8);
 				pc += 7;
 				memcpy(stack + sp, stack + reg.l, 1);
@@ -530,7 +586,8 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case LoadGlobal2:
-				SilentPushBack(stackT, dt + program[++pc]);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
 				memcpy(&reg.l, program + ++pc, 8);
 				pc += 7;
 				memcpy(stack + sp, stack + reg.l, 2);
@@ -538,7 +595,8 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case LoadGlobal4:
-				SilentPushBack(stackT, dt + program[++pc]);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
 				memcpy(&reg.l, program + ++pc, 8);
 				pc += 7;
 				memcpy(stack + sp, stack + reg.l, 4);
@@ -546,7 +604,8 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case LoadGlobal8:
-				SilentPushBack(stackT, dt + program[++pc]);
+				//SilentPushBack(stackT, dt + program[++pc]);
+				stackT[stackTPtr++] = program[++pc];
 				memcpy(&reg.l, program + ++pc, 8);
 				pc += 7;
 				memcpy(stack + sp, stack + reg.l, 8);
@@ -562,75 +621,89 @@ void silentVMStart(SilentVM* vm)
 				//push pointer location
 				memcpy(stack + sp, &reg2.l, 8);
 				sp += 8;
-				SilentPushBack(stackT, dt + POINTER_LOCATION);
+				//SilentPushBack(stackT, dt + POINTER_LOCATION);
+				stackT[stackTPtr++] = POINTER_LOCATION;
 			break;
 
 			case LoadPtr:
 				//get pointer
 				sp -= 8;
 				memcpy(&tempPtr, stack + sp, 8);
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				switch(program[++pc])
 				{
 					case INT8:
 						memcpy(stack + sp, tempPtr, 1);
 						sp += 1;
-						SilentPushBack(stackT,dt + INT8);
+						//SilentPushBack(stackT,dt + INT8);
+						stackT[stackTPtr++] = INT8;
 					break;
 					case UINT8:
 						memcpy(stack + sp, tempPtr, 1);
 						sp += 1;
-						SilentPushBack(stackT,dt + UINT8);
+						//SilentPushBack(stackT,dt + UINT8);
+						stackT[stackTPtr++] = UINT8;
 					break;
 					case INT16:
 						memcpy(stack + sp, tempPtr, 2);
 						sp += 2;
-						SilentPushBack(stackT,dt + INT16);
+						//SilentPushBack(stackT,dt + INT16);
+						stackT[stackTPtr++] = INT16;
 					break;
 					case UINT16:
 						memcpy(stack + sp, tempPtr, 2);
 						sp += 2;
-						SilentPushBack(stackT,dt + UINT16);
+						//SilentPushBack(stackT,dt + UINT16);
+						stackT[stackTPtr++] = UINT16;
 					break;
 					case INT32:
 						memcpy(stack + sp, tempPtr, 4);
 						sp += 4;
-						SilentPushBack(stackT,dt + INT32);
+						//SilentPushBack(stackT,dt + INT32);
+						stackT[stackTPtr++] = INT32;
 					break;
 					case UINT32:
 						memcpy(stack + sp, tempPtr, 4);
 						sp += 4;
-						SilentPushBack(stackT,dt + UINT32);
+						//SilentPushBack(stackT,dt + UINT32);
+						stackT[stackTPtr++] = UINT32;
 					break;
 					case INT64:
 						memcpy(stack + sp, tempPtr, 8);
 						sp += 8;
-						SilentPushBack(stackT,dt + INT64);
+						//SilentPushBack(stackT,dt + INT64);
+						stackT[stackTPtr++] = INT64;
 					break;
 					case UINT64:
 						memcpy(stack + sp, tempPtr, 8);
 						sp += 8;
-						SilentPushBack(stackT,dt + UINT64);
+						//SilentPushBack(stackT,dt + UINT64);
+						stackT[stackTPtr++] = UINT64;
 					break;
 					case FLOAT32:
 						memcpy(stack + sp, tempPtr, 4);
 						sp += 4;
-						SilentPushBack(stackT,dt + FLOAT32);
+						//SilentPushBack(stackT,dt + FLOAT32);
+						stackT[stackTPtr++] = FLOAT32;
 					break;
 					case FLOAT64:
 						memcpy(stack + sp, tempPtr, 8);
 						sp += 8;
-						SilentPushBack(stackT,dt + FLOAT64);
+						//SilentPushBack(stackT,dt + FLOAT64);
+						stackT[stackTPtr++] = FLOAT64;
 					break;
 					case POINTER:
 						memcpy(stack + sp, tempPtr, 8);
 						sp += 8;
-						SilentPushBack(stackT,dt + POINTER);
+						//SilentPushBack(stackT,dt + POINTER);
+						stackT[stackTPtr++] = POINTER;
 					break;
 					case POINTER_LOCATION:
 						memcpy(stack + sp, tempPtr, 8);
 						sp += 8;
-						SilentPushBack(stackT,dt + POINTER_LOCATION);
+						//SilentPushBack(stackT,dt + POINTER_LOCATION);
+						stackT[stackTPtr++] = POINTER_LOCATION;
 					break;
 					default: break;
 				}
@@ -640,60 +713,55 @@ void silentVMStart(SilentVM* vm)
 				//Get pointer
 				sp -= 8;
 				memcpy(&tempPtr, stack + sp, 8);
-				SilentPopBack(stackT);
-				reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
-				if(reg.c != 0)
-				{
+				//SilentPopBack(stackT);
+				//reg.c = SilentGetTypeSize(stackT->data[stackT->ptr-1]);
+				reg.c = SilentGetTypeSize(stackT[--stackTPtr]);
+				//if(reg.c != 0)
+				//{
 					sp -= reg.c;
 					memcpy(tempPtr, stack + sp, reg.c);
-					SilentPopBack(stackT);
-				}
-				else
-				{
-					//get data size
-					sp -= 8;
-					memcpy(&reg.l, stackT->data + (stackT->ptr-9), 8);
-					//store data
-					sp -= reg.l;
-					memcpy(tempPtr, stack + sp, reg.l);
-					SilentPopMultiple(stackT,10);
-				}
+					//SilentPopBack(stackT);
+				//}
 			break;
 
 			case GetPtr:
-				sp -= 8;
-				memcpy(&reg.l, stack + sp, 8);
-				SilentPopBack(stackT);
-				tempPtr = ((SilentMemoryBlock*)heap->data)[reg.l].data;
-				memcpy(stack + sp, &tempPtr, 8);
-				sp += 8;
-				SilentPushBack(stackT, dt + POINTER);
+				//sp -= 8;
+				//memcpy(&reg.l, stack + sp, 8);
+				//SilentPopBack(stackT);
+				//tempPtr = ((SilentMemoryBlock*)heap->data)[reg.l].data;
+				//memcpy(stack + sp, &tempPtr, 8);
+				//sp += 8;
+				//SilentPushBack(stackT, dt + POINTER);
 			break;
 
 			case FreePtr:
 				sp -= 8;
 				memcpy(&tempPtr, stack + sp, 8);
 				free(tempPtr);
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 			break;
 
 			case Free:
 				sp -= 8;
 				memcpy(&reg.l, stack + sp, 8);
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				SilentFree(vm->gc, reg.l);
 			break;
 
 			case Add:
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr-1])
+				//SilentPopBack(stackT);
+				//switch(stackT->data[stackT->ptr-1])
+				stackTPtr--;
+				switch(stackT[stackTPtr-1])
 				{
 					case INT8:
 					case UINT8:
 						sp--;
 						//stack[sp] += program[pc+1];
-						(*(unsigned short*)(stack + sp-1)) +=
-						(*(unsigned short*)(stack + sp));
+						(*(unsigned char*)(stack + sp-1)) +=
+						(*(unsigned char*)(stack + sp));
 					break;
 					case INT16:
 					case UINT16:
@@ -732,8 +800,10 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Sub:
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr-1])
+				//SilentPopBack(stackT);
+				//switch(stackT->data[stackT->ptr-1])
+				stackTPtr--;
+				switch(stackT[stackTPtr-1])
 				{
 					case INT8:
 					case UINT8:
@@ -778,8 +848,10 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Mul:
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr-1])
+				//SilentPopBack(stackT);
+				//switch(stackT->data[stackT->ptr-1])
+				stackTPtr--;
+				switch(stackT[stackTPtr-1])
 				{
 					case INT8:
 					case UINT8:
@@ -824,8 +896,10 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Div:
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr-1])
+				//SilentPopBack(stackT);
+				//switch(stackT->data[stackT->ptr-1])
+				stackTPtr--;
+				switch(stackT[stackTPtr-1])
 				{
 					case INT8:
 						sp--;
@@ -886,26 +960,31 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case Convert:
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
 				// reg2.l = 0;
-				switch(stackT->data[stackT->ptr])
+				//switch(stackT->data[stackT->ptr])
+				stackTPtr--;
+				switch(stackT[stackTPtr])
 				{
 					case INT8:
 						switch(program[pc++])
 						{
-							case INT8: SilentPushBack(stackT, dt + INT8); break;
+							case INT8: stackT[stackTPtr++] = INT8; break;
 							case UINT8:
-								SilentPushBack(stackT, dt + UINT8);
+								//SilentPushBack(stackT, dt + UINT8);
+								stackT[stackTPtr++] = UINT8;
 							break;
 							
 							case INT16:
 								stack[sp++] = 0;
-								SilentPushBack(stackT, dt + INT16);
+								//SilentPushBack(stackT, dt + INT16);
+								stackT[stackTPtr++] = UINT8;
 							break;
 
 							case UINT16:
 								stack[sp++] = 0;
-								SilentPushBack(stackT, dt + INT16);
+								//SilentPushBack(stackT, dt + INT16);
+								stackT[stackTPtr++] = UINT8;
 							break;
 							case INT32:
 								memset(stack + sp, 0, 3);
@@ -957,25 +1036,25 @@ void silentVMStart(SilentVM* vm)
 						reg2.c = (char)reg2.l;
 						stack[sp] = reg2.c;
 						sp += 1;
-						SilentPushBack(stackT, dt + INT8);
+						//SilentPushBack(stackT, dt + INT8);
 					break;
 					case UINT8:
 						reg3.c = (unsigned char)stack[sp];
 						stack[sp] = reg3.c;
 						sp += 1;
-						SilentPushBack(stackT, dt + UINT8);
+						//SilentPushBack(stackT, dt + UINT8);
 					break;
 					case INT16:
 						reg.s = (short)*((short*)(stack+sp));
 						memcpy(stack + sp, &reg.s, 2);
 						sp += 2;
-						SilentPushBack(stackT, dt + INT16);
+						//SilentPushBack(stackT, dt + INT16);
 					break;
 					case UINT16:
 						reg.s = (unsigned short)*((unsigned short*)(stack+sp));
 						memcpy(stack + sp, &reg.s, 2);
 						sp += 2;
-						SilentPushBack(stackT, dt + INT16);
+						//SilentPushBack(stackT, dt + INT16);
 					break;
 					case INT32:
 						
@@ -1000,9 +1079,11 @@ void silentVMStart(SilentVM* vm)
 			break;
 
 			case SmallerThan:
-				SilentPopBack(stackT);
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr])
+				//SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				//switch(stackT->data[stackT->ptr])
+				stackTPtr--;
+				switch(stackT[--stackTPtr])
 				{
 					case INT8:
 						sp-=2;
@@ -1057,13 +1138,16 @@ void silentVMStart(SilentVM* vm)
 					break;
 				}
 				stack[sp++] = reg.c;
-				SilentPushBack(stackT, dt + UINT8);
+				//SilentPushBack(stackT, dt + UINT8);
+				stackT[stackTPtr++] = UINT8;
 			break;
 
 			case LargerThan:
-				SilentPopBack(stackT);
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr])
+				// SilentPopBack(stackT);
+				// SilentPopBack(stackT);
+				// switch(stackT->data[stackT->ptr])
+				stackTPtr--;
+				switch(stackT[--stackTPtr])
 				{
 					case INT8:
 						sp-=2;
@@ -1118,13 +1202,16 @@ void silentVMStart(SilentVM* vm)
 					break;
 				}
 				stack[sp++] = reg.c;
-				SilentPushBack(stackT, dt + UINT8);
+				//SilentPushBack(stackT, dt + UINT8);
+				stackT[stackTPtr++] = UINT8;
 			break;
 
 			case Equal:
-				SilentPopBack(stackT);
-				SilentPopBack(stackT);
-				switch(stackT->data[stackT->ptr])
+				// SilentPopBack(stackT);
+				// SilentPopBack(stackT);
+				// switch(stackT->data[stackT->ptr])
+				stackTPtr--;
+				switch(stackT[--stackTPtr])
 				{
 					case INT8:
 						sp-=2;
@@ -1178,14 +1265,16 @@ void silentVMStart(SilentVM* vm)
 						(*(double*)(stack + sp+8));
 					break;
 				}
-				printf("RESULT = %i\n", reg.c);
+				//printf("RESULT = %i\n", reg.c);
 				stack[sp++] = reg.c;
-				SilentPushBack(stackT, dt + UINT8);
+				//SilentPushBack(stackT, dt + UINT8);
+				stackT[stackTPtr++] = UINT8;
 			break;
 
 			case If:
 				sp--;
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				if(stack[sp])
 				{
 					pc++;
@@ -1197,7 +1286,8 @@ void silentVMStart(SilentVM* vm)
 
 			case IfNot:
 				sp--;
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				if(!stack[sp])
 				{
 					pc++;
@@ -1209,13 +1299,15 @@ void silentVMStart(SilentVM* vm)
 
 			case And:
 				sp--;
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				stack[sp-1] = stack[sp-1] & stack[sp];
 			break;
 
 			case Or:
 				sp--;
-				SilentPopBack(stackT);
+				//SilentPopBack(stackT);
+				stackTPtr--;
 				stack[sp-1] = stack[sp-1] | stack[sp];
 			break;
 
@@ -1668,9 +1760,9 @@ void silentVMStart(SilentVM* vm)
 
 #if STACK_OUTPUT
 		uint64 stackPos = 0;
-		for(uint i = 0; i < stackT->ptr; i++)
+		for(uint i = 0; i < stackTPtr; i++)
 		{
-			switch(stackT->data[i])
+			switch(stackT[i])
 			{
 				case INT8:
 				case UINT8:
@@ -1714,8 +1806,10 @@ void silentVMStart(SilentVM* vm)
 		#if DEBUG
 			printf("\tpc: %i\n",pc);
 			printf("\tstack: %i\n",*(int*)(stack+sp-4));
-			printf("\tstack val: %i\n",stackT->data[stackT->ptr-1]);
-			printf("\tstack count: %i\n",stackT->ptr);
+			//printf("\tstack val: %i\n",stackT->data[stackT->ptr-1]);
+			printf("\tstack val: %i\n",stackT[stackTPtr-1]);
+			//printf("\tstack count: %i\n",stackT->ptr);
+			printf("\tstack count: %i\n",stackTPtr);
 			printf("\tstack size: %i\n",sp);
 		#endif
 	}
@@ -1812,7 +1906,7 @@ long SilentAlloc(SilentGC* gc, uint64 size)
 		SilentMemoryBlock* memBlock = malloc(sizeof(SilentMemoryBlock));
 		memBlock->occupied = 1;
 		memBlock->data = malloc(size);
-		SilentPushBack(heap, memBlock);
+		//SilentPushBack(heap, memBlock);
 		mem->heapPtr = heap->ptr/sizeof(SilentMemoryBlock);
 		printf("Alloc at %i\n",mem->heapPtr-1);
 		printf("alloc ptr: %lu\n",memBlock->data);

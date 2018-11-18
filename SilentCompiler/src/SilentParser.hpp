@@ -11,7 +11,8 @@ namespace Silent
         If,
         Else,
         While,
-        For
+        For,
+        Return
     };
 
     enum class SilentPrimitives
@@ -49,7 +50,7 @@ namespace Silent
         Or,
         Xor,
         Not,
-        FunctionCall,  
+        FunctionCall,
         Number,
         String,
         Variable
@@ -88,7 +89,19 @@ namespace Silent
             SilentPrimitives primitive;
         };
         bool isPrimitive;
+        unsigned long long size;
     }SilentDataType;
+
+    typedef struct SilentValue
+    {
+        SilentDataType dataType;
+        std::string data;
+    }SilentData;
+
+    // typedef struct SilentReturnStatement
+    // {
+    //     SilentFunction* function;
+    // }
 
     typedef struct SilentFunctionCall
     {
@@ -103,7 +116,6 @@ namespace Silent
         unsigned long long localPos;
         unsigned long long basePtr;
         std::string name;
-        //SilentOperand* expresion;
         SilentDataType type;
         bool initialised;
     }SilentVariable;
@@ -130,17 +142,12 @@ namespace Silent
 
     typedef struct SilentFunction
     {
-        //SilentLocalScope* parameters;
         SilentLocalScope* scope;
         uint64 parameterCount;
         uint64 parameterSize;
         std::string name;
-        unsigned long long returnTypePtr;
-        unsigned long long returnSize;
         SilentDataType returnType;
         bool initialised;
-        //bool hasParent;
-        //SilentNamespace* parent;
     }SilentFunction;
 
     typedef struct SilentOperand
@@ -150,7 +157,8 @@ namespace Silent
         SilentOperand *left, *right;
         union
         {
-            SilentToken* token;
+            //SilentToken* token;
+            SilentValue* value;
             SilentVariable* variable;
             SilentFunctionCall* functionCall;
         };
@@ -178,6 +186,7 @@ namespace Silent
             SilentWhileLoop* whileLoop;
             SilentVariable* variable;
             SilentOperand* expression;
+            SilentDataType dataType;
         };
         
     }SilentStatement;
@@ -232,7 +241,7 @@ namespace Silent
         SilentOperand* ParseSum(SilentLocalScope &scope);
         SilentOperand* ParseLogic(SilentLocalScope &scope);
         SilentOperand* ParseComparison(SilentLocalScope &scope);
-        SilentOperand* ParseExpression(SilentLocalScope &scope); 
+        SilentOperand* ParseExpression(SilentLocalScope &scope);
         SilentStatement* ParseStatement(SilentLocalScope &scope);
         SilentVariable* ParseVariable(
             SilentLocalScope &scope, bool init, bool expectEnd);
@@ -249,6 +258,8 @@ namespace Silent
         uint64 globalVarPointer;
         std::vector<SilentNamespace*> accessibleNamespaces;
         std::vector<Silent::SilentToken> *tokensPtr;
+        SilentFunction* currentFunction;
+        SilentDataType currentDataType;
 
         
     };

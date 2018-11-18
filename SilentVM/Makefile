@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -Wall
+CFLAGS = -std=c99 -Wall -O3
 #LIBS = -ldl
 SRC_PATH = src
 OBJ_PATH = obj
@@ -11,8 +11,7 @@ MKDIR = mkdir
 SOURCES = \
 	$(SRC_PATH)/main.c \
 	$(SRC_PATH)/SilentLib.c \
-	$(SRC_PATH)/SilentVector.c \
-	$(SRC_PATH)/SilentVM2.c
+	$(SRC_PATH)/SilentVM.c
 	
 OBJECTS = $(SOURCES:$(SRC_PATH)/%.c=$(OBJ_PATH)/%.o)
 DEPENDENCIES = $(OBJECTS:.o=.d)

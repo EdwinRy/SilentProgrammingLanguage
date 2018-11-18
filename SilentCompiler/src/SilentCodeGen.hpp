@@ -47,47 +47,55 @@ namespace Silent
         LoadGlobal4,
         LoadGlobal8,
 
-        Alloc,
-        LoadPtr,
-        StorePtr,
-        FreePtr,
-        Free,
-        GetPtr,
-        Add,
-        Sub,
-        Mul,
-        Div,
-        Convert,
+        //Alloc,
+        //LoadPtr,
+        //StorePtr,
+        //FreePtr,
+        //Free,
+        //GetPtr,
+
+        AddI1,
+        AddI2,
+        AddI4,
+        AddI8,
+        AddF4,
+        AddF8,
+
+        SubI1,
+        SubI2,
+        SubI4,
+        SubI8,
+        SubF4,
+        SubF8,
+
+        MulI1,
+        MulI2,
+        MulI4,
+        MulI8,
+        MulF4,
+        MulF8,
+
+        DivI1,
+        DivI2,
+        DivI4,
+        DivI8,
+        DivF4,
+        DivF8,
+
+        //Convert,
         SmallerThan,
         SmallerThanOrEqual,
         LargerThan,
         LargerThanOrEqual,
         Equal,
         NotEqual,
+
         If,
         IfNot,
         And,
         Or,
         Xor,
         Not
-    };
-
-    enum class SilentVMType
-    {
-        INT8 = 0,
-        UINT8,
-        INT16,
-        UINT16,
-        INT32,
-        UINT32,
-        INT64,
-        UINT64,
-        FLOAT32,
-        FLOAT64,
-        POINTER,
-        POINTER_LOCATION,
-        UNDEFINED,
-        UNDEFINED_END
     };
 
     class SilentCode
@@ -101,11 +109,12 @@ namespace Silent
         std::string GetCode();
         std::vector<char>* GetPtrToCode();
         uint64 GetCodePointer();
+        SilentBytecode ToBytecodeSize(SilentPrimitives p, SilentBytecode base);
+        SilentBytecode ToBytecodeExp(SilentPrimitives p, SilentBytecode base);
 
         private:
         void AddData(SilentDataType dt, std::string val);
-        SilentBytecode ToBytecode(SilentPrimitives p, SilentBytecode base);
-        SilentVMType ToVMType(SilentPrimitives p);
+        //SilentVMType ToVMType(SilentPrimitives p);
         std::vector<char> code;
     };
 
@@ -124,9 +133,9 @@ namespace Silent
         void CompileNamespace(SilentNamespace &scope);
         
         std::vector<SilentNamespace*> namespaces;
-        std::unordered_map<std::string, uint64> symTable;
-        std::string currentFunction;
+        std::unordered_map<SilentFunction*, uint64> symTable;
         SilentCode code;
-        SilentDataType currentType;
+        //SilentPrimitives currentPrimitive;
+        SilentDataType currentDataType;
     };
 }

@@ -14,14 +14,7 @@ typedef unsigned int uint32;
 
 namespace Silent
 {
-
-    SilentVMType SilentCode::ToVMType(SilentPrimitives p)
-    {
-        if(char(p) < 10) return (SilentVMType)p;
-        else return SilentVMType::INT32;
-    }
-
-    SilentBytecode SilentCode::ToBytecode(
+    SilentBytecode SilentCode::ToBytecodeSize(
         SilentPrimitives p, SilentBytecode base)
     {
         char index;
@@ -37,6 +30,27 @@ namespace Silent
             case SilentPrimitives::int64:
             case SilentPrimitives::uint64: 
             case SilentPrimitives::float64: index = 3; break;
+            default: index = 2; break;
+        }
+        return (SilentBytecode)((char)base+index);
+    }
+
+    SilentBytecode SilentCode::ToBytecodeExp(
+        SilentPrimitives p, SilentBytecode base)
+    {
+        char index;
+        switch(p)
+        {
+            case SilentPrimitives::int8:
+            case SilentPrimitives::uint8: index = 0; break;
+            case SilentPrimitives::int16:
+            case SilentPrimitives::uint16: index = 1; break;
+            case SilentPrimitives::int32:
+            case SilentPrimitives::uint32: index = 2; break;
+            case SilentPrimitives::int64:
+            case SilentPrimitives::uint64: index = 3; break;
+            case SilentPrimitives::float32: index = 4; break;
+            case SilentPrimitives::float64: index = 5; break;
             default: index = 2; break;
         }
         return (SilentBytecode)((char)base+index);
@@ -76,8 +90,8 @@ namespace Silent
         {
             // AddNumber<char>((char)ToBytecodePush(dt.primitive));
             AddNumber<char>(
-                (char)ToBytecode(dt.primitive,SilentBytecode::Push1));
-            AddNumber<char>((char)ToVMType(dt.primitive));
+                (char)ToBytecodeSize(dt.primitive,SilentBytecode::Push1));
+            //AddNumber<char>((char)ToVMType(dt.primitive));
             AddData(dt, val);
         }
     }
@@ -87,9 +101,9 @@ namespace Silent
         if(dt.isPrimitive)
         {
             AddNumber<char>(
-                (char)ToBytecode(dt.primitive,SilentBytecode::Load1)
+                (char)ToBytecodeSize(dt.primitive,SilentBytecode::Load1)
             );
-            AddNumber<char>((char)ToVMType(dt.primitive));
+            //AddNumber<char>((char)ToVMType(dt.primitive));
             AddNumber<uint64>(localPos);
         }
     }
@@ -99,7 +113,7 @@ namespace Silent
         if(dt.isPrimitive)
         {
             AddNumber<char>(
-                (char)ToBytecode(dt.primitive,SilentBytecode::Store1)
+                (char)ToBytecodeSize(dt.primitive,SilentBytecode::Store1)
             );
             AddNumber<uint64>(localPos);
         }
@@ -155,39 +169,73 @@ namespace Silent
         switch(expression.type)
         {
             case SilentOperandType::Assign:
-                currentType = 
-                    expression.left->variable->type;
-                printf("Assignment of type %i\n",(int)currentType.primitive);
+                printf("Assignment of type %i\n",
+                    (int)expression.left->variable->type.primitive);
                 CompileExpression(*expression.right);
-                code.AddStore(currentType,expression.left->variable->localPos);
+                code.AddStore(
+                    expression.left->variable->type,
+                    expression.left->variable->localPos);
+            break;
+
+            case SilentOperandType::FunctionCall:
+            {
+                printf("Calling function %s\n",
+                    expression.functionCall->function->name.data());
+                //expression.functionCall
+
+                for(SilentOperand* arg : expression.functionCall->arguments)
+                    CompileExpression(*arg);
+
+                SilentFunction* calledFunction = 
+                    expression.functionCall->function;
+                code.AddNumber<char>((char)SilentBytecode::Call);
+                code.AddNumber<uint64>(symTable[calledFunction]);
+                //code.AddNumber<uint64>(calledFunction->parameterCount);
+                code.AddNumber<uint64>(calledFunction->parameterSize);
+            }
             break;
 
             case SilentOperandType::Add:
                 printf("Addition\n");
                 CompileExpression(*expression.left);
                 CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::Add);
+                //AddNumber<char>(
+                //    (char)ToBytecode(dt.primitive,SilentBytecode::Push1));
+                code.AddNumber<char>(
+                    (char)code.ToBytecodeExp(currentDataType.primitive, 
+                    SilentBytecode::AddI1));
+                //code.AddNumber<char>((char)SilentBytecode::Add);
+                
             break;
 
             case SilentOperandType::Subtract:
                 printf("Subtraction\n");
                 CompileExpression(*expression.left);
                 CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::Sub);
+                //code.AddNumber<char>((char)SilentBytecode::Sub);
+                code.AddNumber<char>(
+                    (char)code.ToBytecodeExp(currentDataType.primitive, 
+                    SilentBytecode::SubI1));
             break;
 
             case SilentOperandType::Multiply:
                 printf("Multiplication\n");
                 CompileExpression(*expression.left);
                 CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::Mul);
+                //code.AddNumber<char>((char)SilentBytecode::Mul);
+                code.AddNumber<char>(
+                    (char)code.ToBytecodeExp(currentDataType.primitive, 
+                    SilentBytecode::MulI1));
             break;
 
             case SilentOperandType::Divide:
                 printf("Division\n");
                 CompileExpression(*expression.left);
                 CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::Div);
+                //code.AddNumber<char>((char)SilentBytecode::Div);
+                code.AddNumber<char>(
+                    (char)code.ToBytecodeExp(currentDataType.primitive, 
+                    SilentBytecode::MulI1));
             break;
 
             case SilentOperandType::Equal:
@@ -195,6 +243,7 @@ namespace Silent
                 CompileExpression(*expression.left);
                 CompileExpression(*expression.right);
                 code.AddNumber<char>((char)SilentBytecode::Equal);
+                code.AddNumber<char>((char)currentDataType.primitive);
             break;
 
             case SilentOperandType::NotEqual:
@@ -261,7 +310,9 @@ namespace Silent
             break;
 
             case SilentOperandType::Number:
-                code.AddPush(currentType, expression.token->value);
+                //code.AddPush(currentType, expression.token->value);
+                currentDataType = expression.value->dataType;
+                code.AddPush(expression.value->dataType,expression.value->data);
             break;
 
             case SilentOperandType::Variable:
@@ -307,6 +358,14 @@ namespace Silent
             }
             break;
 
+            //case SilentStatementType::
+
+            case SilentStatementType::Return:
+                code.AddNumber<char>((char)SilentBytecode::Return);
+                //code.AddNumber<uint64>(1ll);
+                code.AddNumber<uint64>(statement.dataType.size);
+            break;
+
             default: break;
         }
         
@@ -337,6 +396,8 @@ namespace Silent
         std::cout << "Compiling function: " << func.name << "\n";
         #endif
 
+        symTable[&func] = code.GetCodePointer();
+
         if(func.name == "main")
         {
             char* codeData = code.GetPtrToCode()->data();
@@ -344,7 +405,8 @@ namespace Silent
             memcpy(codeData + 1, &funcPtr, 8);
         }
 
-        std::cout << "Scope name: " << GenScopeName(func.name) << "\n";
+        //std::cout << "Scope name: " << GenScopeName(func.name) << "\n";
+        currentDataType = func.returnType;
         CompileLocalScope(*func.scope);
 
         #if DEBUG

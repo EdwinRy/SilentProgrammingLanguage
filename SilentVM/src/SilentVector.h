@@ -17,11 +17,11 @@ SilentVector* SilentCreateVector(
 );
 
 void SilentTrimVector(SilentVector* vector);
-void SilentPushBack(SilentVector* vector, void* data);
-void SilentPushMultiple(
-    SilentVector* vector, unsigned long long count, void* data
-);
-void SilentPopBack(SilentVector* vector);
-void SilentPopMultiple(SilentVector* vector, unsigned long long count);
+//void SilentPushBack(SilentVector* vector, void* data);
+//void SilentPushMultiple(
+//    SilentVector* vector, unsigned long long count, void* data
+//);
+//void SilentPopBack(SilentVector* vector);
+//void SilentPopMultiple(SilentVector* vector, unsigned long long count);
 void SilentDeleteVector(SilentVector* vector);
 #endif

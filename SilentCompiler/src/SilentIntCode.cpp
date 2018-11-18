@@ -91,7 +91,7 @@ namespace Silent
             break;
 
             case SilentOperandType::Number:
-                code += "p " + expression.token->value+"\n";
+                code += "p " + expression.value->data+"\n";
             break;
 
             case SilentOperandType::Variable:

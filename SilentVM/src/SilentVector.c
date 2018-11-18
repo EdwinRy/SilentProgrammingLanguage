@@ -78,44 +78,44 @@ SilentVector* SilentCreateVector(uint64 reallocSize, uint64 dataSize)
     return vector;
 }
 
-void SilentPushBack(SilentVector* vector, void* data)
-{
-    vectorResize(vector);
-    memcpy((char*)vector->data + vector->ptr, data, vector->dataSize);
-    vector->ptr += vector->dataSize;
-    vector->spaceLeft -= vector->dataSize;
-}
+// void SilentPushBack(SilentVector* vector, void* data)
+// {
+//     vectorResize(vector);
+//     memcpy((char*)vector->data + vector->ptr, data, vector->dataSize);
+//     vector->ptr += vector->dataSize;
+//     vector->spaceLeft -= vector->dataSize;
+// }
 
-void SilentPushMultiple(SilentVector* vector, uint64 count, void* data)
-{
-    vectorResize(vector);
-    uint64 toAppend = vector->dataSize * count;
-    if(toAppend > vector->spaceLeft)
-    {
-        vectorReserve(vector, toAppend - vector->spaceLeft);
-    }
-    memcpy(vector->data + vector->ptr, data, toAppend);
-    vector->spaceLeft -= toAppend;
-    vector->ptr += toAppend;
-}
+// void SilentPushMultiple(SilentVector* vector, uint64 count, void* data)
+// {
+//     vectorResize(vector);
+//     uint64 toAppend = vector->dataSize * count;
+//     if(toAppend > vector->spaceLeft)
+//     {
+//         vectorReserve(vector, toAppend - vector->spaceLeft);
+//     }
+//     memcpy(vector->data + vector->ptr, data, toAppend);
+//     vector->spaceLeft -= toAppend;
+//     vector->ptr += toAppend;
+// }
 
-void SilentPopBack(SilentVector* vector)
-{
-    vector->ptr -= vector->dataSize;
-    vector->spaceLeft += vector->dataSize;
-    vectorResize(vector);
-}
+// void SilentPopBack(SilentVector* vector)
+// {
+//     vector->ptr -= vector->dataSize;
+//     vector->spaceLeft += vector->dataSize;
+//     vectorResize(vector);
+// }
 
-void SilentPopMultiple(SilentVector* vector, uint64 count)
-{
-    uint64 toRemove = vector->dataSize * count;
-    vector->ptr -= toRemove;
-    vector->spaceLeft += toRemove;
-    vectorResize(vector);
-}
+// void SilentPopMultiple(SilentVector* vector, uint64 count)
+// {
+//     uint64 toRemove = vector->dataSize * count;
+//     vector->ptr -= toRemove;
+//     vector->spaceLeft += toRemove;
+//     vectorResize(vector);
+// }
 
 void SilentDeleteVector(SilentVector* vector)
 {
-    free(vector->data);
-    free(vector);
+    //free(vector->data);
+    //free(vector);
 }
