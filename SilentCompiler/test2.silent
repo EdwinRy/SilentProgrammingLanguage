@@ -1,28 +1,16 @@
-/*
-func int32 cd(int32 x)
-{
-    if(x  0)
-    {
-        return 0;
-    }
-
-    return cd(x - 1);
-}
-*/
-
-
 func int64 fib(int64 x)
 {
+    /*
     if(x == 0){ return 0;}
     if(x == 1){ return 1;}
     return fib(x - 1) + fib(x - 2);
+    */
 
-    //if(x > 2)
-    //{
-    //    return fib(x - 1) + fib(x - 2); 
-    //}
-
-    //return 1;
+    if(x > 2)
+    {
+        return fib(x - 1) + fib(x - 2); 
+    }
+    return 1;
 }
 
 

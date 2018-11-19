@@ -251,6 +251,7 @@ namespace Silent
                 CompileExpression(*expression.left);
                 CompileExpression(*expression.right);
                 code.AddNumber<char>((char)SilentBytecode::NotEqual);
+                code.AddNumber<char>((char)currentDataType.primitive);
             break;
 
             case SilentOperandType::Larger:
@@ -258,6 +259,7 @@ namespace Silent
                 CompileExpression(*expression.left);
                 CompileExpression(*expression.right);
                 code.AddNumber<char>((char)SilentBytecode::LargerThan);
+                code.AddNumber<char>((char)currentDataType.primitive);
             break;
 
             case SilentOperandType::LargerOrEqual:
@@ -265,6 +267,7 @@ namespace Silent
                 CompileExpression(*expression.left);
                 CompileExpression(*expression.right);
                 code.AddNumber<char>((char)SilentBytecode::LargerThanOrEqual);
+                code.AddNumber<char>((char)currentDataType.primitive);
             break;
 
             case SilentOperandType::Smaller:
@@ -272,6 +275,7 @@ namespace Silent
                 CompileExpression(*expression.left);
                 CompileExpression(*expression.right);
                 code.AddNumber<char>((char)SilentBytecode::SmallerThan);
+                code.AddNumber<char>((char)currentDataType.primitive);
             break;
 
             case SilentOperandType::SmallerOrEqual:
@@ -279,6 +283,7 @@ namespace Silent
                 CompileExpression(*expression.left);
                 CompileExpression(*expression.right);
                 code.AddNumber<char>((char)SilentBytecode::SmallerThanOrEqual);
+                code.AddNumber<char>((char)currentDataType.primitive);
             break;
 
             case SilentOperandType::And:

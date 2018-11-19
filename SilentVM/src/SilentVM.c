@@ -613,7 +613,7 @@ void SilentStartVM(char* prog)
 						(*(double*)(stack + sp+8));
 					break;
 				}
-				stack[sp++] = reg.c;
+				*(char*)(stack + (sp++)) = reg.c;
 			break;
 
 			case SmallerThanOrEqual:
@@ -846,7 +846,8 @@ void SilentStartVM(char* prog)
 						(*(double*)(stack + sp+8));
 					break;
 				}
-				stack[sp++] = reg.c;
+				//stack[sp++] = reg.c;
+				*(char*)(stack + (sp++)) = reg.c;
 			break;
 
 			case NotEqual:
