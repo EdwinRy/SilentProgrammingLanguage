@@ -238,6 +238,14 @@ namespace Silent
                     token.type = SilentTokenType::CloseParam;
                     token.value = ")";
                 break;
+                case '[':
+                    token.type = SilentTokenType::OpenBracket;
+                    token.value = "[";
+                break;
+                case ']':
+                    token.type = SilentTokenType::CloseBracket;
+                    token.value = "]";
+                break;
                 case '{':
                     token.type = SilentTokenType::OpenScope;
                     token.value = "{";
@@ -307,6 +315,14 @@ namespace Silent
                         else if(token.value == "method")
                         {
                             token.type = SilentTokenType::Method;
+                        }
+                        else if(token.value == "new")
+                        {
+                            token.type = SilentTokenType::New;
+                        }
+                        else if(token.value == "ref")
+                        {
+                            token.type = SilentTokenType::Reference;
                         }
                         else if(token.value == "return")
                         {

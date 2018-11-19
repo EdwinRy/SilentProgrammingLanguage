@@ -1,22 +1,24 @@
+/*
 func int64 cd(int64 x)
 {
     if(x == 5) { return 5; }
     x -= 1;
     return cd(x);
 }
+*/
 
-/*
-func int64 fib(int64 x)
+
+func int64 fibonacci(int64 x)
 {
     if(x > 2)
     {
         return fib(x - 1) + fib(x - 2); 
     }
+    
     return 1;
 }
-*/
 
 func int64 main()
 {
-    int64 b = cd(500);
+    int64 x = fibonacci(40);
 }
