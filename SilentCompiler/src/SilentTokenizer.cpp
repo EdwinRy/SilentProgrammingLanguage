@@ -280,6 +280,14 @@ namespace Silent
                         {
                             token.type = SilentTokenType::If;
                         }
+                        else if(token.value == "ifn")
+                        {
+                            token.type = SilentTokenType::Ifn;
+                        }
+                        else if(token.value == "else")
+                        {
+                            token.type = SilentTokenType::Else;
+                        }
                         else if(token.value == "while")
                         {
                             token.type = SilentTokenType::While;
@@ -320,16 +328,18 @@ namespace Silent
                         {
                             token.type = SilentTokenType::Primitive;
                         }
-                        else if(token.value == "int32")
+                        else if(token.value == "int32" || token.value == "int")
                         {
+                            token.value = "int32";
                             token.type = SilentTokenType::Primitive;
                         }
                         else if(token.value == "uint32")
                         {
                             token.type = SilentTokenType::Primitive;
                         }
-                        else if(token.value == "int64")
+                        else if(token.value == "int64" || token.value == "long")
                         {
+                            token.value = "int64";
                             token.type = SilentTokenType::Primitive;
                         }
                         else if(token.value == "uint64")

@@ -281,8 +281,6 @@ namespace Silent
         }
     }
 
-    
-
     void SilentParser::NextToken()
     {
         tokenCursor++;
@@ -688,6 +686,82 @@ namespace Silent
                     temp = operand;
                     operand = new SilentOperand();
                     operand->left = temp;
+                break;
+
+                case SilentTokenType::AddAssign:
+                {
+                    currentDataType = operand->left->variable->type;
+                    operand->type = SilentOperandType::Assign;
+                    operand->expressionType = SilentExpressionType::Memory;
+                    SilentOperand* addOperand = new SilentOperand();
+                    operand->right = addOperand;
+                    addOperand->type = SilentOperandType::Add;
+                    addOperand->expressionType = 
+                        SilentExpressionType::Arithmetic;
+                    addOperand->left = operand->left;
+                    NextToken();
+                    addOperand->right = ParseComparison(scope);
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+
+                case SilentTokenType::SubtractAssign:
+                {
+                    currentDataType = operand->left->variable->type;
+                    operand->type = SilentOperandType::Assign;
+                    operand->expressionType = SilentExpressionType::Memory;
+                    SilentOperand* subOperand = new SilentOperand();
+                    operand->right = subOperand;
+                    subOperand->type = SilentOperandType::Subtract;
+                    subOperand->expressionType = 
+                        SilentExpressionType::Arithmetic;
+                    subOperand->left = operand->left;
+                    NextToken();
+                    subOperand->right = ParseComparison(scope);
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+
+                case SilentTokenType::MultiplyAssign:
+                {
+                    currentDataType = operand->left->variable->type;
+                    operand->type = SilentOperandType::Assign;
+                    operand->expressionType = SilentExpressionType::Memory;
+                    SilentOperand* mulOperand = new SilentOperand();
+                    operand->right = mulOperand;
+                    mulOperand->type = SilentOperandType::Multiply;
+                    mulOperand->expressionType = 
+                        SilentExpressionType::Arithmetic;
+                    mulOperand->left = operand->left;
+                    NextToken();
+                    mulOperand->right = ParseComparison(scope);
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
+                break;
+
+                case SilentTokenType::DivideAssign:
+                {
+                    currentDataType = operand->left->variable->type;
+                    operand->type = SilentOperandType::Assign;
+                    operand->expressionType = SilentExpressionType::Memory;
+                    SilentOperand* divOperand = new SilentOperand();
+                    operand->right = divOperand;
+                    divOperand->type = SilentOperandType::Divide;
+                    divOperand->expressionType = 
+                        SilentExpressionType::Arithmetic;
+                    divOperand->left = operand->left;
+                    NextToken();
+                    divOperand->right = ParseComparison(scope);
+                    temp = operand;
+                    operand = new SilentOperand();
+                    operand->left = temp;
+                }
                 break;
 
                 default: parsingExpression = false; break;

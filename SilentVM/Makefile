@@ -24,7 +24,7 @@ DEPENDENCIES = $(OBJECTS:.o=.d)
 all: $(EXE)
 
 $(EXE) : $(OBJECTS)
-	$(CC) $(OBJECTS) $(LIBS) -pg -o $@
+	$(CC) $(OBJECTS) $(LIBS) -o $@
 
 -include $(DEPENDENCIES)
 
@@ -32,7 +32,7 @@ $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c
 	$(CC) $(CFLAGS) -MP -MMD -c $< -o $@
 
 .PHONY: debug
-debug: CFLAGS += -g
+debug: CFLAGS += -g -pg
 debug: all 
 
 

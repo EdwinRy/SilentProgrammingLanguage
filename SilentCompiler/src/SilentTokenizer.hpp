@@ -27,6 +27,8 @@ namespace Silent
         Comma,
         FullStop,
         If,
+        Ifn,
+        Else,
         While,
         Assign,
         Equal,

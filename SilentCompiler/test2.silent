@@ -1,20 +1,22 @@
+func int64 cd(int64 x)
+{
+    if(x == 5) { return 5; }
+    x -= 1;
+    return cd(x);
+}
+
+/*
 func int64 fib(int64 x)
 {
-    /*
-    if(x == 0){ return 0;}
-    if(x == 1){ return 1;}
-    return fib(x - 1) + fib(x - 2);
-    */
-
     if(x > 2)
     {
         return fib(x - 1) + fib(x - 2); 
     }
     return 1;
 }
-
+*/
 
 func int64 main()
 {
-    int64 b = fib(40);
+    int64 b = cd(500);
 }
