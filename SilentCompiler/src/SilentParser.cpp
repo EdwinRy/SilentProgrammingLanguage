@@ -997,6 +997,21 @@ namespace Silent
         {
             switch(ct.type)
             {
+
+                case SilentTokenType::Reference:
+                {
+                    NextToken();
+                    currentDataType = GetType(ct.value);
+                    SilentStatement* statement = new SilentStatement();
+                    statement->type = SilentStatementType::VarInit;
+                    scope.statements.push_back(statement);
+                    SilentVariable* var =  ParseVariable(scope, false, true);
+                    var->isReference = true;
+                    
+                    statement->variable = var;
+                }
+                break;
+
                 case SilentTokenType::Primitive:
                 {
                     currentDataType = GetType(ct.value);
@@ -1004,8 +1019,8 @@ namespace Silent
                     statement->type = SilentStatementType::VarInit;
                     scope.statements.push_back(statement);
 
-                    SilentVariable* var = 
-                        ParseVariable(scope, false, true);
+                    SilentVariable* var = ParseVariable(scope, false, true);
+                    var->isReference = false;
 
                     statement->variable = var;
                     //localScope->variables.push_back(var);
@@ -1019,8 +1034,8 @@ namespace Silent
                         SilentStatement* statement = new SilentStatement();
                         statement->type = SilentStatementType::VarInit;
 
-                        SilentVariable* var = 
-                            ParseVariable(scope, false, true);
+                        SilentVariable* var = ParseVariable(scope, false, true);
+                        var->isReference = true;
 
                         statement->variable = var;
                         scope.statements.push_back(statement);

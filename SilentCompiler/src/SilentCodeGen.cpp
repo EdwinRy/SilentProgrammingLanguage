@@ -341,7 +341,30 @@ namespace Silent
         switch(statement.type)
         {
             case SilentStatementType::VarInit:
-                code.AddPush(statement.variable->type,"0");
+                if(statement.variable->isReference)
+                {
+                    switch(statement.variable->size)
+                    {
+                        case 1:
+                            code.AddNumber<char>((char)SilentBytecode::Alloc1);
+                        break;
+                        case 2:
+                            code.AddNumber<char>((char)SilentBytecode::Alloc2);
+                        break;
+                        case 4:
+                            code.AddNumber<char>((char)SilentBytecode::Alloc4);
+                        break;
+                        case 8:
+                            code.AddNumber<char>((char)SilentBytecode::Alloc8);
+                        break;
+                        default:
+                        {
+                            code.AddNumber<char>((char)SilentBytecode::AllocX);
+                            code.AddNumber<uint64>(statement.variable->size);
+                        }
+                    }
+                }
+                else code.AddPush(statement.variable->type,"0");
             break;
 
             case SilentStatementType::Expression:
@@ -413,6 +436,16 @@ namespace Silent
         //std::cout << "Scope name: " << GenScopeName(func.name) << "\n";
         currentDataType = func.returnType;
         CompileLocalScope(*func.scope);
+
+        //Clean up references (skip parameters)
+        for(uint64 i = func.parameterCount; i<func.scope->variables.size();i++)
+        {
+            if(func.scope->variables[i]->isReference)
+            {
+                code.AddNumber<char>((char)SilentBytecode::Free);
+                code.AddNumber<uint64>(func.scope->variables[i]->localPos);
+            }
+        }
 
         #if DEBUG
         std::cout << "Done compiling function: " << func.name << "\n";
