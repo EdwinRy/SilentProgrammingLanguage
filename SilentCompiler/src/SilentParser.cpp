@@ -143,7 +143,7 @@ namespace Silent
         else if(name == "string") 
             dataType.primitive = SilentPrimitives::string;
         else if(name == "pointer") 
-            dataType.primitive = SilentPrimitives::pointer;
+            dataType.primitive = SilentPrimitives::reference;
         else if(name == "void") 
             dataType.primitive = SilentPrimitives::null;
         else

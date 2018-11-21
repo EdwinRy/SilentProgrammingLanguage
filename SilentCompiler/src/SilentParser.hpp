@@ -28,7 +28,7 @@ namespace Silent
         float32,
         float64,
         string,
-        pointer,
+        reference,
         null,
         undefined
     };
@@ -98,11 +98,6 @@ namespace Silent
         std::string data;
     }SilentData;
 
-    // typedef struct SilentReturnStatement
-    // {
-    //     SilentFunction* function;
-    // }
-
     typedef struct SilentFunctionCall
     {
         SilentFunction* function;
@@ -118,6 +113,7 @@ namespace Silent
         std::string name;
         SilentDataType type;
         bool initialised;
+        bool isReference;
     }SilentVariable;
 
     typedef struct SilentStructure
@@ -127,6 +123,12 @@ namespace Silent
         unsigned long long size;
         bool initialised;
     }SilentStructure;
+
+    typedef struct SilentReference
+    {
+        SilentVariable* variable;
+        bool deletedExplicitly;
+    }SilentReference;
 
     typedef struct SilentLocalScope
     {
