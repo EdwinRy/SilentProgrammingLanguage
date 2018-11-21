@@ -47,7 +47,7 @@ reference the "ref" keyword can be used to declare a primitive variable to be
 explicitly stored on the heap, from then-on it behaves like any other object, 
 the declaration of a sample reference would look like this:
 ```
-    ref in8 x;
+    ref int32 x;
 ```
 The reference declaration can also make use of the initialisation the same way 
 a normal primitive does.
