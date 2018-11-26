@@ -47,7 +47,7 @@ namespace Silent
             case SilentPrimitives::float32: return "float32"; break;
             case SilentPrimitives::float64: return "float64"; break;
             case SilentPrimitives::string: return "string"; break;
-            case SilentPrimitives::pointer: return "pointer"; break;
+            //case SilentPrimitives::pointer: return "pointer"; break;
             default : return "null"; break;
         }
     }

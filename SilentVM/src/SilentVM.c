@@ -37,20 +37,27 @@ void SilentStartVM(char* prog)
     //char running = 1;
 
     //while(running)
+	//Turns out for(;;) is somehow faster (I assume it's because you dont have)
+	//To check for the variable running each time
 	for(;;)
     {
+		//Check for the current instruction being executed
         switch (*(program + pc))
         {
+			//Exit out of the execution loop
             case Halt:
                 //running = 0;
 				goto endLoop;
             break;
         
+			//Update program counter with the provided argument
             case Goto:
                 pc = *((uint64*)(program + (pc+1)));
-                pc--;
+                pc--;//Decrement pc as it's increased before next iteration
             break;
 
+			//Call a subroutine in the program (saves stack frame data)
+			//And moves to a new position in the program
             case Call:
                 //Get goto location
                 reg.l = *((uint64*)(program + (++pc)));
@@ -69,6 +76,8 @@ void SilentStartVM(char* prog)
                 pc = reg.l - 1;
             break;
 
+			//Copy return values to the old stack pointer and return to 
+			//old subroutine
             case Return:
                 //Get return size
                 reg.l = *((uint64*)(program + (++pc)));
@@ -84,10 +93,12 @@ void SilentStartVM(char* prog)
                 fp = saveSfData[--saveSfDataPtr];
             break;
 
+			//Push 1 byte from the program onto the stack
             case Push1:
                 stack[sp++] = program[++pc];
             break;
 
+			//Push 2 bytes from the program onto the stack
             case Push2:
                 memcpy(stack + sp, program + (++pc), 2);
                 sp += 2;

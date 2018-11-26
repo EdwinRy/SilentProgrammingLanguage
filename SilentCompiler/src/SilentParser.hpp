@@ -9,7 +9,6 @@ namespace Silent
         VarInit,
         Expression,
         If,
-        Else,
         While,
         For,
         Return
@@ -62,7 +61,8 @@ namespace Silent
         Logical,
         Comparison,
         Data,
-        Memory
+        Memory,
+        Null
     };
 
     enum class ParentType
@@ -170,6 +170,9 @@ namespace Silent
     {
         SilentOperand* expression;
         SilentLocalScope* scope;
+        // SilentStatement* next;
+        bool hasExpression;
+        bool hasNext;
     }SilentIfStatement;
 
     typedef struct SilentWhileLoop

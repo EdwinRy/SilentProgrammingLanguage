@@ -139,6 +139,7 @@ namespace Silent
         private:
         std::string GenScopeName(std::string id);
         void CompileExpression(SilentOperand &expression);
+        void CompileIfStatement(SilentStatement &statement, uint64 *ifNotLabel);
         void CompileStatement(SilentStatement &statement);
         void CompileLocalScope(SilentLocalScope &scope);
         void CompileFunction(SilentFunction &func);

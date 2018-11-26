@@ -970,6 +970,7 @@ namespace Silent
         scope.statements.push_back(statement);
 
         ifStatement->expression = ParseExpression(scope);
+        ifStatement->hasExpression = true;
 
         if(ct.type != SilentTokenType::CloseParam)
             ErrorMsg("Expected closing parentheses of the \"if\" statement");
@@ -980,10 +981,9 @@ namespace Silent
         ifStatement->scope->scopeParent = &scope;
         NextToken();
         ParseLocalScope(*ifStatement->scope);
-        //NextToken();
 
         #if DEBUG
-        std::cout << "Finished parsing local scope\n\n";
+        std::cout << "Finished parsing if statement\n\n";
         #endif
     }
 
@@ -1007,7 +1007,6 @@ namespace Silent
                     scope.statements.push_back(statement);
                     SilentVariable* var =  ParseVariable(scope, false, true);
                     var->isReference = true;
-                    
                     statement->variable = var;
                 }
                 break;
@@ -1039,26 +1038,48 @@ namespace Silent
 
                         statement->variable = var;
                         scope.statements.push_back(statement);
-                        //localScope->variables.push_back(var);
                     }
                     else
                     {
-                        SilentVariable* var = GetVariable(
-                            scope, ct.value.data());
+                        SilentVariable* var=GetVariable(scope,ct.value.data());
                         currentDataType = var->type;
                         if(var == NULL) ErrorMsg("Use of invalid type");
-                        //NextToken();
                         printf("Token %s\n", ct.value.data());
-                        //SilentStatement* statement = ParseStatement(scope);
-                        // statement->type = SilentStatementType::Expression;
-                        // statement->expression = ParseExpression(); 
                         scope.statements.push_back(ParseStatement(scope));
                     }
                 break;
 
                 case SilentTokenType::If: 
-                    ParseIfStatement(scope); 
+                    ParseIfStatement(scope);
                     NextToken();
+                break;
+
+                case SilentTokenType::Else: 
+                {
+                    scope.statements.back()->ifStatement->hasNext = true;
+                    NextToken();
+                    if(ct.type == SilentTokenType::If){ParseIfStatement(scope);}
+                    if(ct.type == SilentTokenType::OpenScope)
+                    {
+                        #if DEBUG
+                        std::cout << "Parsing else statement\n\n";
+                        #endif
+                        SilentIfStatement* ifStatement =new SilentIfStatement();
+                        SilentStatement* statement = new SilentStatement();
+                        statement->type = SilentStatementType::If;
+                        statement->ifStatement = ifStatement;
+                        scope.statements.push_back(statement);
+                        ifStatement->scope = new SilentLocalScope();
+                        ifStatement->scope->parentType = ParentType::LocalScope;
+                        ifStatement->scope->scopeParent = &scope;
+                        NextToken();
+                        ParseLocalScope(*ifStatement->scope);
+                        #if DEBUG
+                        std::cout << "Finished parsing else statement\n\n";
+                        #endif
+                    }
+                    NextToken();
+                }
                 break;
 
                 case SilentTokenType::Return:

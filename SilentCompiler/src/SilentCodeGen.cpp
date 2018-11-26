@@ -332,6 +332,48 @@ namespace Silent
         #endif
     }
 
+    void SilentCodeGenerator::CompileIfStatement(
+        SilentStatement &statement, uint64 *ifNotLabel)
+    {
+        #if DEBUG
+        std::cout << "Compiling if statement\n";
+        std::cout << "Code PTR: " << code.GetCodePointer() << "\n";
+        #endif
+        //Compile if expression if it has one
+        if(statement.ifStatement->hasExpression)
+        {
+            CompileExpression(*statement.ifStatement->expression);
+            code.AddNumber<char>((char)SilentBytecode::IfNot);
+            uint64 ifPtrIndex = code.GetCodePointer();
+            code.AddNumber<uint64>(0ll);
+            CompileLocalScope(*statement.ifStatement->scope);
+            //Add goto to the end of the statement if it has a next condition
+            if(statement.ifStatement->hasNext)
+            {
+                code.AddNumber<char>((char)SilentBytecode::Goto);
+                #if DEBUG
+                std::cout << "Added GOTO\n";
+                std::cout << "Code PTR: " << code.GetCodePointer() << "\n";
+                #endif
+                *ifNotLabel = code.GetCodePointer();
+                code.AddNumber<uint64>(0ll);
+            }
+            else ifNotLabel = 0;
+            //Get current code position
+            uint64 ifEndPtrIndex = code.GetCodePointer();
+            /*
+                Copy current position to a goto if the 
+                condition of the if is false
+            */
+            memcpy(code.GetPtrToCode()->data() + ifPtrIndex, &ifEndPtrIndex, 8);
+        }
+        else CompileLocalScope(*statement.ifStatement->scope);
+        #if DEBUG
+        std::cout << "END of if\n";
+        std::cout << "Code PTR: " << code.GetCodePointer() << "\n";
+        #endif
+    }
+
     void SilentCodeGenerator::CompileStatement(SilentStatement &statement)
     {
         #if DEBUG
@@ -371,23 +413,6 @@ namespace Silent
                 CompileExpression(*statement.expression);
             break;
 
-            case SilentStatementType::If:
-            {
-                std::cout << "Compiling if statement\n";
-                CompileExpression(*statement.ifStatement->expression);
-                code.AddNumber<char>((char)SilentBytecode::IfNot);
-                uint64 ifPtrIndex = code.GetCodePointer();
-                code.AddNumber<uint64>(0ll);
-                CompileLocalScope(*statement.ifStatement->scope);
-                uint64 ifEndPtrIndex = code.GetCodePointer();
-
-                memcpy(code.GetPtrToCode()->data() + ifPtrIndex, 
-                    &ifEndPtrIndex, 8);
-            }
-            break;
-
-            //case SilentStatementType::
-
             case SilentStatementType::Return:
                 code.AddNumber<char>((char)SilentBytecode::Return);
                 //code.AddNumber<uint64>(1ll);
@@ -408,10 +433,41 @@ namespace Silent
         std::cout << "Compiling local scope\n";
         #endif
     
+        std::vector<uint64> ifEndings;
+
         for(SilentStatement* statement : scope.statements)
         {
-            CompileStatement(*statement);
+            switch(statement->type)
+            {
+                case SilentStatementType::If:
+                {
+                    uint64 ifNotGoto;
+                    CompileIfStatement(*statement, &ifNotGoto);
+                    if(ifNotGoto > 0) ifEndings.push_back(ifNotGoto);
+                    //Resolve if goto statements
+                    if(statement->ifStatement->hasNext == false)
+                    {
+                        if(ifEndings.size() > 0)
+                        {
+                            uint64 codePtr = code.GetCodePointer();
+                            for(uint64 i : ifEndings)
+                            {
+                                #if DEBUG
+                                std::cout << "Resolving\n";
+                                std::cout << "Code PTR: " 
+                                << code.GetCodePointer() << "\n";
+                                std::cout << "Code i: " << i << "\n";
+                                #endif
+                                memcpy(code.GetPtrToCode()->data() + i, &codePtr, 8);
+                            }
+                        }
+                    }
+                }
+                break;
+                default: CompileStatement(*statement); break;
+            }
         }
+        
 
         #if DEBUG
         std::cout << "Done compiling local scope\n";

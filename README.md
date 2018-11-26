@@ -7,7 +7,7 @@ A fast, general-purpose programming language
     {
         if(x > 2)
         {
-            return fib(x - 1) + fib(x - 2); 
+            return fibonacci(x - 1) + fibonacci(x - 2); 
         }
         
         return 1;

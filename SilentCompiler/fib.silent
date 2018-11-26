@@ -1,0 +1,14 @@
+func int64 fibonacci(int64 x)
+{
+    if(x > 2)
+    {
+        return fibonacci(x - 1) + fibonacci(x - 2); 
+    }
+    return 1;
+    
+}
+
+func int64 main()
+{
+    int64 x = fibonacci(40);
+}
