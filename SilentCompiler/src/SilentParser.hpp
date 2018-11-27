@@ -11,7 +11,8 @@ namespace Silent
         If,
         While,
         For,
-        Return
+        Return,
+        Delete
     };
 
     enum class SilentPrimitives

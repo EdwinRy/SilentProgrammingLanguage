@@ -44,6 +44,7 @@ namespace Silent
         Xor,
         Not,
         New,
+        Delete,
         Reference,
         Function,
         Struct,

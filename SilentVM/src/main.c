@@ -6,7 +6,7 @@ char* readAllText(char* path)
 {
     char* text;
 	FILE *f;
-	if((f = fopen(path,"r"))==NULL)
+	if((f = fopen(path,"rb"))==NULL)
 	{
 		printf("File %s doesn't exist!\n",path);
 		exit(-1);

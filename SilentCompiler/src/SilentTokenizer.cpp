@@ -320,6 +320,10 @@ namespace Silent
                         {
                             token.type = SilentTokenType::New;
                         }
+                        else if(token.value == "delete")
+                        {
+                            token.type = SilentTokenType::Delete;
+                        }
                         else if(token.value == "ref")
                         {
                             token.type = SilentTokenType::Reference;

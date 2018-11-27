@@ -19,31 +19,37 @@ typedef enum SilentBytecode
 	Push2,
 	Push4,
 	Push8,
+	PushX,
 
 	Pop1,
 	Pop2,
 	Pop4,
 	Pop8,
+	PopX,
 
 	Store1,
 	Store2,
 	Store4,
 	Store8,
+	StoreX,
 
 	Load1,
 	Load2,
 	Load4,
 	Load8,
+	LoadX,
 
 	StoreGlobal1,
 	StoreGlobal2,
 	StoreGlobal4,
 	StoreGlobal8,
+	StoreGlobalX,
 
 	LoadGlobal1,
 	LoadGlobal2,
 	LoadGlobal4,
 	LoadGlobal8,
+	LoadGlobalX,
 
 	Alloc1,
 	Alloc2,
@@ -138,6 +144,7 @@ typedef struct SilentGC
 {
 	SilentMemoryBlock* heap;
 	unsigned long long heapPtr;
+	unsigned long long heapSize;
 	unsigned long long lastFree;
 }SilentGC;
 

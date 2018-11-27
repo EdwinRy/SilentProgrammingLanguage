@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -Wall -O3
+CFLAGS = -std=c99 -Wall #-O3
 ifeq ($(OS), Windows_NT)
 ##LIBS = -ldl
 else
@@ -32,7 +32,8 @@ $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c
 	$(CC) $(CFLAGS) -MP -MMD -c $< -o $@
 
 .PHONY: debug
-debug: CFLAGS += -g -pg
+#debug: CFLAGS += -g -pg
+debug: CFLAGS += -g
 debug: all 
 
 

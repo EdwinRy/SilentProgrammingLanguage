@@ -96,28 +96,35 @@ namespace Silent
         }
     }
 
-    void SilentCode::AddLoad(SilentDataType dt, uint64 localPos)
-    {
-        if(dt.isPrimitive)
-        {
-            AddNumber<char>(
-                (char)ToBytecodeSize(dt.primitive,SilentBytecode::Load1)
-            );
-            //AddNumber<char>((char)ToVMType(dt.primitive));
-            AddNumber<uint64>(localPos);
-        }
-    }
+    // void SilentCode::AddLoad(SilentDataType dt, uint64 localPos)
+    // {
+    //     if(dt.isPrimitive)
+    //     {
+    //         AddNumber<char>(
+    //             (char)ToBytecodeSize(dt.primitive,SilentBytecode::Load1)
+    //         );
+    //         //AddNumber<char>((char)ToVMType(dt.primitive));
+    //         AddNumber<uint64>(localPos);
+    //     }
+    //     // else
+    //     // {
+    //     //     AddNumber<char>(
+    //     //         (char)ToBytecodeSize(dt.primitive,SilentBytecode::LoadX)
+    //     //     );
 
-    void SilentCode::AddStore(SilentDataType dt, uint64 localPos)
-    {
-        if(dt.isPrimitive)
-        {
-            AddNumber<char>(
-                (char)ToBytecodeSize(dt.primitive,SilentBytecode::Store1)
-            );
-            AddNumber<uint64>(localPos);
-        }
-    }
+    //     // }
+    // }
+
+    // void SilentCode::AddStore(SilentDataType dt, uint64 localPos)
+    // {
+    //     if(dt.isPrimitive)
+    //     {
+    //         AddNumber<char>(
+    //             (char)ToBytecodeSize(dt.primitive,SilentBytecode::Store1)
+    //         );
+    //         AddNumber<uint64>(localPos);
+    //     }
+    // }
 
     template<typename T>
     void SilentCode::AddNumber(T val)
@@ -169,12 +176,39 @@ namespace Silent
         switch(expression.type)
         {
             case SilentOperandType::Assign:
+            {
                 printf("Assignment of type %i\n",
                     (int)expression.left->variable->type.primitive);
                 CompileExpression(*expression.right);
-                code.AddStore(
-                    expression.left->variable->type,
-                    expression.left->variable->localPos);
+                SilentVariable* var = expression.left->variable;
+                if(var->isReference)
+                {
+                    if(var->type.isPrimitive)
+                    {
+                        code.AddNumber<char>((char)
+                            code.ToBytecodeSize(var->type.primitive, 
+                            SilentBytecode::Load1)
+                        );
+                        code.AddNumber<uint64>(var->localPos);
+                        code.AddNumber<char>((char)
+                            code.ToBytecodeSize(var->type.primitive, 
+                            SilentBytecode::StorePtr1)
+                        );
+                        code.AddNumber<uint64>(0ll);
+                    }
+                }
+                else
+                {
+                    if(var->type.isPrimitive)
+                    {
+                        code.AddNumber<char>((char)
+                            code.ToBytecodeSize(var->type.primitive, 
+                            SilentBytecode::Store1)
+                        );
+                        code.AddNumber<uint64>(var->localPos);
+                    }
+                }
+            }
             break;
 
             case SilentOperandType::FunctionCall:
@@ -321,8 +355,52 @@ namespace Silent
             break;
 
             case SilentOperandType::Variable:
-                code.AddLoad(expression.variable->type,
-                    expression.variable->localPos);
+                if(expression.variable->isReference)
+                {
+                    //ToBytecodeSize
+                    if(expression.variable->type.isPrimitive)
+                    {
+                        code.AddNumber<char>((char)
+                            code.ToBytecodeSize(
+                                expression.variable->type.primitive,
+                                SilentBytecode::Load1)
+                        );
+                        code.AddNumber<uint64>(expression.variable->localPos);
+                        code.AddNumber<char>((char)
+                            code.ToBytecodeSize(
+                                expression.variable->type.primitive,
+                                SilentBytecode::LoadPtr1)
+                        );
+                        //AddNumber<char>((char)ToVMType(dt.primitive));
+                        code.AddNumber<uint64>(0ll);
+                    }
+                    else
+                    {
+
+                    }
+                }
+                else
+                {
+                    // code.AddLoad(expression.variable->type,
+                    //     expression.variable->localPos);
+                    if(expression.variable->type.isPrimitive)
+                    {
+                        code.AddNumber<char>((char)
+                            code.ToBytecodeSize(
+                                expression.variable->type.primitive,
+                                SilentBytecode::Load1)
+                        );
+                        //AddNumber<char>((char)ToVMType(dt.primitive));
+                        code.AddNumber<uint64>(expression.variable->localPos);
+                    }
+                    else
+                    {
+                        // AddNumber<char>(
+                        //     (char)ToBytecodeSize(dt.primitive,SilentBytecode::LoadX)
+                        // );
+
+                    }
+                }
             break;
 
             default: break;
@@ -409,6 +487,12 @@ namespace Silent
                 else code.AddPush(statement.variable->type,"0");
             break;
 
+            case SilentStatementType::Delete:
+            {
+                code.AddNumber<char>((char)SilentBytecode::Free);
+                code.AddNumber<uint64>(statement.variable->localPos);
+            }
+
             case SilentStatementType::Expression:
                 CompileExpression(*statement.expression);
             break;
@@ -458,7 +542,8 @@ namespace Silent
                                 << code.GetCodePointer() << "\n";
                                 std::cout << "Code i: " << i << "\n";
                                 #endif
-                                memcpy(code.GetPtrToCode()->data() + i, &codePtr, 8);
+                                memcpy(code.GetPtrToCode()->data()+i,
+                                    &codePtr,8);
                             }
                         }
                     }
@@ -498,6 +583,7 @@ namespace Silent
         {
             if(func.scope->variables[i]->isReference)
             {
+                //code.AddNumber<char>((char)SilentBytecode::Load8);
                 code.AddNumber<char>((char)SilentBytecode::Free);
                 code.AddNumber<uint64>(func.scope->variables[i]->localPos);
             }

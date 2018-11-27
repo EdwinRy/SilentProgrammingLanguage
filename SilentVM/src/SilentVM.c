@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define DEBUG 1
 typedef unsigned long long uint64;
 typedef long long int64;
 void SilentStartVM(char* prog)
@@ -17,7 +18,9 @@ void SilentStartVM(char* prog)
     register uint64 saveSfDataPtr = 0;
 
 	SilentGC gc;
-	gc.heap = malloc(1000 * sizeof(SilentMemoryBlock));
+	//gc.heap = malloc(1000 * sizeof(SilentMemoryBlock));
+	gc.heap = calloc(1000, sizeof(SilentMemoryBlock));
+	gc.heapSize = 1000;
 	gc.heapPtr = 0;
 	gc.lastFree = 0;
 
@@ -112,8 +115,8 @@ void SilentStartVM(char* prog)
 			break;
 
 			case Push8:
-				//memcpy(stack + sp, program + (++pc), 8);
-				(*(uint64*)(stack + sp)) = (*(uint64*)(program + (++pc)));
+				memcpy(stack + sp, program + (++pc), 8);
+				//(*(uint64*)(stack + sp)) = (*(uint64*)(program + (++pc)));
 				sp += 8;
 				pc += 7;
 			break;
@@ -202,6 +205,18 @@ void SilentStartVM(char* prog)
 				sp += 8;
 			break;
 
+			case LoadX:
+				//Get data size
+				reg.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 8;
+				//Get location
+				reg2.l = (uint64)*((uint64*)(program + (++pc)));
+				pc += 7;
+				//Copy data;
+				memcpy(stack + sp, stack + fp + reg2.l, reg.l);
+				sp += reg.l;
+			break;
+
 			case StoreGlobal1:
 				//Get global offset
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
@@ -269,7 +284,7 @@ void SilentStartVM(char* prog)
 			case Alloc1:
 			{
 				uint64 temp = SilentAlloc(&gc, 1);
-				pc += 7;
+				//pc += 7;
 				memcpy(stack + sp, &temp, 8);
 				sp += 8;
 			}
@@ -278,7 +293,7 @@ void SilentStartVM(char* prog)
 			case Alloc2:
 			{
 				uint64 temp = SilentAlloc(&gc, 2);
-				pc += 7;
+				//pc += 7;
 				memcpy(stack + sp, &temp, 8);
 				sp += 8;
 			}
@@ -287,7 +302,7 @@ void SilentStartVM(char* prog)
 			case Alloc4:
 			{
 				uint64 temp = SilentAlloc(&gc, 4);
-				pc += 7;
+				//pc += 7;
 				memcpy(stack + sp, &temp, 8);
 				sp += 8;
 			}
@@ -296,7 +311,7 @@ void SilentStartVM(char* prog)
 			case Alloc8:
 			{
 				uint64 temp = SilentAlloc(&gc, 8);
-				pc += 7;
+				//pc += 7;
 				memcpy(stack + sp, &temp, 8);
 				sp += 8;
 			}
@@ -307,7 +322,7 @@ void SilentStartVM(char* prog)
 				//Get alloc size
 				uint64 temp = 
 					SilentAlloc(&gc, (uint64)*((uint64*)(program+(++pc))));
-				pc += 7;
+				//pc += 7;
 				memcpy(stack + sp, &temp, 8);
 				sp += 8;
 			}
@@ -971,16 +986,24 @@ uint64 SilentAlloc(SilentGC* gc, uint64 size)
 	gc->heap[gc->lastFree].occupied = 1;
 	gc->heap[gc->lastFree].data = malloc(size);
 
-	for(uint64 i = gc->lastFree + 1; i < gc->heapPtr; i++)
-		if(gc->heap[i].occupied == 0) gc->lastFree = i;
+	for(uint64 i = gc->lastFree + 1; i < gc->heapSize; i++)
+		if(gc->heap[i].occupied == 0) 
+		{
+			gc->lastFree = i;
+			break;
+		}
 
-	//printf("Allocated %i bytes on location %i\n", size, returnPos);
-
+	#if DEBUG
+	printf("Allocated %i bytes on location %i\n", size, returnPos);
+	#endif
 	return returnPos;
 }
 
 void SilentFree(SilentGC* gc, uint64 pos)
 {
+	#if DEBUG
+	printf("Attempting to free item at position %i\n",pos);
+	#endif
 	gc->heap[pos].occupied = 0;
 	free(gc->heap[pos].data);
 	if(pos < gc->lastFree) gc->lastFree = pos;

@@ -997,7 +997,6 @@ namespace Silent
         {
             switch(ct.type)
             {
-
                 case SilentTokenType::Reference:
                 {
                     NextToken();
@@ -1008,6 +1007,18 @@ namespace Silent
                     SilentVariable* var =  ParseVariable(scope, false, true);
                     var->isReference = true;
                     statement->variable = var;
+                }
+                break;
+
+                case SilentTokenType::Delete:
+                {
+                    NextToken();
+                    SilentStatement* statement = new SilentStatement();
+                    statement->type = SilentStatementType::Delete;
+                    scope.statements.push_back(statement);
+                    statement->variable = GetVariable(scope,ct.value);
+                    NextToken();
+                    NextToken();
                 }
                 break;
 

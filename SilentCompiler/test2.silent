@@ -1,22 +1,6 @@
 func void main()
 {
-    int64 x;
-    if(5 == 2)
-    {
-        x = 2;
-    }
-    else if(5 == 5)
-    {
-        x = 19;
-    }
-    else if(5 == 5)
-    {
-        x = 21;
-    }
-    else
-    {
-        x = 42;
-    }
-
-    x += 5;
+    //int64 x;
+    ref int64 y;
+    y = 5;
 }

@@ -1,7 +1,13 @@
-Implement else statements
-
 Implement while loop
 
 Implement for loop
 
 Implement objects
+
+Add loadX in code gen
+
+Test if there's a problem with if without an else
+
+Add reference parsing to parameters
+
+Add explicit reference deletion
