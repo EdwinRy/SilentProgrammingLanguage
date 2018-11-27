@@ -1,6 +1,14 @@
+func int64 addx(ref int64 x, int64 b)
+{
+    x += b;
+    return x;
+}
+
 func void main()
 {
-    //int64 x;
+    int64 x;
     ref int64 y;
     y = 5;
+    int64 b = addx(y, 10);
+    x = y;
 }

@@ -4,9 +4,9 @@ Implement for loop
 
 Implement objects
 
-Add loadX in code gen
+Implement references properly
 
-Test if there's a problem with if without an else
+Add loadX in code gen
 
 Add reference parsing to parameters
 

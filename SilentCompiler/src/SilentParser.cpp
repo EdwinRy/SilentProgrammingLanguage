@@ -936,7 +936,16 @@ namespace Silent
         {
             //SilentStatement* statement = new SilentStatement();
             //statement->type = SilentStatementType::VarInit;
-            ParseVariable(*parameters,true,false);
+            if(ct.type == SilentTokenType::Reference)
+            {
+                NextToken();
+                SilentVariable* var = ParseVariable(*parameters,true,false);
+                var->isReference = true;
+            }
+            else
+            {
+                ParseVariable(*parameters,true,false);
+            }
             //parameters->statements.push_back(statement);
             if(ct.value == ",") {NextToken(); continue;}
             else if(ct.type == SilentTokenType::CloseParam) break;

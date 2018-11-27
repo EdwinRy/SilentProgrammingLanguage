@@ -217,8 +217,26 @@ namespace Silent
                     expression.functionCall->function->name.data());
                 //expression.functionCall
 
-                for(SilentOperand* arg : expression.functionCall->arguments)
-                    CompileExpression(*arg);
+                //for(SilentOperand* arg : expression.functionCall->arguments)
+                //    CompileExpression(*arg);
+
+                //Compile arguments
+                SilentFunction* calledFunc = expression.functionCall->function;
+                for(uint64 i = 0; i < calledFunc->parameterCount; i++)
+                {
+                    SilentOperand* arg = expression.functionCall->arguments[i];
+                    if(calledFunc->scope->variables[i]->isReference)
+                    {
+                        code.AddNumber<char>((char)
+                            code.ToBytecodeSize(
+                                arg->variable->type.primitive,
+                                SilentBytecode::Load1)
+                        );
+                        code.AddNumber<uint64>(arg->variable->localPos);
+
+                    }
+                    else CompileExpression(*arg);
+                }
 
                 SilentFunction* calledFunction = 
                     expression.functionCall->function;

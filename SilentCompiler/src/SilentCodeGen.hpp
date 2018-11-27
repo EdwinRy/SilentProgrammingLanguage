@@ -155,6 +155,6 @@ namespace Silent
         std::unordered_map<SilentFunction*, uint64> symTable;
         SilentCode code;
         //SilentPrimitives currentPrimitive;
-        SilentDataType currentDataType;
+        SilentDataType currentDataType; 
     };
 }
