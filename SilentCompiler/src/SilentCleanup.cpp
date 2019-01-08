@@ -1,10 +1,9 @@
 #include "SilentCleanup.hpp"
 typedef unsigned long long uint64;
 #define DEBUG 0
-
 namespace Silent
 {
-    void SilentCleaner::FreeVariable(SilentVariable* variable)
+    void SilentCleaner::FreeVariable(Structures::Variable* variable)
     {
         #if DEBUG
         std::cout << "Cleaning variable:" << variable->name << "\n";
@@ -15,12 +14,12 @@ namespace Silent
         #endif
     }
 
-    void SilentCleaner::FreeLocalScope(SilentLocalScope* scope)
+    void SilentCleaner::FreeLocalScope(Structures::LocalScope* scope)
     {
         #if DEBUG
         std::cout << "Cleaning local scope\n";
         #endif
-        for(SilentVariable* var : scope->variables) FreeVariable(var);
+        //for(Structures::Variable* var : scope->variables) FreeVariable(var);
         // for(SilentStatement* statement : scope->statements)
         // freeStatement(statement);
         free(scope);
@@ -29,48 +28,49 @@ namespace Silent
         #endif
     }
 
-    void SilentCleaner::FreeStructure(SilentStructure* structure)
+    void SilentCleaner::FreeStructure(Structures::Structure* structure)
     {
         #if DEBUG
         std::cout << "Cleaning structure:" << structure->name << "\n";
         #endif
-        for(SilentVariable* var : structure->variables->variables)
-            FreeVariable(var);
+        //for(Structures::Variable* var : structure->members->variables)
+        //    FreeVariable(var);
         #if DEBUG
         std::cout << "Done cleaning structure\n";
         #endif
         free(structure);
     }
 
-    void SilentCleaner::FreeFunction(SilentFunction* function)
+    void SilentCleaner::FreeFunction(Structures::Function* function)
     {
         #if DEBUG
         std::cout << "Cleaning function:" << function->name << "\n";
         #endif
         //FreeLocalScope(function->parameters);
-        if(function->initialised) FreeLocalScope(function->scope);
+        //if(function->initialised) FreeLocalScope(function->scope);
+        //if(function->scope != NULL) FreeLocalScope(function->scope);
         free(function);
         #if DEBUG
         std::cout << "Done cleaning function\n";
         #endif
     }
     
-    void SilentCleaner::FreeNamespace(SilentNamespace* scope)
+    void SilentCleaner::FreeNamespace(Structures::Namespace* scope)
     {
         #if DEBUG
         std::cout << "Cleaning namespace:" << scope->name << "\n";
         #endif
-        for(SilentNamespace* name : scope->namespaces) FreeNamespace(name);
-        for(SilentFunction* function : scope->functions) FreeFunction(function);
-        for(SilentStructure* structure : scope->types) FreeStructure(structure);
-        if(scope->globals != NULL) FreeLocalScope(scope->globals);
+        //for(Structures::Namespace* name : scope->namespaces) FreeNamespace(name);
+        //for(Structures::Function* function : scope->functions) FreeFunction(function);
+        //for(Structures::Structure* structure : scope->types) FreeStructure(structure);
+        //if(scope->globals != NULL) FreeLocalScope(scope->globals);
         free(scope);
         #if DEBUG
         std::cout << "Done cleaning namespace\n";
         #endif
     }
 
-    void SilentCleaner::CleanupParser(SilentParser* parser)
+    void SilentCleaner::CleanupParser(Parser* parser)
     {
         #if DEBUG
         std::cout << "Cleaning up...\n";

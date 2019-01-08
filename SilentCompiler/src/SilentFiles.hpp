@@ -52,14 +52,18 @@ char* readAllBytes(char* path)
     return text;
 }
 
-void writeAllBytes(const char* path, const char* text)
+void writeAllBytes(const char* path, const char* text, unsigned long long size)
 {
-    FILE *f;
-    if((f = fopen(path,"wb"))==NULL)
-    {
-        printf("File %s could not be opened!\n", path);
-        exit(-1);
-    }
-    fprintf(f, text);
-    fclose(f);
+    // FILE *f;
+    // if((f = fopen(path,"wb"))==NULL)
+    // {
+    //     printf("File %s could not be opened!\n", path);
+    //     exit(-1);
+    // }
+    // fprintf(f, text);
+    // fclose(f);
+    std::ofstream outFile (path, std::ofstream::binary);
+    //outFile << text;
+    outFile.write(text, size);
+    outFile.close();
 }

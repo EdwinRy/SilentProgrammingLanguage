@@ -1,11 +1,7 @@
 #include "SilentCompiler.hpp"
 #include "SilentTokenizer.hpp"
 #include "SilentParser.hpp"
-#include "SilentCleanup.hpp"
-#include "SilentAssembler.hpp"
 #include "SilentCodeGen.hpp"
-#include "SilentIntCode.hpp"
-#include "SilentConsole.hpp"
 #include "SilentFiles.hpp"
 #include <iostream>
 #include <vector>
@@ -23,37 +19,43 @@ void SilentCompiler::Compile(SilentCompileMode mode)
         }
 
         //std::vector<SilentToken>* tokens = tokenizer.Tokenize(this->source);
-        SilentTokenizer tokenizer;
+        Tokenizer tokenizer;
         if(!tokenizer.Tokenize(this->source))
         {
             std::cout << "Could not tokenize source\n";
         }
 
-        SilentParser parser;
-        if(!parser.SilentParse(tokenizer.GetTokens()))
+        Parser parser;
+        if(!parser.Parse(tokenizer.GetTokens()))
         {
             std::cout << "Parsing unsuccessful\n";
         }
 
-        SilentCodeGenerator codeGen;
-        codeGen.Compile(&parser);
+        CodeGenerator codeGen;
+        codeGen.GenerateBytecode(parser);
+        uint64 codeLen;
+        char* output = codeGen.GetOutput(&codeLen);
+        writeAllBytes("package.si", output, codeLen);
+
+        //SilentCodeGenerator codeGen;
+        //codeGen.Compile(&parser);
 
         //std::string intCode = SilentGenerateIntCode(parser.GetGlobalNamespace());
 
-        writeAllText("package.si", codeGen.GetOutput());
+        //writeAllText("package.si", codeGen.GetOutput());
         //SilentParserInfo* parserOutput = SilentParse(tokenizer.GetTokens());
         //std::string intCode = SilentGenerateIntCode(parserOutput);
         //this->libOutput = intCode;
         //this->output = SilentCompileAST(*parserOutput);
         //this->output = SilentGenerateAssembly(intCode->code);
 
-        SilentCleaner cleaner;
-        cleaner.CleanupParser(&parser);
+        //SilentCleaner cleaner;
+        //cleaner.CleanupParser(&parser);
     }
     else
     {
-        SilentAssembler assembler = SilentAssembler();
-        assembler.Assemble(this->path);
+        //SilentAssembler assembler = SilentAssembler();
+        //assembler.Assemble(this->path);
     }
     std::cout << "\nDone!\n";
 }
@@ -67,8 +69,8 @@ int main(int argc, char** argv)
     
     if(strcmp(argv[1], "-c") == 0)
     {
-        SilentConsole console;
-        console.Start();
+        //SilentConsole console;
+        //console.Start();
     }
     //else if(argc > 1)
     //{

@@ -1,14 +1,6 @@
-func int64 addx(ref int64 x, int64 b)
+func int64 main()
 {
-    x += b;
-    return x;
-}
-
-func void main()
-{
-    int64 x;
-    ref int64 y;
-    y = 5;
-    int64 b = addx(y, 10);
-    x = y;
+    int64 k;
+    return;
+    k = 21;
 }

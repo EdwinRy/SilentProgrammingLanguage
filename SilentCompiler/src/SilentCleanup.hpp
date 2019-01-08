@@ -1,4 +1,5 @@
 #pragma once
+#include "SilentStructures.hpp"
 #include "SilentParser.hpp"
 #include <vector>
 
@@ -7,13 +8,13 @@ namespace Silent
     class SilentCleaner
     {
         private:
-        void FreeVariable(SilentVariable* variable);
-        void FreeLocalScope(SilentLocalScope* scope);
-        void FreeStructure(SilentStructure* structure);
-        void FreeFunction(SilentFunction* function);
-        void FreeNamespace(SilentNamespace* scope);
+        void FreeVariable(Structures::Variable* variable);
+        void FreeLocalScope(Structures::LocalScope* scope);
+        void FreeStructure(Structures::Structure* structure);
+        void FreeFunction(Structures::Function* function);
+        void FreeNamespace(Structures::Namespace* scope);
         public:
         SilentCleaner(){}
-        void CleanupParser(SilentParser* parser);
+        void CleanupParser(Parser* parser);
     };
 }

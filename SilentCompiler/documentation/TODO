@@ -4,10 +4,12 @@ Implement for loop
 
 Implement objects
 
-Implement references properly
-
 Add loadX in code gen
 
 Add reference parsing to parameters
 
 Add explicit reference deletion
+
+Add return for void
+
+Update reference documentation

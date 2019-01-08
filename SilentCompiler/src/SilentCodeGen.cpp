@@ -1,636 +1,589 @@
 #include "SilentCodeGen.hpp"
 #include "SilentParser.hpp"
+#include "SilentStructures.hpp"
 #include <iostream>
-#include <iomanip>
-#include <string>
-#include <vector>
-#include <unordered_map>
 #include <cstring>
-using namespace Silent;
+
+//TODO - Fix bytecode output
+
+#define DEBUG_ENABLED 1
+#define ERROR(args...) printf(args);
+#if DEBUG_ENABLED
+#define DEBUG(args...) printf(args);
+#else
+#define DEBUG(args...) 
+#endif
+
 typedef unsigned long long uint64;
-typedef unsigned int uint32;
-
-#define DEBUG 1
-
-namespace Silent
+namespace Silent::Structures
 {
-    SilentBytecode SilentCode::ToBytecodeSize(
-        SilentPrimitives p, SilentBytecode base)
+
+    bool Operand::Compile(CodeGenerator &gc)
     {
-        char index;
-        switch(p)
+        DEBUG("Compiling operand\n");
+        switch(this->operandType)
         {
-            case SilentPrimitives::int8:
-            case SilentPrimitives::uint8: index = 0; break;
-            case SilentPrimitives::int16:
-            case SilentPrimitives::uint16: index = 1; break;
-            case SilentPrimitives::int32:
-            case SilentPrimitives::uint32: 
-            case SilentPrimitives::float32: index = 2; break;
-            case SilentPrimitives::int64:
-            case SilentPrimitives::uint64: 
-            case SilentPrimitives::float64: index = 3; break;
-            default: index = 2; break;
-        }
-        return (SilentBytecode)((char)base+index);
-    }
-
-    SilentBytecode SilentCode::ToBytecodeExp(
-        SilentPrimitives p, SilentBytecode base)
-    {
-        char index;
-        switch(p)
-        {
-            case SilentPrimitives::int8:
-            case SilentPrimitives::uint8: index = 0; break;
-            case SilentPrimitives::int16:
-            case SilentPrimitives::uint16: index = 1; break;
-            case SilentPrimitives::int32:
-            case SilentPrimitives::uint32: index = 2; break;
-            case SilentPrimitives::int64:
-            case SilentPrimitives::uint64: index = 3; break;
-            case SilentPrimitives::float32: index = 4; break;
-            case SilentPrimitives::float64: index = 5; break;
-            default: index = 2; break;
-        }
-        return (SilentBytecode)((char)base+index);
-    }
-
-    void SilentCode::AddData(SilentDataType dt, std::string val)
-    {
-        switch(dt.primitive)
-        {
-            case SilentPrimitives::int8:
-            AddNumber<char>(std::stoi(val,nullptr,10));break;
-            case SilentPrimitives::uint8:
-            AddNumber<unsigned char>(std::stoi(val,nullptr,10));break;
-            case SilentPrimitives::int16:
-            AddNumber<short>(std::stoi(val,nullptr,10));break;
-            case SilentPrimitives::uint16:
-            AddNumber<unsigned short>(std::stoi(val,nullptr,10));break;
-            case SilentPrimitives::int32:
-            AddNumber<int>(std::stol(val,nullptr,10));break;
-            case SilentPrimitives::uint32:
-            AddNumber<unsigned int>(std::stoul(val,nullptr,10));break;
-            case SilentPrimitives::int64:
-            AddNumber<long long>(std::stoll(val,nullptr,10));break;
-            case SilentPrimitives::uint64:
-            AddNumber<uint64>(std::stoull(val,nullptr,10));break;
-            case SilentPrimitives::float32:
-            AddNumber<float>(std::stof(val,nullptr));break;
-            case SilentPrimitives::float64:
-            AddNumber<long double>(std::stold(val,nullptr));break;
-            default: break;
-        }
-    }
-
-    void SilentCode::AddPush(SilentDataType dt, std::string val)
-    {
-        if(dt.isPrimitive)
-        {
-            // AddNumber<char>((char)ToBytecodePush(dt.primitive));
-            AddNumber<char>(
-                (char)ToBytecodeSize(dt.primitive,SilentBytecode::Push1));
-            //AddNumber<char>((char)ToVMType(dt.primitive));
-            AddData(dt, val);
-        }
-    }
-
-    // void SilentCode::AddLoad(SilentDataType dt, uint64 localPos)
-    // {
-    //     if(dt.isPrimitive)
-    //     {
-    //         AddNumber<char>(
-    //             (char)ToBytecodeSize(dt.primitive,SilentBytecode::Load1)
-    //         );
-    //         //AddNumber<char>((char)ToVMType(dt.primitive));
-    //         AddNumber<uint64>(localPos);
-    //     }
-    //     // else
-    //     // {
-    //     //     AddNumber<char>(
-    //     //         (char)ToBytecodeSize(dt.primitive,SilentBytecode::LoadX)
-    //     //     );
-
-    //     // }
-    // }
-
-    // void SilentCode::AddStore(SilentDataType dt, uint64 localPos)
-    // {
-    //     if(dt.isPrimitive)
-    //     {
-    //         AddNumber<char>(
-    //             (char)ToBytecodeSize(dt.primitive,SilentBytecode::Store1)
-    //         );
-    //         AddNumber<uint64>(localPos);
-    //     }
-    // }
-
-    template<typename T>
-    void SilentCode::AddNumber(T val)
-    {
-        code.resize(code.size() + sizeof(T));
-        memcpy(code.data() + code.size() - sizeof(T), &val, sizeof(T));
-    }
-
-    std::string SilentCode::GetCode()
-    {
-        std::string str(code.begin(), code.end());
-        return str;
-    }
-
-    std::vector<char>* SilentCode::GetPtrToCode() { return &this->code; }
-
-    uint64 SilentCode::GetCodePointer() { return this->code.size(); }
-
-
-    void SilentCodeGenerator::Compile(SilentParser *parser)
-    {
-        code.AddNumber<char>((char)SilentBytecode::Goto);
-        code.AddNumber<uint64>((uint64)0ll);
-        CompileNamespace(*parser->GetGlobalNamespace());
-        code.AddNumber<char>((char)SilentBytecode::Halt);
-    }
-
-    std::string SilentCodeGenerator::GetOutput() { return code.GetCode(); }
-
-    std::string SilentCodeGenerator::GenScopeName(std::string id)
-    {
-        std::string name = "";
-        for(SilentNamespace *scope : namespaces)
-        {
-            name += scope->name;
-            name += "::";
-        }
-        name += id;
-        return name;
-    }
-
-    void SilentCodeGenerator::CompileExpression(
-        SilentOperand &expression
-    )
-    {
-        #if DEBUG
-        std::cout << "Compiling expression\n";
-        #endif
-        switch(expression.type)
-        {
-            case SilentOperandType::Assign:
+            case OperandType::Assign:
             {
-                printf("Assignment of type %i\n",
-                    (int)expression.left->variable->type.primitive);
-                CompileExpression(*expression.right);
-                SilentVariable* var = expression.left->variable;
+                DEBUG("ASSIGNMENT\n");
+                DataType oldType = gc.currentType;
+                Variable* var = this->left->value->data.variable;
+                gc.currentType = var->GetType();
+                this->right->Compile(gc);
                 if(var->isReference)
                 {
-                    if(var->type.isPrimitive)
+                    if(var->GetType().type->type == NodeType::Primitive)
                     {
-                        code.AddNumber<char>((char)
-                            code.ToBytecodeSize(var->type.primitive, 
-                            SilentBytecode::Load1)
-                        );
-                        code.AddNumber<uint64>(var->localPos);
-                        code.AddNumber<char>((char)
-                            code.ToBytecodeSize(var->type.primitive, 
-                            SilentBytecode::StorePtr1)
-                        );
-                        code.AddNumber<uint64>(0ll);
+                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                            var->GetType().type->data.primitiveType,
+                            Opcodes::Load1
+                        ));
+                        gc.code.AddVal<uint64>(var->GetLocalPos());
+                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                            var->GetType().type->data.primitiveType,
+                            Opcodes::StorePtr1
+                        ));
+                        gc.code.AddVal<uint64>(0ll);
                     }
                 }
                 else
                 {
-                    if(var->type.isPrimitive)
+                    if(var->GetType().type->type == NodeType::Primitive)
                     {
-                        code.AddNumber<char>((char)
-                            code.ToBytecodeSize(var->type.primitive, 
-                            SilentBytecode::Store1)
-                        );
-                        code.AddNumber<uint64>(var->localPos);
+                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                            var->GetType().type->data.primitiveType,
+                            Opcodes::Store1
+                        ));
+                        gc.code.AddVal<uint64>(var->GetLocalPos());
                     }
                 }
+                gc.currentType = oldType;
             }
             break;
 
-            case SilentOperandType::FunctionCall:
+            case OperandType::FunctionCall:
             {
-                printf("Calling function %s\n",
-                    expression.functionCall->function->name.data());
-                //expression.functionCall
+                DEBUG("FUNCTION CALL\n");
 
-                //for(SilentOperand* arg : expression.functionCall->arguments)
-                //    CompileExpression(*arg);
+                FunctionCall* funcCall = this->value->data.functionCall;
+                Function* func = funcCall->function;
 
-                //Compile arguments
-                SilentFunction* calledFunc = expression.functionCall->function;
-                for(uint64 i = 0; i < calledFunc->parameterCount; i++)
+                for(uint64 i = 0; i < func->GetParameterCount(); i++)
                 {
-                    SilentOperand* arg = expression.functionCall->arguments[i];
-                    if(calledFunc->scope->variables[i]->isReference)
+                    Operand* arg = funcCall->arguments[i];
+                    if(func->GetScope()->GetVariables()->at(i)->isReference)
                     {
-                        code.AddNumber<char>((char)
-                            code.ToBytecodeSize(
-                                arg->variable->type.primitive,
-                                SilentBytecode::Load1)
-                        );
-                        code.AddNumber<uint64>(arg->variable->localPos);
-
+                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                            arg->value->data.variable->
+                            GetType().type->data.primitiveType, 
+                            Opcodes::Load1
+                        ));
+                        gc.code.AddVal<uint64>(
+                            arg->value->data.variable->GetLocalPos());
                     }
-                    else CompileExpression(*arg);
+                    else arg->Compile(gc);
                 }
-
-                SilentFunction* calledFunction = 
-                    expression.functionCall->function;
-                code.AddNumber<char>((char)SilentBytecode::Call);
-                code.AddNumber<uint64>(symTable[calledFunction]);
-                //code.AddNumber<uint64>(calledFunction->parameterCount);
-                code.AddNumber<uint64>(calledFunction->parameterSize);
+                gc.code.AddVal<char>((char)Opcodes::Call);
+                gc.code.AddVal<uint64>(gc.GetFuncPtr(func));
+                gc.code.AddVal<uint64>(func->GetParameterSize());
             }
             break;
 
-            case SilentOperandType::Add:
-                printf("Addition\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                //AddNumber<char>(
-                //    (char)ToBytecode(dt.primitive,SilentBytecode::Push1));
-                code.AddNumber<char>(
-                    (char)code.ToBytecodeExp(currentDataType.primitive, 
-                    SilentBytecode::AddI1));
-                //code.AddNumber<char>((char)SilentBytecode::Add);
-                
+            case OperandType::Add:
+                DEBUG("ADDITION\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)gc.code.ToBytecodeExp(
+                    gc.currentType.type->data.primitiveType,Opcodes::AddI1));
             break;
 
-            case SilentOperandType::Subtract:
-                printf("Subtraction\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                //code.AddNumber<char>((char)SilentBytecode::Sub);
-                code.AddNumber<char>(
-                    (char)code.ToBytecodeExp(currentDataType.primitive, 
-                    SilentBytecode::SubI1));
+            case OperandType::Subtract:
+                DEBUG("SUBTRACTION\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)gc.code.ToBytecodeExp(
+                    gc.currentType.type->data.primitiveType,Opcodes::SubI1));
             break;
 
-            case SilentOperandType::Multiply:
-                printf("Multiplication\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                //code.AddNumber<char>((char)SilentBytecode::Mul);
-                code.AddNumber<char>(
-                    (char)code.ToBytecodeExp(currentDataType.primitive, 
-                    SilentBytecode::MulI1));
+            case OperandType::Multiply:
+                DEBUG("MULTIPLICATION\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)gc.code.ToBytecodeExp(
+                    gc.currentType.type->data.primitiveType,Opcodes::MulI1));
             break;
 
-            case SilentOperandType::Divide:
-                printf("Division\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                //code.AddNumber<char>((char)SilentBytecode::Div);
-                code.AddNumber<char>(
-                    (char)code.ToBytecodeExp(currentDataType.primitive, 
-                    SilentBytecode::MulI1));
+            case OperandType::Divide:
+                DEBUG("DIVISION\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)gc.code.ToBytecodeExp(
+                    gc.currentType.type->data.primitiveType,Opcodes::DivI1));
             break;
 
-            case SilentOperandType::Equal:
-                printf("Equal\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::Equal);
-                code.AddNumber<char>((char)currentDataType.primitive);
+            case OperandType::Equal:
+                DEBUG("EQUAL TO\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)Opcodes::Equal);
+                gc.code.AddVal<char>(
+                    (char)gc.currentType.type->data.primitiveType);
             break;
 
-            case SilentOperandType::NotEqual:
-                printf("Not Equal\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::NotEqual);
-                code.AddNumber<char>((char)currentDataType.primitive);
+            case OperandType::NotEqual:
+                DEBUG("NOT EQUAL TO\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)Opcodes::NotEqual);
+                gc.code.AddVal<char>(
+                    (char)gc.currentType.type->data.primitiveType);
             break;
 
-            case SilentOperandType::Larger:
-                printf("Larger than\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::LargerThan);
-                code.AddNumber<char>((char)currentDataType.primitive);
+            case OperandType::Larger:
+                DEBUG("LARGER THAN\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)Opcodes::LargerThan);
+                gc.code.AddVal<char>(
+                    (char)gc.currentType.type->data.primitiveType);
             break;
 
-            case SilentOperandType::LargerOrEqual:
-                printf("Larger than or equal to\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::LargerThanOrEqual);
-                code.AddNumber<char>((char)currentDataType.primitive);
+            case OperandType::LargerOrEqual:
+                DEBUG("LARGER THAN OR EQUAL TO\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)Opcodes::LargerThanOrEqual);
+                gc.code.AddVal<char>(
+                    (char)gc.currentType.type->data.primitiveType);
             break;
 
-            case SilentOperandType::Smaller:
-                printf("Smaller than\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::SmallerThan);
-                code.AddNumber<char>((char)currentDataType.primitive);
+            case OperandType::Smaller:
+                DEBUG("SMALLER THAN\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)Opcodes::SmallerThan);
+                gc.code.AddVal<char>(
+                    (char)gc.currentType.type->data.primitiveType);
             break;
 
-            case SilentOperandType::SmallerOrEqual:
-                printf("Smaller than or equal to\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::SmallerThanOrEqual);
-                code.AddNumber<char>((char)currentDataType.primitive);
+            case OperandType::SmallerOrEqual:
+                DEBUG("SMALLER THAN OR EQUAL TO\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)Opcodes::SmallerThanOrEqual);
+                gc.code.AddVal<char>(
+                    (char)gc.currentType.type->data.primitiveType);
             break;
 
-            case SilentOperandType::And:
-                printf("AND\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::And);
+            case OperandType::And:
+                DEBUG("AND\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)Opcodes::And);
             break;
 
-            case SilentOperandType::Or:
-                printf("OR\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::Or);
-            break;
-            
-            case SilentOperandType::Xor:
-                printf("XOR\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::Xor);
+            case OperandType::Or:
+                DEBUG("OR\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)Opcodes::Or);
             break;
 
-            case SilentOperandType::Not:
-                printf("NOT\n");
-                CompileExpression(*expression.left);
-                CompileExpression(*expression.right);
-                code.AddNumber<char>((char)SilentBytecode::Not);
+            case OperandType::Xor:
+                DEBUG("XOR\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)Opcodes::Xor);
             break;
 
-            case SilentOperandType::Number:
-                //code.AddPush(currentType, expression.token->value);
-                currentDataType = expression.value->dataType;
-                code.AddPush(expression.value->dataType,expression.value->data);
+            case OperandType::Not:
+                DEBUG("NOT\n");
+                this->left->Compile(gc);
+                this->right->Compile(gc);
+                gc.code.AddVal<char>((char)Opcodes::Not);
             break;
 
-            case SilentOperandType::Variable:
-                if(expression.variable->isReference)
+            case OperandType::Number:
+                DEBUG("NUMBER\n");
+                gc.code.AddPush(gc.currentType, this->value->data.value->data);
+            break;
+
+            case OperandType::Variable:
+            {
+                DEBUG("VARIABLE\n");
+                DataType oldType = gc.currentType;
+                Variable* var = this->value->data.variable;
+                gc.currentType = var->GetType();
+                if(var->isReference)
                 {
-                    //ToBytecodeSize
-                    if(expression.variable->type.isPrimitive)
+                    if(var->GetType().type->type == NodeType::Primitive)
                     {
-                        code.AddNumber<char>((char)
-                            code.ToBytecodeSize(
-                                expression.variable->type.primitive,
-                                SilentBytecode::Load1)
-                        );
-                        code.AddNumber<uint64>(expression.variable->localPos);
-                        code.AddNumber<char>((char)
-                            code.ToBytecodeSize(
-                                expression.variable->type.primitive,
-                                SilentBytecode::LoadPtr1)
-                        );
-                        //AddNumber<char>((char)ToVMType(dt.primitive));
-                        code.AddNumber<uint64>(0ll);
+                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                            var->GetType().type->data.primitiveType,
+                            Opcodes::Load1
+                        ));
+                        gc.code.AddVal<uint64>(var->GetLocalPos());
+                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                            var->GetType().type->data.primitiveType,
+                            Opcodes::StorePtr1
+                        ));
+                        gc.code.AddVal<uint64>(0ll);
                     }
                     else
                     {
-
+                        //TODO: add init structure reference variables
                     }
                 }
                 else
                 {
-                    // code.AddLoad(expression.variable->type,
-                    //     expression.variable->localPos);
-                    if(expression.variable->type.isPrimitive)
+                    if(var->GetType().type->type == NodeType::Primitive)
                     {
-                        code.AddNumber<char>((char)
-                            code.ToBytecodeSize(
-                                expression.variable->type.primitive,
-                                SilentBytecode::Load1)
-                        );
-                        //AddNumber<char>((char)ToVMType(dt.primitive));
-                        code.AddNumber<uint64>(expression.variable->localPos);
+                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                            var->GetType().type->data.primitiveType,
+                            Opcodes::Load1
+                        ));
+                        gc.code.AddVal<uint64>(var->GetLocalPos());
                     }
                     else
                     {
-                        // AddNumber<char>(
-                        //     (char)ToBytecodeSize(dt.primitive,SilentBytecode::LoadX)
-                        // );
-
+                        //TODO: add init structure variables
                     }
                 }
+                gc.currentType = oldType;
+            }
             break;
 
             default: break;
         }
-        #if DEBUG
-        std::cout << "Done compiling expression\n";
-        #endif
+        DEBUG("Done compiling operand\n");
+        return true;
     }
 
-    void SilentCodeGenerator::CompileIfStatement(
-        SilentStatement &statement, uint64 *ifNotLabel)
+    bool Statement::Compile(CodeGenerator &gc)
     {
-        #if DEBUG
-        std::cout << "Compiling if statement\n";
-        std::cout << "Code PTR: " << code.GetCodePointer() << "\n";
-        #endif
-        //Compile if expression if it has one
-        if(statement.ifStatement->hasExpression)
+        DEBUG("Compiling statement\n");
+        switch(this->type)
         {
-            CompileExpression(*statement.ifStatement->expression);
-            code.AddNumber<char>((char)SilentBytecode::IfNot);
-            uint64 ifPtrIndex = code.GetCodePointer();
-            code.AddNumber<uint64>(0ll);
-            CompileLocalScope(*statement.ifStatement->scope);
-            //Add goto to the end of the statement if it has a next condition
-            if(statement.ifStatement->hasNext)
-            {
-                code.AddNumber<char>((char)SilentBytecode::Goto);
-                #if DEBUG
-                std::cout << "Added GOTO\n";
-                std::cout << "Code PTR: " << code.GetCodePointer() << "\n";
-                #endif
-                *ifNotLabel = code.GetCodePointer();
-                code.AddNumber<uint64>(0ll);
-            }
-            else ifNotLabel = 0;
-            //Get current code position
-            uint64 ifEndPtrIndex = code.GetCodePointer();
-            /*
-                Copy current position to a goto if the 
-                condition of the if is false
-            */
-            memcpy(code.GetPtrToCode()->data() + ifPtrIndex, &ifEndPtrIndex, 8);
-        }
-        else CompileLocalScope(*statement.ifStatement->scope);
-        #if DEBUG
-        std::cout << "END of if\n";
-        std::cout << "Code PTR: " << code.GetCodePointer() << "\n";
-        #endif
-    }
-
-    void SilentCodeGenerator::CompileStatement(SilentStatement &statement)
-    {
-        #if DEBUG
-        std::cout << "Compiling statement\n";
-        #endif
-
-        switch(statement.type)
-        {
-            case SilentStatementType::VarInit:
-                if(statement.variable->isReference)
+            case StatementType::VarInit:
+                if(this->val->data.variable->isReference)
                 {
-                    switch(statement.variable->size)
+                    switch(this->val->data.variable->GetSize())
                     {
-                        case 1:
-                            code.AddNumber<char>((char)SilentBytecode::Alloc1);
+                        case 1: 
+                            gc.code.AddVal<char>((char)Opcodes::Alloc1);
                         break;
-                        case 2:
-                            code.AddNumber<char>((char)SilentBytecode::Alloc2);
+                        case 2: 
+                            gc.code.AddVal<char>((char)Opcodes::Alloc2);
                         break;
-                        case 4:
-                            code.AddNumber<char>((char)SilentBytecode::Alloc4);
+                        case 4: 
+                            gc.code.AddVal<char>((char)Opcodes::Alloc4);
                         break;
-                        case 8:
-                            code.AddNumber<char>((char)SilentBytecode::Alloc8);
+                        case 8: 
+                            gc.code.AddVal<char>((char)Opcodes::Alloc8);
                         break;
                         default:
                         {
-                            code.AddNumber<char>((char)SilentBytecode::AllocX);
-                            code.AddNumber<uint64>(statement.variable->size);
+                            gc.code.AddVal<char>((char)Opcodes::AllocX);
+                            gc.code.AddVal<uint64>(
+                                this->val->data.variable->GetSize());
                         }
+                        break;
                     }
                 }
-                else code.AddPush(statement.variable->type,"0");
+                else gc.code.AddPush(this->val->data.variable->GetType(),"0");
             break;
 
-            case SilentStatementType::Delete:
-            {
-                code.AddNumber<char>((char)SilentBytecode::Free);
-                code.AddNumber<uint64>(statement.variable->localPos);
-            }
-
-            case SilentStatementType::Expression:
-                CompileExpression(*statement.expression);
+            case StatementType::Delete:
+                gc.code.AddVal<char>((char)Opcodes::Free);
+                gc.code.AddVal<uint64>(val->data.variable->GetLocalPos());
             break;
 
-            case SilentStatementType::Return:
-                code.AddNumber<char>((char)SilentBytecode::Return);
-                //code.AddNumber<uint64>(1ll);
-                code.AddNumber<uint64>(statement.dataType.size);
+            case StatementType::Expression:
+                this->val->data.operand->Compile(gc);
+            break;
+
+            case StatementType::Return:
+                gc.code.AddVal<char>((char)Opcodes::Return);
+                gc.code.AddVal<uint64>(gc.currentType.size);
+
             break;
 
             default: break;
         }
-        
-        #if DEBUG
-        std::cout << "Done compiling statement\n";
-        #endif
+        DEBUG("Done compiling statement\n")
+        return true;
     }
 
-    void SilentCodeGenerator::CompileLocalScope(SilentLocalScope &scope)
+    bool IfStatement::Compile(CodeGenerator &gc, uint64 *ifLabel)
     {
-        #if DEBUG
-        std::cout << "Compiling local scope\n";
-        #endif
-    
+        DEBUG("Compiling if statement\n");
+
+        //Compile if statement's expression if it has one
+        if(this->hasExpression)
+        {
+            this->expression->Compile(gc);
+            //Add if not as it should branch if the condition is not true
+            gc.code.AddVal<char>((char)Opcodes::IfNot);
+            uint64 ifPtrIndex = gc.code.GetCodePointer();
+            gc.code.AddVal<uint64>(0ll);
+            this->scope->Compile(gc);
+            //If it has an else then add goto to the end
+            if(this->hasNext)
+            {
+                gc.code.AddVal<char>((char)Opcodes::Goto);
+                *ifLabel = gc.code.GetCodePointer();
+                gc.code.AddVal<uint64>(0ll);
+            }
+            else ifLabel = 0;
+
+            uint64 ifStatementEndPtr = gc.code.GetCodePointer();
+            memcpy(gc.code.GetBytecodeBuffer()+ifPtrIndex,&ifStatementEndPtr,8);
+        }
+        else this->scope->Compile(gc);
+
+        DEBUG("Done compiling if statement\n");
+        return true;
+    }
+
+    bool LocalScope::Compile(CodeGenerator &gc)
+    {
+        DEBUG("Compiling local scope\n");
+
+        //Program counter at the point if statements end
         std::vector<uint64> ifEndings;
 
-        for(SilentStatement* statement : scope.statements)
+        //Compile statements
+        for(Statement* statement : this->statements)
         {
             switch(statement->type)
             {
-                case SilentStatementType::If:
+                case StatementType::If:
                 {
-                    uint64 ifNotGoto;
-                    CompileIfStatement(*statement, &ifNotGoto);
-                    if(ifNotGoto > 0) ifEndings.push_back(ifNotGoto);
-                    //Resolve if goto statements
-                    if(statement->ifStatement->hasNext == false)
+                    uint64 ifLabel;
+                    statement->val->data.ifStatement->Compile(gc, &ifLabel);
+                    if(ifLabel > 0) ifEndings.push_back(ifLabel);
+                    //Resolve if's goto statements
+                    if(statement->val->data.ifStatement->hasNext == false)
                     {
                         if(ifEndings.size() > 0)
                         {
-                            uint64 codePtr = code.GetCodePointer();
+                            uint64 codePtr = gc.code.GetCodePointer();
                             for(uint64 i : ifEndings)
                             {
-                                #if DEBUG
-                                std::cout << "Resolving\n";
-                                std::cout << "Code PTR: " 
-                                << code.GetCodePointer() << "\n";
-                                std::cout << "Code i: " << i << "\n";
-                                #endif
-                                memcpy(code.GetPtrToCode()->data()+i,
+                                memcpy(gc.code.GetBytecodeBuffer()+i,
                                     &codePtr,8);
                             }
                         }
                     }
                 }
                 break;
-                default: CompileStatement(*statement); break;
+                default: statement->Compile(gc); break;
             }
         }
+
+        DEBUG("Done compiling local scope\n");
+        return true;
+    }
+
+    bool Function::Compile(CodeGenerator &gc)
+    {
+        std::string symbol = gc.GetCurrentLocation()+identifier;
+        DEBUG("Compiling function: %s\n", symbol.data());
+
+        gc.AddFuncSym(this);
+
+        //Insert main function's address after goto at the beginning
+        if(this->identifier == "main")
+        {
+            char* codeBuff = gc.code.GetBytecodeBuffer();
+            uint64 funcPtr = gc.code.GetCodePointer();
+            memcpy(codeBuff + 1, &funcPtr, 8);
+        }
+
+        gc.currentType = this->returnType;
+        this->scope->Compile(gc);
+
+        //Add function to symbols table
+        DEBUG("Done compiling function: %s\n", symbol.data());
+        return true;
+    }
+
+    bool Namespace::Compile(CodeGenerator &gc)
+    {
+        std::string scope = gc.GetCurrentLocation() + this->identifier;
+        DEBUG("Compiling namespace: %s\n", scope.data());
+        gc.PushNamespace(this);
+
+        for(Namespace* scope : this->namespaces)
+            scope->Compile(gc);
+
+        for(Function* func : this->functions)
+            func->Compile(gc);
+
+        gc.PopNamespace();
+        DEBUG("Done compiling namespace: %s\n", scope.data());
+        return true;
+    }
+}
+
+using namespace Silent::Structures;
+namespace Silent
+{
+    char* Bytecode::GetCode(uint64* size)
+    {
+        std::cout << "Size:" << code.size() << "\n";
+        *size = code.size();
+        //*returnCode = (char*)malloc(code.size()+1);
+        //*returnCode[code.size()] = '\0';
+        char* temp = (char*)malloc(code.size()+1);
+        memcpy(temp, code.data(), code.size());
+        temp[code.size()] = '\0';
+
+        return temp;
         
-
-        #if DEBUG
-        std::cout << "Done compiling local scope\n";
-        #endif
     }
 
-    void SilentCodeGenerator::CompileFunction(SilentFunction &func)
+    void Bytecode::AddPush(DataType dt, std::string val)
     {
-        #if DEBUG
-        std::cout << "Compiling function: " << func.name << "\n";
-        #endif
-
-        symTable[&func] = code.GetCodePointer();
-
-        if(func.name == "main")
+        if(dt.type->type == NodeType::Primitive)
         {
-            char* codeData = code.GetPtrToCode()->data();
-            uint64 funcPtr = code.GetCodePointer();
-            memcpy(codeData + 1, &funcPtr, 8);
+            AddVal<char>(
+                (char)ToBytecodeSize(dt.type->data.primitiveType, 
+                    Opcodes::Push1));
+            AddData(dt, val);
         }
-
-        //std::cout << "Scope name: " << GenScopeName(func.name) << "\n";
-        currentDataType = func.returnType;
-        CompileLocalScope(*func.scope);
-
-        //Clean up references (skip parameters)
-        for(uint64 i = func.parameterCount; i<func.scope->variables.size();i++)
-        {
-            if(func.scope->variables[i]->isReference)
-            {
-                //code.AddNumber<char>((char)SilentBytecode::Load8);
-                code.AddNumber<char>((char)SilentBytecode::Free);
-                code.AddNumber<uint64>(func.scope->variables[i]->localPos);
-            }
-        }
-
-        #if DEBUG
-        std::cout << "Done compiling function: " << func.name << "\n";
-        #endif
     }
-    void SilentCodeGenerator::CompileNamespace(SilentNamespace &scope)
+
+    template <typename T>
+    void Bytecode::AddVal(T val)
     {
-        #if DEBUG
-        std::cout << "Compiling namespace: " << scope.name << "\n";
-        #endif
+        code.resize(code.size() + sizeof(T));
+        memcpy(code.data() + code.size() - sizeof(T), &val, sizeof(T));
+    }
 
-        namespaces.push_back(&scope);
+    Opcodes Bytecode::ToBytecodeSize(Primitives p, Opcodes base)
+    {
+        char index;
+        switch(p)
+        {
+            case Primitives::int8:
+            case Primitives::uint8:
+                index = 0;
+            break;
+            case Primitives::int16:
+            case Primitives::uint16:
+                index = 1;
+            break;
+            case Primitives::int32:
+            case Primitives::uint32:
+            case Primitives::float32:
+                index = 2;
+            break;
+            case Primitives::int64:
+            case Primitives::uint64:
+            case Primitives::float64:
+                index = 3;
+            break;
+            default: index = 2; break;
+        }
+        return (Opcodes)((char)base + index);
+    }
 
-        //Compile nested namespace
-        for(SilentNamespace* nScope : scope.namespaces)
-            CompileNamespace(*nScope);
+    Opcodes Bytecode::ToBytecodeExp(Primitives p, Opcodes base)
+    {
+        char index;
+        switch(p)
+        {
+            case Primitives::int8:
+            case Primitives::uint8:
+                index = 0;
+            break;
+            case Primitives::int16:
+            case Primitives::uint16:
+                index = 1;
+            break;
+            case Primitives::int32:
+            case Primitives::uint32:
+                index = 2;
+            break;
+            case Primitives::int64:
+            case Primitives::uint64:
+                index = 3;
+            break;
+            case Primitives::float32:
+                index = 4;
+            break;
+            case Primitives::float64:
+                index = 5;
+            break;
+            default: index = 2; break;
+        }
+        return (Opcodes)((char)base + index);
+    }
 
-        //Compile namespace functions
-        for(SilentFunction* func : scope.functions)
-            CompileFunction(*func);
+    void Bytecode::AddData(DataType dt, std::string val)
+    {
+        switch(dt.type->data.primitiveType)
+        {
+            case Primitives::int8:
+            AddVal<char>(std::stoi(val,nullptr,10));
+            break;
+            case Primitives::uint8:
+            AddVal<unsigned char>(std::stoi(val,nullptr,10));
+            break;
+            case Primitives::int16:
+            AddVal<short>(std::stoi(val,nullptr,10));
+            break;
+            case Primitives::uint16:
+            AddVal<unsigned short>(std::stoi(val,nullptr,10));
+            break;
+            case Primitives::int32:
+            AddVal<int>(std::stoi(val,nullptr,10));
+            break;
+            case Primitives::uint32:
+            AddVal<unsigned int>(std::stoi(val,nullptr,10));
+            break;
+            case Primitives::int64:
+            AddVal<long long>(std::stoi(val,nullptr,10));
+            break;
+            case Primitives::uint64:
+            AddVal<unsigned long long>(std::stoi(val,nullptr,10));
+            break;
+            case Primitives::float32:
+            AddVal<float>(std::stof(val,nullptr));
+            break;
+            case Primitives::float64:
+            AddVal<long double>(std::stof(val,nullptr));
+            break;
+            default: break;
+        }
+    }
 
-        namespaces.pop_back();
+    void CodeGenerator::GenerateBytecode(Parser &parser)
+    {
+        //Add goto main at the start of the program
+        code.AddVal<char>((char)Opcodes::Goto);
+        code.AddVal<uint64>((uint64)0ll);
+        //Add halt when main returns
+        code.AddVal<char>((char)Opcodes::Halt);
+        //Compile global namespace
+        if(parser.GetGlobalNamespace()->Compile(*this) == true)
+        {
+            DEBUG("Bytecode generated successfully\n");
+        }
 
-        #if DEBUG
-        std::cout << "Done compiling namespace: " << scope.name << "\n";
-        #endif
+    }
+
+    std::string CodeGenerator::GetCurrentLocation()
+    {
+        std::string location;
+        for(Namespace* scope : this->namespaces)
+            location += scope->GetId() + "::";
+        return location;
+    }
+
+    void CodeGenerator::AddFuncSym(Function* func)
+    {
+        funcSymTable[func] = code.GetCodePointer();
     }
 }

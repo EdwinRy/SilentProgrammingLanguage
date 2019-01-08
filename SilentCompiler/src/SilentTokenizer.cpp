@@ -2,13 +2,13 @@
 #define DEBUG 0
 namespace Silent
 {
-    SilentTokenizer::SilentTokenizer()
+    Tokenizer::Tokenizer()
     {
-        this->tokens = std::vector<SilentToken>();
+        this->tokens = std::vector<Token>();
         this->line = 1;
     }
 
-    std::string SilentTokenizer::TokenizeString(
+    std::string Tokenizer::TokenizeString(
         std::string source, uint64 &index
     )
     {
@@ -63,7 +63,7 @@ namespace Silent
         return out;
     }
 
-    bool SilentTokenizer::Tokenize(std::string source)
+    bool Tokenizer::Tokenize(std::string source)
     {
         //uint64 line = 1;
         for(uint64 i = 0; i < source.length(); i++)
@@ -99,56 +99,56 @@ namespace Silent
                 continue;
             }
 
-            SilentToken token;
-            token.type = SilentTokenType::Unrecognised;
+            Token token;
+            token.type = TokenType::Unrecognised;
             token.value = "";
             token.line = this->line;
 
             switch(source[i])
             {
                 case ';':
-                    token.type = SilentTokenType::Semicolon;
+                    token.type = TokenType::Semicolon;
                     token.value = ";";
                 break;
                 case ',':
-                    token.type = SilentTokenType::Comma;
+                    token.type = TokenType::Comma;
                     token.value = ",";
                 break;
                 case '=':
                     if(source[i+1] == '=')
                     {
                         i++;
-                        token.type = SilentTokenType::Equal;
+                        token.type = TokenType::Equal;
                         token.value = "==";
                     }
                     else
                     {
-                        token.type = SilentTokenType::Assign;
+                        token.type = TokenType::Assign;
                         token.value = "=";
                     }
                 break;
                 case '&':
-                    token.type = SilentTokenType::And;
+                    token.type = TokenType::And;
                     token.value = "&";
                 break;
                 case '|':
-                    token.type = SilentTokenType::Or;
+                    token.type = TokenType::Or;
                     token.value = "|";
                 break;
                 case '^':
-                    token.type = SilentTokenType::Xor;
+                    token.type = TokenType::Xor;
                     token.value = "^";
                 break;
                 case '!':
                     if(source[i+1] == '=')
                     {
                         i++;
-                        token.type = SilentTokenType::NotEqual;
+                        token.type = TokenType::NotEqual;
                         token.value = "!=";
                     }
                     else
                     {
-                        token.type = SilentTokenType::Not;
+                        token.type = TokenType::Not;
                         token.value = "!";
                     }
                 break;
@@ -156,12 +156,12 @@ namespace Silent
                     if(source[i+1] == '=')
                     {
                         i++;
-                        token.type = SilentTokenType::AddAssign;
+                        token.type = TokenType::AddAssign;
                         token.value = "+=";
                     }
                     else
                     {
-                        token.type = SilentTokenType::Add;
+                        token.type = TokenType::Add;
                         token.value = "+";
                     }
                 break;
@@ -169,12 +169,12 @@ namespace Silent
                     if(source[i+1] == '=')
                     {
                         i++;
-                        token.type = SilentTokenType::SubtractAssign;
+                        token.type = TokenType::SubtractAssign;
                         token.value = "-=";
                     }
                     else
                     {
-                        token.type = SilentTokenType::Subtract;
+                        token.type = TokenType::Subtract;
                         token.value = "-";
                     }
                 break;
@@ -182,12 +182,12 @@ namespace Silent
                     if(source[i+1] == '=')
                     {
                         i++;
-                        token.type = SilentTokenType::MultiplyAssign;
+                        token.type = TokenType::MultiplyAssign;
                         token.value = "*=";
                     }
                     else
                     {
-                        token.type = SilentTokenType::Multiply;
+                        token.type = TokenType::Multiply;
                         token.value = "*";
                     }
                 break;
@@ -195,12 +195,12 @@ namespace Silent
                     if(source[i+1] == '=')
                     {
                         i++;
-                        token.type = SilentTokenType::DivideAssign;
+                        token.type = TokenType::DivideAssign;
                         token.value = "/=";
                     }
                     else
                     {
-                        token.type = SilentTokenType::Divide;
+                        token.type = TokenType::Divide;
                         token.value = "/";
                     }
                 break;
@@ -208,12 +208,12 @@ namespace Silent
                     if(source[i+1] == '=')
                     {
                         i++;
-                        token.type = SilentTokenType::SmallerOrEqual;
+                        token.type = TokenType::SmallerOrEqual;
                         token.value = "<=";
                     }
                     else
                     {
-                        token.type = SilentTokenType::Smaller;
+                        token.type = TokenType::Smaller;
                         token.value = "<";
                     }
                 break;
@@ -221,53 +221,53 @@ namespace Silent
                     if(source[i+1] == '=')
                     {
                         i++;
-                        token.type = SilentTokenType::LargerOrEqual;
+                        token.type = TokenType::LargerOrEqual;
                         token.value = ">=";
                     }
                     else
                     {
-                        token.type = SilentTokenType::Larger;
+                        token.type = TokenType::Larger;
                         token.value = ">";
                     }
                 break;
                 case '(':
-                    token.type = SilentTokenType::OpenParam;
+                    token.type = TokenType::OpenParam;
                     token.value = "(";
                 break;
                 case ')':
-                    token.type = SilentTokenType::CloseParam;
+                    token.type = TokenType::CloseParam;
                     token.value = ")";
                 break;
                 case '[':
-                    token.type = SilentTokenType::OpenBracket;
+                    token.type = TokenType::OpenBracket;
                     token.value = "[";
                 break;
                 case ']':
-                    token.type = SilentTokenType::CloseBracket;
+                    token.type = TokenType::CloseBracket;
                     token.value = "]";
                 break;
                 case '{':
-                    token.type = SilentTokenType::OpenScope;
+                    token.type = TokenType::OpenScope;
                     token.value = "{";
                 break;
                 case '}':
-                    token.type = SilentTokenType::CloseScope;
+                    token.type = TokenType::CloseScope;
                     token.value = "}";
                 break;
                 case '\"':
-                    token.type = SilentTokenType::String;
+                    token.type = TokenType::String;
                     token.value = this->TokenizeString(source, i);
                 break;
                 case ':':
                     if((source[++i] = ':'))
                     {
-                        token.type = SilentTokenType::ScopeResolution;
+                        token.type = TokenType::ScopeResolution;
                         token.value = "::";
                     }
                     else
                     {
                         i--;
-                        token.type = SilentTokenType::Unrecognised;
+                        token.type = TokenType::Unrecognised;
                         token.value = ":";
                     }
                 break;
@@ -282,105 +282,105 @@ namespace Silent
                         i--;
                         if(token.value == "func")
                         {
-                            token.type = SilentTokenType::Function;
+                            token.type = TokenType::Function;
                         }
                         else if(token.value == "if")
                         {
-                            token.type = SilentTokenType::If;
+                            token.type = TokenType::If;
                         }
                         else if(token.value == "ifn")
                         {
-                            token.type = SilentTokenType::Ifn;
+                            token.type = TokenType::Ifn;
                         }
                         else if(token.value == "else")
                         {
-                            token.type = SilentTokenType::Else;
+                            token.type = TokenType::Else;
                         }
                         else if(token.value == "while")
                         {
-                            token.type = SilentTokenType::While;
+                            token.type = TokenType::While;
                         }
                         else if(token.value == "struct")
                         {
-                            token.type = SilentTokenType::Struct;
+                            token.type = TokenType::Struct;
                         }
                         else if(token.value == "namespace")
                         {
-                            token.type = SilentTokenType::Namespace;
+                            token.type = TokenType::Namespace;
                         }
                         else if(token.value == "class")
                         {
-                            token.type = SilentTokenType::Class;
+                            token.type = TokenType::Class;
                         }
                         else if(token.value == "method")
                         {
-                            token.type = SilentTokenType::Method;
+                            token.type = TokenType::Method;
                         }
                         else if(token.value == "new")
                         {
-                            token.type = SilentTokenType::New;
+                            token.type = TokenType::New;
                         }
                         else if(token.value == "delete")
                         {
-                            token.type = SilentTokenType::Delete;
+                            token.type = TokenType::Delete;
                         }
                         else if(token.value == "ref")
                         {
-                            token.type = SilentTokenType::Reference;
+                            token.type = TokenType::Reference;
                         }
                         else if(token.value == "return")
                         {
-                            token.type = SilentTokenType::Return;
+                            token.type = TokenType::Return;
                         }
                         else if(token.value == "int8")
                         {
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else if(token.value == "uint8")
                         {
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else if(token.value == "int16")
                         {
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else if(token.value == "uint16")
                         {
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else if(token.value == "int32" || token.value == "int")
                         {
                             token.value = "int32";
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else if(token.value == "uint32")
                         {
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else if(token.value == "int64" || token.value == "long")
                         {
                             token.value = "int64";
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else if(token.value == "uint64")
                         {
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else if(token.value == "float32")
                         {
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else if(token.value == "float64")
                         {
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else if(token.value == "string")
                         {
-                            token.type = SilentTokenType::Primitive;
+                            token.type = TokenType::Primitive;
                         }
                         else
                         {
-                            token.type = SilentTokenType::Identifier;
+                            token.type = TokenType::Identifier;
                         }
                     }
                     else if(isdigit(source[i]))
@@ -391,7 +391,7 @@ namespace Silent
                             i++;
                         }
                         i--;
-                        token.type = SilentTokenType::Number;
+                        token.type = TokenType::Number;
                     }
                     else
                     {
@@ -407,5 +407,5 @@ namespace Silent
         return true;
     }
 
-    std::vector<SilentToken> SilentTokenizer::GetTokens(){return this->tokens;}
+    std::vector<Token> Tokenizer::GetTokens(){return this->tokens;}
 }

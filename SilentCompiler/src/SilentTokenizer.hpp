@@ -4,7 +4,7 @@
 namespace Silent
 {
     typedef unsigned long long uint64;
-    enum class SilentTokenType
+    enum class TokenType
     {
         Unrecognised,
         Identifier,
@@ -55,25 +55,25 @@ namespace Silent
         ScopeResolution
     };
 
-    typedef struct SilentToken
+    typedef struct Token
     {
-        SilentTokenType type;
+        TokenType type;
         std::string value;
         unsigned long long line;
-    }SilentToken;
+    }Token;
 
 
-    class SilentTokenizer
+    class Tokenizer
     {
         private:
-            std::string TokenizeString(std::string source, uint64 &index);
-            std::vector<SilentToken> tokens;
-            uint64 line;
+        std::string TokenizeString(std::string source, uint64 &index);
+        std::vector<Token> tokens;
+        uint64 line;
 
         public:
-            SilentTokenizer();
-            bool Tokenize(std::string source);
-            std::vector<SilentToken> GetTokens();
+        Tokenizer();
+        bool Tokenize(std::string source);
+        std::vector<Token> GetTokens();
 
     };
 }

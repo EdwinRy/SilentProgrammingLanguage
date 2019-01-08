@@ -1,10 +1,10 @@
+#pragma once
 #include "SilentParser.hpp"
 #include <vector>
 #include <unordered_map>
-#pragma once
 namespace Silent
 {
-    enum class Opcodes
+    enum class SilentBytecode
     {
         Halt = 0,
         Goto,
@@ -116,55 +116,46 @@ namespace Silent
         Not
     };
 
-    class Bytecode
+    class SilentCode
     {
         public:
-        char* GetCode(uint64* size);
-        std::vector<char>* GetPtrToCode(){return &code;}
-        uint64 GetCodePointer(){return code.size();}
-        char* GetBytecodeBuffer(){return code.data();}
-
-        void AddPush(Structures::DataType dt, std::string val);
+        void AddPush(SilentDataType dt, std::string val);
+        //void AddLoad(SilentDataType dt, uint64 localPos);
+        // void AddStore(SilentDataType dt, uint64 localPos);
         template<typename T>
-        void AddVal(T val);
-
-        //To bytecode primitive datatype size
-        //parameters: p - primitive, base - base instruction
-        Opcodes ToBytecodeSize(Structures::Primitives p, 
-            Opcodes base);
-        //To bytecode expression based on primitive type
-        Opcodes ToBytecodeExp(Structures::Primitives p, 
-            Opcodes base);
-
+        void AddNumber(T val);
+        std::string GetCode();
+        std::vector<char>* GetPtrToCode();
+        uint64 GetCodePointer();
+        SilentBytecode ToBytecodeSize(SilentPrimitives p, SilentBytecode base);
+        SilentBytecode ToBytecodeExp(SilentPrimitives p, SilentBytecode base);
 
         private:
-
-        void AddData(Structures::DataType dt, std::string val);
+        void AddData(SilentDataType dt, std::string val);
+        //SilentVMType ToVMType(SilentPrimitives p);
         std::vector<char> code;
     };
 
-    class CodeGenerator
+    class SilentCodeGenerator
     {
         public:
-        void GenerateBytecode(Parser &parser);
-        char* GetOutput(uint64* size){return code.GetCode(size);}
-        void PushNamespace(Structures::Namespace* scope)
-            {namespaces.push_back(scope);}
-        void PopNamespace(){namespaces.pop_back();}
-        std::string GetCurrentLocation();
-        void AddFuncSym(Structures::Function* func);
-        uint64 GetFuncPtr(Structures::Function* func)
-            {return funcSymTable[func];}
-        
-        Bytecode code;
-
-        Structures::DataType currentType;
-        
+        void Compile(SilentParser* parser);
+        std::string GetOutput();
 
         private:
-        std::vector<Structures::Namespace*> namespaces;
-        std::unordered_map<Structures::Function*, uint64> funcSymTable;
+        std::string GenScopeName(std::string id);
+        void CompileExpression(SilentOperand &expression);
+        void CompileIfStatement(SilentStatement &statement, uint64 *ifNotLabel);
+        void CompileStatement(SilentStatement &statement);
+        void CompileLocalScope(SilentLocalScope &scope);
+        void CompileFunction(SilentFunction &func);
+        void CompileNamespace(SilentNamespace &scope);
         
-
+        
+        std::vector<SilentNamespace*> namespaces;
+        std::unordered_map<SilentFunction*, uint64> symTable;
+        SilentCode code;
+        //SilentPrimitives currentPrimitive;
+        SilentDataType currentDataType; 
     };
 }

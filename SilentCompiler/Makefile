@@ -8,16 +8,17 @@ EXE = $(OUT_PATH)/$(EXE_NAME)
 MKDIR = mkdir
 
 SOURCES = \
-	$(SRC_PATH)/SilentCleanup.cpp \
-	$(SRC_PATH)/SilentCodeGen.cpp \
 	$(SRC_PATH)/SilentCompiler.cpp \
 	$(SRC_PATH)/SilentConsole.cpp \
-	$(SRC_PATH)/SilentDebugger.cpp \
-	$(SRC_PATH)/SilentIntCode.cpp \
 	$(SRC_PATH)/SilentParser.cpp \
 	$(SRC_PATH)/SilentTokenizer.cpp \
-	$(SRC_PATH)/SilentAssembler.cpp 
+	$(SRC_PATH)/SilentCodeGen.cpp 
 	
+#$(SRC_PATH)/SilentCleanup.cpp 
+#	$(SRC_PATH)/SilentIntCode.cpp
+#	$(SRC_PATH)/SilentDebugger.cpp
+#	$(SRC_PATH)/SilentAssembler.cpp 
+
 OBJECTS = $(SOURCES:$(SRC_PATH)/%.cpp=$(OBJ_PATH)/%.o)
 DEPENDENCIES = $(OBJECTS:.o=.d)
 
