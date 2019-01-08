@@ -1,6 +1,4 @@
-func int64 main()
+func void main()
 {
-    int64 k;
-    return;
-    k = 21;
+    int64 k = 5;
 }

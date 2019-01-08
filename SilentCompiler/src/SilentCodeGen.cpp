@@ -4,8 +4,6 @@
 #include <iostream>
 #include <cstring>
 
-//TODO - Fix bytecode output
-
 #define DEBUG_ENABLED 1
 #define ERROR(args...) printf(args);
 #if DEBUG_ENABLED
