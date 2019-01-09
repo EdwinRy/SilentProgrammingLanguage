@@ -15,7 +15,6 @@
 typedef unsigned long long uint64;
 namespace Silent::Structures
 {
-
     bool Operand::Compile(CodeGenerator &gc)
     {
         DEBUG("Compiling operand\n");
@@ -202,8 +201,12 @@ namespace Silent::Structures
             break;
 
             case OperandType::Number:
+            {
                 DEBUG("NUMBER\n");
+                if(gc.currentType.type->data.primitiveType == Primitives::null)
+                    gc.currentType.type->data.primitiveType = Primitives::int64;
                 gc.code.AddPush(gc.currentType, this->value->data.value->data);
+            }
             break;
 
             case OperandType::Variable:
@@ -332,7 +335,7 @@ namespace Silent::Structures
                 *ifLabel = gc.code.GetCodePointer();
                 gc.code.AddVal<uint64>(0ll);
             }
-            else ifLabel = 0;
+            else *ifLabel = 0;
 
             uint64 ifStatementEndPtr = gc.code.GetCodePointer();
             memcpy(gc.code.GetBytecodeBuffer()+ifPtrIndex,&ifStatementEndPtr,8);
@@ -569,7 +572,7 @@ namespace Silent
         {
             DEBUG("Bytecode generated successfully\n");
         }
-
+        code.AddVal<char>((char)Opcodes::Halt);
     }
 
     std::string CodeGenerator::GetCurrentLocation()

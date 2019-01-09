@@ -4,18 +4,25 @@
 #include <string.h>
 #define DEBUG 1
 typedef unsigned long long uint64;
+typedef unsigned int uint32;
 typedef long long int64;
 void SilentStartVM(char* prog)
 {
-    volatile char* stack = malloc(10000);
-	register char* program = prog;
-	//char* program = prog;
+    //volatile char* stack = malloc(10000);
+    char* stack = malloc(10000);
+	//register char* program = prog;
+	char* program = prog;
     uint64 sp = 0;	//stack pointer
     uint64 fp = 0;	//frame pointer
     register uint64 pc = 0;	//program counter
 
     uint64 *saveSfData = malloc(90000); //old stack frame data
     register uint64 saveSfDataPtr = 0;
+
+	// for(long i = 0; i < 37; i++)
+	// {
+	// 	printf("p: %i\n", *(program + i));
+	// }
 
 	SilentGC gc;
 	//gc.heap = malloc(1000 * sizeof(SilentMemoryBlock));
@@ -976,7 +983,7 @@ void SilentStartVM(char* prog)
 		pc++;
     }
 	endLoop:
-	printf("%lu\n", (uint64)*(uint64*)(stack));
+	printf("%I64u\n", (uint64)*(uint64*)(stack));
 }
 
 uint64 SilentAlloc(SilentGC* gc, uint64 size)
@@ -994,7 +1001,7 @@ uint64 SilentAlloc(SilentGC* gc, uint64 size)
 		}
 
 	#if DEBUG
-	printf("Allocated %i bytes on location %i\n", size, returnPos);
+	printf("Allocated %I64u bytes on location %I64u\n", size, returnPos);
 	#endif
 	return returnPos;
 }
@@ -1002,7 +1009,7 @@ uint64 SilentAlloc(SilentGC* gc, uint64 size)
 void SilentFree(SilentGC* gc, uint64 pos)
 {
 	#if DEBUG
-	printf("Attempting to free item at position %i\n",pos);
+	printf("Attempting to free item at position %I64u \n",pos);
 	#endif
 	gc->heap[pos].occupied = 0;
 	free(gc->heap[pos].data);

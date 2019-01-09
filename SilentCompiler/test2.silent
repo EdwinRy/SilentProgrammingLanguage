@@ -1,4 +1,8 @@
 func void main()
 {
-    int64 k = 5;
+    int64 k = 9+10;
+    if(10 == 10)
+    {
+        k = 21;
+    }
 }
