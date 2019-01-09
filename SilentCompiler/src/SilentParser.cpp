@@ -311,8 +311,8 @@ namespace Silent::Structures
                         returnExpression->val->data.operand = op;
                         op->Parse(parser, *this); 
                         this->statements.push_back(returnExpression);
-                        if(parser.GetToken().type != TokenType::Semicolon)
-                            parser.ErrorMsg("Expected end of statement");
+                        //if(parser.GetToken().type != TokenType::Semicolon)
+                        //    parser.ErrorMsg("Expected end of statement");
                     }
                     parser.NextToken();
                     //Add return statement
@@ -322,6 +322,7 @@ namespace Silent::Structures
                     statement->val->type = NodeType::DataType;
                     statement->val->data.dataType = 
                         new DataType(parser.currentType);
+                    statement->parentScope = this;
                     this->statements.push_back(statement);
                 }
                 break;
@@ -467,7 +468,7 @@ namespace Silent::Structures
         DataType oldType = parser.currentType;
 
         //Parse arguments until ran out of parameters or met with ")"
-        while(parser.GetToken().type == TokenType::CloseParam || 
+        while(parser.GetToken().type != TokenType::CloseParam || 
             argPtr < call->function->GetParameterCount()
         )
         {
@@ -495,7 +496,7 @@ namespace Silent::Structures
         parser.currentType = oldType;
 
         //Expect semicolon at the end
-        parser.ExpectNextToken(
+        parser.ExpectToken(
             TokenType::Semicolon, "Expected end of statement");
 
         return call;
@@ -1074,8 +1075,8 @@ namespace Silent::Structures
                 case TokenType::Function:
                 {
                     Function* func = new Function();
-                    func->Parse(parser, *this);
                     this->functions.push_back(func);
+                    func->Parse(parser, *this);
                 }
                 break;
 
