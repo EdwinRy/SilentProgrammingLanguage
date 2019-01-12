@@ -198,6 +198,7 @@ namespace Silent::Structures
                         this->variables.push_back(var);
                         var->Parse(parser, *this, false);
                         var->isReference = false;
+                        this->varSize += var->GetSize();
                         //Add variable to statement
                         statement->val.variable = var;
                     }
@@ -1390,6 +1391,7 @@ namespace Silent
             }
             var = members.back();
             if(var->GetType().dataType == DataType::Type::Primitive) break;
+            NextToken();
         }
 
         

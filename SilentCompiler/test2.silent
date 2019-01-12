@@ -1,17 +1,14 @@
-struct vec2
+struct vec3
 {
     int64 x;
     int64 y;
-}
-
-struct vec3
-{
-    vec2 xy;
     int64 z;
 }
 
 func int64 main()
 {
-    int64 x = 1;
+    int64 b = 1;
     vec3 v;
+    v.x = 21;
+    b = v.x;
 }

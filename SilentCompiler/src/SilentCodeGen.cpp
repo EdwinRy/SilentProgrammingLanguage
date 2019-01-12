@@ -222,11 +222,52 @@ namespace Silent::Structures
                 DataType oldType = gc.currentType;
                 gc.currentType = this->value.members->back()->GetType();
 
+                //Variable* lastMember = this->value.members->back();
+                //this->value.members->pop_back();
+
                 uint64 offset = 0;
                 for(Variable* var : *this->value.members)
                     offset += var->GetLocalPos();
 
                 DEBUG("Member offset -> %i\n", offset);
+
+                Variable* var = this->value.members->back();
+
+                if(var->isReference)
+                {
+                    // if(var->GetType().dataType == DataType::Type::Primitive)
+                    // {
+                    //     gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                    //         var->GetType().primitive,
+                    //         Opcodes::Load1
+                    //     ));
+                    //     gc.code.AddVal<uint64>(var->GetLocalPos());
+                    //     gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                    //         var->GetType().primitive,
+                    //         Opcodes::StorePtr1
+                    //     ));
+                    //     gc.code.AddVal<uint64>(0ll);
+                    // }
+                    // else
+                    // {
+                    //     //TODO: add init structure reference variables
+                    // }
+                }
+                else
+                {
+                    if(var->GetType().dataType == DataType::Type::Primitive)
+                    {
+                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                            var->GetType().primitive,
+                            Opcodes::Load1
+                        ));
+                        gc.code.AddVal<uint64>(offset);
+                    }
+                    else
+                    {
+                        //TODO: add init structure variables
+                    }
+                }
 
                 gc.currentType = oldType;
             }
@@ -508,6 +549,11 @@ namespace Silent
                 (char)ToBytecodeSize(dt.primitive, 
                     Opcodes::Push1));
             AddData(dt, val);
+        }
+        else
+        {
+            char numVal = (char)std::stoi(val,nullptr,10);
+            for(uint64 i = code.size(); i<dt.size; i++) code.push_back(numVal);
         }
     }
 
