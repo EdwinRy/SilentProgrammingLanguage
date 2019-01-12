@@ -30,12 +30,12 @@ namespace Silent::Structures
         this->identifier = id;
 
         //Parse structure member or a parameter
-        if(scope.GetParentType() == NodeType::Structure || isParam)
+        if(scope.parentType == LocalScope::ParentType::Structure || isParam)
         {
-            parser.NextToken();
+            //parser.NextToken();
             if(!isParam)
                 //Enforce semicolon at the end if it's not a parameter
-                parser.ExpectToken(TokenType::Semicolon, 
+                parser.ExpectNextToken(TokenType::Semicolon, 
                     "Expected \";\" at the end of "
                     "declaration of a structure member");
             //else parser.NextToken();
@@ -45,7 +45,7 @@ namespace Silent::Structures
             if(parser.PeakToken().type == TokenType::Semicolon)
             {
                 this->initialised = false;
-                parser.NextToken(); //ct = ;
+                parser.NextToken();
                 parser.NextToken();
             }
             else
@@ -77,36 +77,37 @@ namespace Silent::Structures
 
         //Get structure identifier
         this->identifier = id;
-        parser.NextToken();
         parser.ExpectNextToken(
             TokenType::OpenScope, "Expected struct declaration");
 
         //Parse struct body
-        this->members = new LocalScope();
-        this->members->parent = new Node();
-        this->members->parent->type = NodeType::Structure;
-        this->members->parent->data.structure = this;
+        LocalScope tempScope;
+        tempScope.parentType = LocalScope::ParentType::Structure;
+        tempScope.parent.structure = this;
 
-        //Parse until the closing scope token is found
-        while(parser.GetToken().type != TokenType::CloseScope)
-        {
-            //If member's type is not undefined parse member's declaration
-            if(parser.GetType().type->type != NodeType::Undefined)
-            {
-                Statement* statement = new Statement();
-                statement->val = new Node();
-                statement->type = StatementType::VarInit;
+        tempScope.Parse(parser);
 
-                Variable* var = new Variable();
-                statement->val->type = NodeType::Variable;
-                statement->val->data.variable = var;
-                this->members->GetVariables()->push_back(var);
-                var->Parse(parser, *members, false);
-                this->size += var->GetSize();
-            } 
-            else parser.ErrorMsg("Use of non-existing type");
-        }
-        parser.NextToken();
+        this->members = *tempScope.GetVariables();
+        this->size = tempScope.GetLocalPos();
+        // //Parse until the closing scope token is found
+        // while(parser.GetToken().type != TokenType::CloseScope)
+        // {
+        //     //If member's type is not undefined parse member's declaration
+        //     if(parser.GetType().dataType != DataType::Type::Undefined)
+        //     {
+        //         Variable* var = new Variable();
+        //         this->members.push_back(var);
+        //         tempScope.Parse(parser);
+        //         var->Parse(parser, tempScope, false);
+        //         this->size += var->GetSize();
+        //     } 
+        //     else 
+        //     {
+        //         parser.ErrorMsg("Use of non-existing type");
+        //         break;
+        //     }
+        // }
+        //parser.NextToken();
         DEBUG("Struct size: %llu\n", this->size);
         DEBUG("Finished parsing struct \n")
         return true;
@@ -126,16 +127,16 @@ namespace Silent::Structures
                 {
                     parser.NextToken();
                     Statement* statement = new Statement();
-                    statement->type = StatementType::VarInit;
-                    this->statements.push_back(statement);
-                    statement->val = new Node();
-                    statement->val->type = NodeType::Variable;
-                    Variable* var = new Variable();
-                    statement->val->data.variable = var;
-                    this->variables.push_back(var);
-                    var->Parse(parser, *this, false);
-                    this->varSize += var->GetSize();
-                    var->isReference = true;
+                    statement->parentScope = this;
+                    statement->type = Statement::Type::VarInit;
+                    statements.push_back(statement);
+
+                    statement->valType = Statement::ValType::Variable;
+                    statement->val.variable = new Variable();
+                    variables.push_back(statement->val.variable);
+                    statement->val.variable->Parse(parser, *this, false);
+                    varSize += statement->val.variable->GetSize();
+                    statement->val.variable->isReference = true;
                 }
                 break;
 
@@ -144,14 +145,14 @@ namespace Silent::Structures
                 {
                     //Setup statement
                     Statement* statement = new Statement();
-                    statement->type = StatementType::Delete;
+                    statement->parentScope = this;
+                    statement->type = Statement::Type::Delete;
                     //Add statement to this scope's statement list
                     this->statements.push_back(statement);
                     //Create new node for the statement
-                    statement->val = new Node();
-                    statement->val->type = NodeType::Variable;
+                    statement->valType = Statement::ValType::Variable;
                     //Get variable to delete from this scope
-                    statement->val->data.variable = 
+                    statement->val.variable = 
                         this->GetVariable(parser.NextToken().value);
 
                     //Skip through semicolon for syntactic consistency
@@ -164,12 +165,11 @@ namespace Silent::Structures
                 {
                     //Setup statement
                     Statement* statement = new Statement();
-                    statement->type = StatementType::VarInit;
+                    statement->type = Statement::Type::VarInit;
                     //Add statement to this scope's statement list
                     this->statements.push_back(statement);
-                    //Create new node for the statement
-                    statement->val = new Node();
-                    statement->val->type = NodeType::Variable;
+                    //Set statement value type
+                    statement->valType = Statement::ValType::Variable;
                     //Parse new variable declaration
                     Variable* var = new Variable();
                     this->variables.push_back(var);
@@ -177,29 +177,29 @@ namespace Silent::Structures
                     var->isReference = false;
                     this->varSize += var->GetSize();
                     //Add variable to statement
-                    statement->val->data.variable = var;
+                    statement->val.variable = var;
                 }
                 break;
                 
                 case TokenType::Identifier:
                 {
                     //If it's a definition
-                    if(parser.GetType().type->type != NodeType::Undefined)
+                    if(parser.GetType().dataType != DataType::Type::Undefined)
                     {
                         //Setup statement
                         Statement* statement = new Statement();
-                        statement->type = StatementType::VarInit;
+                        statement->type = Statement::Type::VarInit;
                         //Add statement to this scope's statement list
                         this->statements.push_back(statement);
-                        //Create new node for the statement
-                        statement->val = new Node();
-                        statement->val->type = NodeType::Variable;
+                        //Declare statement's value type
+                        statement->valType = Statement::ValType::Variable;
                         //Parse new variable declaration
                         Variable* var = new Variable();
+                        this->variables.push_back(var);
                         var->Parse(parser, *this, false);
                         var->isReference = false;
                         //Add variable to statement
-                        statement->val->data.variable = var;
+                        statement->val.variable = var;
                     }
                     //If it's a statement starting with an identifier
                     else
@@ -212,11 +212,11 @@ namespace Silent::Structures
                         {
                             DEBUG("FUNCTION CALL\n");
                             Statement* statement = new Statement();
-                            statement->type = StatementType::FunctionCall;
-                            statement->val = new Node();
-                            statement->val->type = NodeType::FunctionCall;
+                            // statement->type = StatementType::FunctionCall;
+                            statement->type = Statement::Type::FunctionCall;
+                            statement->valType=Statement::ValType::FunctionCall;
                             this->statements.push_back(statement);
-                            statement->val->data.functionCall = 
+                            statement->val.functionCall = 
                                 Operand::ParseFunctionCall(parser, *this);
                         }
                         else
@@ -237,11 +237,12 @@ namespace Silent::Structures
                 case TokenType::If:
                 {
                     Statement* statement = new Statement();
-                    statement->type = StatementType::If;
-                    statement->val = new Node();
-                    statement->val->type = NodeType::IfStatement;
+                    // statement->type = StatementType::If;
+                    statement->type = Statement::Type::If;
+                    // statement->val = new Node();
+                    statement->valType = Statement::ValType::IfStatement;
                     IfStatement* ifStatement = new IfStatement();
-                    statement->val->data.ifStatement = ifStatement;
+                    statement->val.ifStatement = ifStatement;
                     statement->parentScope = this;
                     ifStatement->Parse(parser, *this);
                     this->statements.push_back(statement);
@@ -252,18 +253,16 @@ namespace Silent::Structures
                 case TokenType::Else:
                 {
                     //Set the last if statement to have a next if
-                    this->statements.back()->val->data.ifStatement->hasNext = 
-                        true;
+                    this->statements.back()->val.ifStatement->hasNext = true;
                     parser.NextToken();
                     //If it's an else if statement
                     if(parser.GetToken().type == TokenType::If)
                     {
                         Statement* statement = new Statement();
-                        statement->type = StatementType::If;
-                        statement->val = new Node();
-                        statement->val->type = NodeType::IfStatement;
+                        statement->type = Statement::Type::If;
+                        statement->valType = Statement::ValType::IfStatement;
                         IfStatement* ifStatement = new IfStatement();
-                        statement->val->data.ifStatement = ifStatement;
+                        statement->val.ifStatement = ifStatement;
                         statement->parentScope = this;
                         ifStatement->Parse(parser, *this);
                         this->statements.push_back(statement);
@@ -274,19 +273,32 @@ namespace Silent::Structures
                         DEBUG("Parsing else statement\n");
                         IfStatement* ifStatement = new IfStatement();
                         Statement* statement = new Statement();
-                        statement->type = StatementType::If;
-                        statement->val = new Node();
-                        statement->val->type = NodeType::IfStatement;
-                        statement->val->data.ifStatement = ifStatement;
+                        statement->type = Statement::Type::If;
+                        statement->valType = Statement::ValType::IfStatement;
+                        statement->val.ifStatement = ifStatement;
                         this->statements.push_back(statement);
                         ifStatement->scope = new LocalScope();
-                        ifStatement->scope->parent = new Node();
-                        ifStatement->scope->parent->type = NodeType::LocalScope;
-                        ifStatement->scope->parent->data.localScope = this;
+                        ifStatement->scope->parentType = 
+                            LocalScope::ParentType::LocalScope;
+                        ifStatement->scope->parent.localScope = this;
                         parser.NextToken();
                         ifStatement->scope->Parse(parser);
                         DEBUG("Finished parsing else statement\n");
                     }
+                }
+                break;
+
+                case TokenType::While:
+                {
+                    DEBUG("Parsing while statement\n");
+                    Statement* statement = new Statement();
+                    statement->type = Statement::Type::While;
+                    statement->valType = Statement::ValType::WhileLoop;
+                    WhileLoop* whileLoop = new WhileLoop();
+                    statement->val.whileLoop = whileLoop;
+                    statement->parentScope = this;
+                    whileLoop->Parse(parser, *this);
+                    this->statements.push_back(statement);
                 }
                 break;
                 
@@ -304,11 +316,10 @@ namespace Silent::Structures
                     
                         //Parse return expression
                         Statement* returnExpression = new Statement();
-                        returnExpression->type = StatementType::Expression;
-                        returnExpression->val = new Node();
+                        returnExpression->type = Statement::Type::Expression;
                         Operand* op = new Operand();
-                        returnExpression->val->type = NodeType::Operand;
-                        returnExpression->val->data.operand = op;
+                        returnExpression->valType = Statement::ValType::Operand;
+                        returnExpression->val.operand = op;
                         op->Parse(parser, *this); 
                         this->statements.push_back(returnExpression);
                         //if(parser.GetToken().type != TokenType::Semicolon)
@@ -317,10 +328,9 @@ namespace Silent::Structures
                     parser.NextToken();
                     //Add return statement
                     Statement* statement = new Statement();
-                    statement->type = StatementType::Return;
-                    statement->val = new Node();
-                    statement->val->type = NodeType::DataType;
-                    statement->val->data.dataType = 
+                    statement->type = Statement::Type::Return;
+                    statement->valType = Statement::ValType::DataType;
+                    statement->val.dataType = 
                         new DataType(parser.currentType);
                     statement->parentScope = this;
                     this->statements.push_back(statement);
@@ -347,9 +357,8 @@ namespace Silent::Structures
     bool LocalScope::ParseParameters(Parser &parser, Function &function)
     {
         DEBUG("Parsing parameters\n")
-        this->parent = new Node();
-        this->parent->type = NodeType::Function;
-        this->parent->data.function = &function;
+        this->parentType = ParentType::Function;
+        this->parent.function = &function;
 
         while(parser.GetToken().type != TokenType::CloseParam)
         {
@@ -511,11 +520,10 @@ namespace Silent::Structures
                 Operand* op = new Operand();
                 op->expressionType = ExpressionType::Data;
                 op->operandType = OperandType::Number;
-                op->value = new Node();
-                op->value->type = NodeType::Value;
-                op->value->data.value = new Value();
-                op->value->data.value->data = parser.GetToken().value;
-                op->value->data.value->type = parser.currentType;
+                op->value.nodeType = Node::Type::Value;
+                op->value.value = new Value();
+                op->value.value->type = parser.currentType;
+                op->value.value->data = parser.GetToken().value;
                 parser.NextToken();
                 return op;
             }
@@ -529,22 +537,36 @@ namespace Silent::Structures
                 {
                     op->operandType = OperandType::FunctionCall;
                     op->expressionType = ExpressionType::Memory;
-                    op->value = new Node();
-                    op->value->type = NodeType::FunctionCall;
-                    op->value->data.functionCall = 
-                        ParseFunctionCall(parser,scope);
+                    op->value.nodeType = Node::Type::FunctionCall;
+                    op->value.functionCall = ParseFunctionCall(parser,scope);
                 }
                 //Parse statement referencing variable
                 else
                 {
-                    op->operandType = OperandType::Variable;
-                    op->expressionType = ExpressionType::Data;
-                    op->value = new Node();
-                    op->value->type = NodeType::Variable;
-                    op->value->data.variable = parser.GetVariable(scope);
-                    if(op->value->data.variable == NULL)
-                        parser.ErrorMsg("Use of undeclared identifier");
-                    parser.NextToken();
+                    if(parser.PeakToken().type == TokenType::FullStop)
+                    {
+                        op->operandType = OperandType::Members;
+                        op->expressionType = ExpressionType::Data;
+                        op->value.nodeType = Node::Type::Members;
+
+                        Variable* var = parser.GetVariable(scope);
+                        if(var == NULL)
+                            parser.ErrorMsg("Use of undeclared identifier");
+                        std::vector<Variable*>* members = new 
+                            std::vector<Variable*>(parser.GetMember(var));
+                        op->value.members = members;
+                        parser.NextToken();
+                    }
+                    else
+                    {
+                        op->operandType = OperandType::Variable;
+                        op->expressionType = ExpressionType::Data;
+                        op->value.nodeType = Node::Type::Variable;
+                        op->value.variable = parser.GetVariable(scope);
+                        if(op->value.variable == NULL)
+                            parser.ErrorMsg("Use of undeclared identifier");
+                        parser.NextToken();
+                    }
                 }
                 return op;
             }
@@ -860,8 +882,9 @@ namespace Silent::Structures
             switch(parser.GetToken().type)
             {
                 case TokenType::Assign:
-                    parser.currentType = 
-                        op->left->value->data.variable->GetType();
+                    // parser.currentType = 
+                    //     op->left->value->data.variable->GetType();
+                    parser.currentType = op->left->value.variable->GetType();
                     op->operandType = OperandType::Assign;
                     op->expressionType = ExpressionType::Memory;
                     parser.NextToken();
@@ -873,8 +896,9 @@ namespace Silent::Structures
 
                 case TokenType::AddAssign:
                 {
-                    parser.currentType = 
-                        op->left->value->data.variable->GetType();
+                    // parser.currentType = 
+                    //     op->left->value->data.variable->GetType();
+                    parser.currentType = op->left->value.variable->GetType();
                     op->operandType = OperandType::Assign;
                     op->expressionType = ExpressionType::Memory;
                     Operand* addOp = new Operand();
@@ -892,8 +916,9 @@ namespace Silent::Structures
 
                 case TokenType::SubtractAssign:
                 {
-                    parser.currentType = 
-                        op->left->value->data.variable->GetType();
+                    // parser.currentType = 
+                    //     op->left->value->data.variable->GetType();
+                    parser.currentType = op->left->value.variable->GetType();
                     op->operandType = OperandType::Assign;
                     op->expressionType = ExpressionType::Memory;
                     Operand* subOp = new Operand();
@@ -911,8 +936,9 @@ namespace Silent::Structures
 
                 case TokenType::MultiplyAssign:
                 {
-                    parser.currentType = 
-                        op->left->value->data.variable->GetType();
+                    // parser.currentType = 
+                    //     op->left->value->data.variable->GetType();
+                    parser.currentType = op->left->value.variable->GetType();
                     op->operandType = OperandType::Assign;
                     op->expressionType = ExpressionType::Memory;
                     Operand* mulOp = new Operand();
@@ -930,8 +956,9 @@ namespace Silent::Structures
 
                 case TokenType::DivideAssign:
                 {
-                    parser.currentType = 
-                        op->left->value->data.variable->GetType();
+                    //parser.currentType = 
+                    //    op->left->value->data.variable->GetType();
+                    parser.currentType = op->left->value.variable->GetType();
                     op->operandType = OperandType::Assign;
                     op->expressionType = ExpressionType::Memory;
                     Operand* divOp = new Operand();
@@ -962,12 +989,10 @@ namespace Silent::Structures
             case TokenType::Number:
             case TokenType::Identifier:
             {
-                this->type = StatementType::Expression;
-                this->val = new Node();
-                this->val->type = NodeType::Operand;
-                Operand* op = new Operand();
-                this->val->data.operand = op;
-                op->Parse(parser, scope);
+                this->type = Type::Expression;
+                this->valType = ValType::Operand;
+                this->val.operand = new Operand();
+                this->val.operand->Parse(parser, scope);
                 if(parser.GetToken().type != TokenType::Semicolon)
                     parser.ErrorMsg("Expected end of statement");
             }
@@ -1000,9 +1025,8 @@ namespace Silent::Structures
             parser.ErrorMsg("Expected end of if statement declaration");
 
         this->scope = new LocalScope();
-        this->scope->parent = new Node();
-        this->scope->parent->type = NodeType::LocalScope;
-        this->scope->parent->data.localScope = &scope;
+        this->scope->parentType = LocalScope::ParentType::LocalScope;
+        this->scope->parent.localScope = &scope;
         
         parser.ExpectNextToken(TokenType::OpenScope, 
             "Expected if statement scope");
@@ -1013,9 +1037,30 @@ namespace Silent::Structures
         return true;
     }
 
-    bool WhileLoop::Parse(Parser &parser)
+    bool WhileLoop::Parse(Parser &parser, LocalScope &scope)
     {
+        DEBUG("Parsing while loop\n");
 
+        parser.ExpectNextToken(TokenType::OpenParam,
+            "Expected definition of the while loop's condition");
+
+        this->expression = new Operand();
+        this->expression->Parse(parser, scope);
+        this->hasExpression = true;
+
+        if(parser.GetToken().type != TokenType::CloseParam)
+            parser.ErrorMsg("Expected end of while loop declaration");
+        
+        this->scope = new LocalScope();
+        this->scope->parentType = LocalScope::ParentType::LocalScope;
+        this->scope->parent.localScope = &scope;
+
+        parser.ExpectNextToken(TokenType::OpenScope, 
+            "Expected while loop scope");
+
+        this->scope->Parse(parser);
+
+        DEBUG("Done parsing while loop\n");
         return true;
     }
 
@@ -1198,76 +1243,76 @@ namespace Silent
     DataType Parser::GetType(std::string id)
     {
         DataType t;
-        t.type = new Node();
-        t.type->type = NodeType::Primitive;
+        t.dataType = DataType::Type::Primitive;
         if(id == "int8") 
         {
-            t.type->data.primitiveType = Primitives::int8;
+            t.primitive = Primitives::int8;
             t.size = 1;
         }
         else if(id == "uint8") 
         {
-            t.type->data.primitiveType = Primitives::uint8;
+            t.primitive = Primitives::uint8;
             t.size = 1;
         }
         else if(id == "int16") 
         {
-            t.type->data.primitiveType = Primitives::int16;
+            t.primitive = Primitives::int16;
             t.size = 2;
         }
         else if(id == "uint16") 
         {
-            t.type->data.primitiveType = Primitives::uint16;
+            t.primitive = Primitives::uint16;
             t.size = 2;
         }
         else if(id == "int32") 
         {
-            t.type->data.primitiveType = Primitives::int32;
+            t.primitive = Primitives::int32;
             t.size = 4;
         }
         else if(id == "uint32") 
         {
-            t.type->data.primitiveType = Primitives::uint32;
+            t.primitive = Primitives::uint32;
             t.size = 4;
         }
         else if(id == "int64") 
         {
-            t.type->data.primitiveType = Primitives::int64;
+            t.primitive = Primitives::int64;
             t.size = 8;
         }
         else if(id == "uint64") 
         {
-            t.type->data.primitiveType = Primitives::uint64;
+            t.primitive = Primitives::uint64;
             t.size = 8;
         }
         else if(id == "float32") 
         {
-            t.type->data.primitiveType = Primitives::float32;
+            t.primitive = Primitives::float32;
             t.size = 4;
         }
         else if(id == "float64") 
         {
-            t.type->data.primitiveType = Primitives::float64;
+            t.primitive = Primitives::float64;
             t.size = 8;
         }
         else if(id == "string") 
         {
-            t.type->data.primitiveType = Primitives::string;
+            t.primitive = Primitives::string;
             t.size = 8;
         }
         else if(id == "pointer") 
         {
-            t.type->data.primitiveType = Primitives::reference;
+            t.primitive = Primitives::reference;
             t.size = 8;
         }
         else if(id == "void") 
         {
-            t.type->data.primitiveType = Primitives::null;
+            t.primitive = Primitives::null;
             t.size = 0;
         }
         else
         {
-            t.type->type = NodeType::Structure;
+            //t.type->type = NodeType::Structure;
+            t.dataType = DataType::Type::Structure;
             bool found = false;
             for(int64 i = accessibleNamespaces.size()-1; i >= 0 && !found; i--)
             {
@@ -1276,14 +1321,14 @@ namespace Silent
                 {
                     if(structure->GetId() == id)
                     {
-                        t.type->data.structure = structure;
+                        t.structure = structure;
                         t.size = structure->GetSize();
                         found = true;
                         break;
                     }
                 }
             }
-            if(found == false) t.type->type = NodeType::Undefined;
+            if(found == false) t.dataType = DataType::Type::Undefined;
         }
         return t;
     }
@@ -1293,14 +1338,14 @@ namespace Silent
         Variable* var = scope.GetVariable(id);
         if(var == NULL)
         {
-            switch(scope.GetParentType())
+            switch(scope.parentType)
             {
-                case NodeType::Namespace:
-                    return GetVariable(*scope.parent->data.namespaceScope, id);
+                case LocalScope::ParentType::Namespace:
+                    return GetVariable(*scope.parent.namespaceScope, id);
                 break;
 
-                case NodeType::LocalScope:
-                    return GetVariable(*scope.parent->data.localScope, id);
+                case LocalScope::ParentType::LocalScope:
+                    return GetVariable(*scope.parent.localScope, id);
                 break;
 
                 default: break;
@@ -1319,6 +1364,36 @@ namespace Silent
             else return NULL;
         }
         else return var;
+    }
+
+    std::vector<Variable*> Parser::GetMember(Variable* parent)
+    {
+        std::vector<Variable*> members;
+        members.push_back(parent);
+
+        Variable* var;
+        NextToken();
+        while(true)
+        {
+            //ExpectNextToken(TokenType::FullStop, "Expected \".\"");
+            if(ct.type == TokenType::FullStop) NextToken();
+            else break;
+
+            var = members.back();
+            for(Variable* v : var->GetType().structure->members)
+            {
+                if(v->GetId() == ct.value) 
+                {
+                    members.push_back(v);
+                    break;
+                }
+            }
+            var = members.back();
+            if(var->GetType().dataType == DataType::Type::Primitive) break;
+        }
+
+        
+        return members;
     }
 
     Function* Parser::GetFunction(std::string id)

@@ -6,18 +6,6 @@ namespace Silent{typedef class Parser parser;}
 namespace Silent{typedef class CodeGenerator CodeGenerator;}
 namespace Silent::Structures
 {
-    enum class StatementType
-    {
-        VarInit,
-        Expression,
-        FunctionCall,
-        If,
-        While,
-        For,
-        Return,
-        Delete
-    };
-
     enum class Primitives
     {
         int8,
@@ -35,58 +23,7 @@ namespace Silent::Structures
         null,
         undefined
     };
-
-    enum class OperandType
-    {
-        Assign,
-        Add,
-        Subtract,
-        Multiply,
-        Divide,
-        Equal,
-        NotEqual,
-        Larger,
-        LargerOrEqual,
-        Smaller,
-        SmallerOrEqual,
-        And,
-        Or,
-        Xor,
-        Not,
-        FunctionCall,
-        Number,
-        String,
-        Variable
-    };
-
-    enum class ExpressionType
-    {
-        Arithmetic,
-        Logical,
-        Comparison,
-        Data,
-        Memory,
-        Null
-    };
-
-    enum class NodeType
-    {
-        DataType,
-        Value,
-        FunctionCall,
-        Variable,
-        Reference,
-        Structure,
-        Primitive,
-        LocalScope,
-        Function,
-        Operand,
-        IfStatement,
-        WhileLoop,
-        Statement,
-        Namespace,
-        Undefined
-    };
+    
 
     typedef class Node Node;
     typedef class LocalScope LocalScope;
@@ -105,8 +42,27 @@ namespace Silent::Structures
     class Node
     {
         public:
-        //Node();
-        NodeType type;
+        enum class Type
+        {
+            DataType,
+            Value,
+            FunctionCall,
+            Variable,
+            Reference,
+            Structure,
+            Primitive,
+            LocalScope,
+            Function,
+            Operand,
+            IfStatement,
+            WhileLoop,
+            Statement,
+            Namespace,
+            Members,
+            Undefined
+        };
+
+        Type nodeType;
         union 
         {
             Namespace* namespaceScope;
@@ -123,12 +79,26 @@ namespace Silent::Structures
             FunctionCall* functionCall;
             Value* value;
             DataType* dataType;
-        }data;
+            std::vector<Variable*>* members;
+        };
     };
 
     struct DataType
     {
-        Node* type; //Either structure or primitive
+        union
+        {
+            Structure* structure;
+            Primitives primitive;
+        };
+
+        enum class Type
+        {
+            Structure,
+            Primitive,
+            Undefined
+        };
+
+        Type dataType;
         unsigned long long size;
     };
 
@@ -138,21 +108,17 @@ namespace Silent::Structures
         std::string data;
     };
 
-    // struct Primitive
-    // {
-    //     Primitives type;
-    // };
-
     class Variable
     {
         public:
-        //Variable();
         bool Parse(Parser &parser, LocalScope &scope, bool isParam);
         bool Compile(CodeGenerator &cg);
         unsigned long long GetSize(){return size;}
+        void SetLocalPos(unsigned long long newPos){localPos = newPos;}
         unsigned long long GetLocalPos(){return localPos;}
         std::string GetId(){return identifier;}
         DataType GetType(){return type;}
+
         bool isReference;
 
         private:
@@ -168,12 +134,13 @@ namespace Silent::Structures
         public:
         //Structure();
         bool Parse(Parser &parser, Namespace& scope);
-        bool Compile(CodeGenerator &cg);
+        //bool Compile(CodeGenerator &cg);
         std::string GetId(){return identifier;}
         unsigned long long GetSize(){return size;}
+        std::vector<Variable*> members;
 
         private:
-        LocalScope* members;
+        // LocalScope* members;
         unsigned long long size;
         bool initialised;
         std::string identifier;
@@ -182,16 +149,32 @@ namespace Silent::Structures
     class LocalScope
     {
         public:
-        //LocalScope();
+        LocalScope(){varSize = 0;}
         bool Parse(Parser &parser);
         bool ParseParameters(Parser &parser, Function &function);
         bool Compile(CodeGenerator &cg);
         unsigned long long GetLocalPos(){return this->varSize;}
         Variable* GetVariable(std::string id);
-        NodeType GetParentType(){return parent->type;}
         std::vector<Statement*> *GetStatements(){return &statements;}
         std::vector<Variable*> *GetVariables(){return &variables;}
-        Node* parent;
+
+        union
+        {
+            LocalScope* localScope;
+            Namespace* namespaceScope;
+            Structure* structure;
+            Function* function;
+        }parent;
+
+        enum class ParentType
+        {
+            LocalScope,
+            Namespace,
+            Structure,
+            Function
+        };
+
+        ParentType parentType;
 
         private:
         unsigned long long varSize;
@@ -245,7 +228,41 @@ namespace Silent::Structures
         Operand* GetRight(){return right;}
         bool Compile(CodeGenerator &cg);
 
-        Node* value;
+        enum class OperandType
+        {
+            Assign,
+            Add,
+            Subtract,
+            Multiply,
+            Divide,
+            Equal,
+            NotEqual,
+            Larger,
+            LargerOrEqual,
+            Smaller,
+            SmallerOrEqual,
+            And,
+            Or,
+            Xor,
+            Not,
+            FunctionCall,
+            Number,
+            String,
+            Variable,
+            Members
+        };
+
+        enum class ExpressionType
+        {
+            Arithmetic,
+            Logical,
+            Comparison,
+            Data,
+            Memory,
+            Null
+        };
+
+        Node value;
         ExpressionType expressionType;
         OperandType operandType;
 
@@ -258,15 +275,48 @@ namespace Silent::Structures
         public:
         bool Parse(Parser &parser, LocalScope &scope);
         bool Compile(CodeGenerator &cg);
-        StatementType type;
-        Node* val;
+
+        enum class Type
+        {
+            VarInit,
+            Expression,
+            FunctionCall,
+            If,
+            While,
+            For,
+            Return,
+            Delete
+        };
+
+        Type type;
+
+        enum class ValType
+        {
+            IfStatement,
+            WhileLoop,
+            Variable,
+            Operand,
+            FunctionCall,
+            DataType
+        };
+
+        union
+        {
+            IfStatement* ifStatement;
+            Variable* variable;
+            Operand* operand;
+            FunctionCall* functionCall;
+            DataType* dataType;
+            WhileLoop* whileLoop;
+        }val;
+
+        ValType valType;
         LocalScope* parentScope;
     };
 
     class IfStatement
     {
         public:
-        //IfStatement();
         bool Parse(Parser &parser, LocalScope &scope);
         bool Compile(CodeGenerator &cg, unsigned long long *ifLabel);
         bool hasNext;
@@ -280,13 +330,13 @@ namespace Silent::Structures
     class WhileLoop
     {
         public:
-        //WhileLoop();
-        bool Parse(Parser &parser);
+        bool Parse(Parser &parser, LocalScope &scope);
         bool Compile(CodeGenerator &cg);
+        LocalScope* scope;
 
         private:
         Operand* expression;
-        LocalScope* scope;
+        bool hasExpression;
     };
 
     class Namespace

@@ -138,7 +138,6 @@ namespace Silent
 
 
         private:
-
         void AddData(Structures::DataType dt, std::string val);
         std::vector<char> code;
     };

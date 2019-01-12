@@ -1,34 +1,17 @@
-/*
-func int64 countdown(int64 x)
+struct vec2
 {
-    if(x > 1)
-    {
-        return countdown(0);
-    }
-    return 420;
+    int64 x;
+    int64 y;
 }
 
-func void main()
+struct vec3
 {
-    int64 k = 9+10;
-    k = countdown(6);
-}
-*/
-
-func int64 fibonacci(int64 x)
-{
-    if(x > 2)
-    {
-        return fibonacci(x - 1) + fibonacci(x - 2); 
-    }
-    else
-    {
-        return 1;
-    }
-    
+    vec2 xy;
+    int64 z;
 }
 
 func int64 main()
 {
-    int64 x = fibonacci(10);
+    int64 x = 1;
+    vec3 v;
 }

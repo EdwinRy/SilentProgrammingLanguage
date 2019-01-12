@@ -30,6 +30,8 @@ namespace Silent
         Structures::Variable* GetVariable(Structures::LocalScope &scope)
         {return GetVariable(scope, ct.value);}
 
+        std::vector<Structures::Variable*> GetMember(Structures::Variable* parent);
+
         Structures::Variable* GetVariable(
             Structures::Namespace &scope, std::string id);
 

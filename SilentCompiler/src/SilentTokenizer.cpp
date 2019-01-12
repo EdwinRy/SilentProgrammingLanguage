@@ -114,6 +114,10 @@ namespace Silent
                     token.type = TokenType::Comma;
                     token.value = ",";
                 break;
+                case '.':
+                    token.type = TokenType::FullStop;
+                    token.value = ".";
+                break;
                 case '=':
                     if(source[i+1] == '=')
                     {
