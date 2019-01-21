@@ -8,24 +8,19 @@ typedef unsigned int uint32;
 typedef long long int64;
 void SilentStartVM(char* prog)
 {
-    //volatile char* stack = malloc(10000);
+    // volatile char* stack = malloc(10000);
     char* stack = malloc(10000);
-	//register char* program = prog;
+	// register char* program = prog;
 	char* program = prog;
-    uint64 sp = 0;	//stack pointer
-    uint64 fp = 0;	//frame pointer
-    register uint64 pc = 0;	//program counter
+    uint64 sp = 0;	// stack pointer
+    uint64 fp = 0;	// frame pointer
+    register uint64 pc = 0;	// program counter
 
-    uint64 *saveSfData = malloc(90000); //old stack frame data
+    uint64 *saveSfData = malloc(90000); // old stack frame data
     register uint64 saveSfDataPtr = 0;
 
-	// for(long i = 0; i < 37; i++)
-	// {
-	// 	printf("p: %i\n", *(program + i));
-	// }
-
 	SilentGC gc;
-	//gc.heap = malloc(1000 * sizeof(SilentMemoryBlock));
+	// gc.heap = malloc(1000 * sizeof(SilentMemoryBlock));
 	gc.heap = calloc(1000, sizeof(SilentMemoryBlock));
 	gc.heapSize = 1000;
 	gc.heapPtr = 0;
@@ -41,74 +36,74 @@ void SilentStartVM(char* prog)
 		double d;
 	}Registers;//, reg3, reg4;
 
-	volatile Registers reg;
-	volatile Registers reg2;
+	volatile Registers reg, reg2;
+	// volatile Registers reg2;
 
-    //char running = 1;
+    // char running = 1;
 
-    //while(running)
-	//Turns out for(;;) is somehow faster (I assume it's because you dont have)
-	//To check for the variable running each time
+    // while(running)
+	// Turns out for(;;) is somehow faster (I assume it's because you dont have
+	// To check for the variable running each time)
 	for(;;)
     {
-		//Check for the current instruction being executed
+		// Check for the current instruction being executed
         switch (*(program + pc))
         {
-			//Exit out of the execution loop
+			// Exit out of the execution loop
             case Halt:
-                //running = 0;
+                // running = 0;
 				goto endLoop;
             break;
         
-			//Update program counter with the provided argument
+			// Update program counter with the provided argument
             case Goto:
                 pc = *((uint64*)(program + (pc+1)));
-                pc--;//Decrement pc as it's increased before next iteration
+                pc-- ;//Decrement pc as it's increased before next iteration
             break;
 
-			//Call a subroutine in the program (saves stack frame data)
-			//And moves to a new position in the program
+			// Call a subroutine in the program (saves stack frame data)
+			// And moves to a new position in the program
             case Call:
-                //Get goto location
+                // Get goto location
                 reg.l = *((uint64*)(program + (++pc)));
                 pc += 8;
-                //Get arg size
+                // Get arg size
                 reg2.l = *((uint64*)(program + (pc)));
                 pc += 7;
-                //save frame pointer
+                // save frame pointer
                 saveSfData[saveSfDataPtr++] = fp;
                 fp = sp;
                 fp -= reg2.l;
-                //save stack pointer
+                // save stack pointer
                 saveSfData[saveSfDataPtr++] = sp - reg2.l;
-                //save return position
+                // save return position
                 saveSfData[saveSfDataPtr++] = pc;
                 pc = reg.l - 1;
             break;
 
-			//Copy return values to the old stack pointer and return to 
-			//old subroutine
+			// Copy return values to the old stack pointer and return to 
+			// old subroutine
             case Return:
-                //Get return size
+                // Get return size
                 reg.l = *((uint64*)(program + (++pc)));
                 pc += 7;
-                //Get old program counter
+                // Get old program counter
                 pc = saveSfData[--saveSfDataPtr];
-                //Get old stack pointer
+                // Get old stack pointer
                 reg2.l = sp;
                 sp = saveSfData[--saveSfDataPtr];
                 memcpy(stack + sp, stack + reg2.l - reg.l, reg.l);
                 sp += reg.l;
-                //Get old frame pointer
+                // Get old frame pointer
                 fp = saveSfData[--saveSfDataPtr];
             break;
 
-			//Push 1 byte from the program onto the stack
+			// Push 1 byte from the program onto the stack
             case Push1:
                 stack[sp++] = program[++pc];
             break;
 
-			//Push 2 bytes from the program onto the stack
+			// Push 2 bytes from the program onto the stack
             case Push2:
                 memcpy(stack + sp, program + (++pc), 2);
                 sp += 2;
@@ -123,7 +118,7 @@ void SilentStartVM(char* prog)
 
 			case Push8:
 				memcpy(stack + sp, program + (++pc), 8);
-				//(*(uint64*)(stack + sp)) = (*(uint64*)(program + (++pc)));
+				// (*(uint64*)(stack + sp)) = (*(uint64*)(program + (++pc)));
 				sp += 8;
 				pc += 7;
 			break;
@@ -145,15 +140,15 @@ void SilentStartVM(char* prog)
 			break;
 
 			case Store1:
-				//memcpy(&reg2.l, program + (++pc), 8);
+				// memcpy(&reg2.l, program + (++pc), 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				//memcpy(stack + fp + reg2.l, stack + (--sp), 1);
+				// memcpy(stack + fp + reg2.l, stack + (--sp), 1);
                 stack[fp + reg.l] = stack[--sp];
 			break;
 
 			case Store2:
-				//memcpy(&reg2.l, program + (++pc), 8);
+				// memcpy(&reg2.l, program + (++pc), 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				sp -= 2;
@@ -161,7 +156,7 @@ void SilentStartVM(char* prog)
 			break;
 
 			case Store4:
-				//memcpy(&reg2.l, program + (++pc), 8);
+				// memcpy(&reg2.l, program + (++pc), 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				sp -= 4;
@@ -169,7 +164,7 @@ void SilentStartVM(char* prog)
 			break;
 
 			case Store8:
-				//memcpy(&reg2.l, program + (++pc), 8);
+				// memcpy(&reg2.l, program + (++pc), 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				sp -= 8;
@@ -177,85 +172,85 @@ void SilentStartVM(char* prog)
 			break;
 
 			case Load1:
-				//memcpy(&reg.l, program + ++pc, 8);
+				// memcpy(&reg.l, program + ++pc, 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				//memcpy(stack + sp, stack + fp + reg.l, 1);
+				// memcpy(stack + sp, stack + fp + reg.l, 1);
 				(*(char*)(stack + sp)) = (*(char*)(stack + fp + reg.l));
 				sp++;
 			break;
 
 			case Load2:
-				//memcpy(&reg.l, program + ++pc, 8);
+				// memcpy(&reg.l, program + ++pc, 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				//memcpy(stack + sp, stack + fp + reg.l, 2);
+				// memcpy(stack + sp, stack + fp + reg.l, 2);
 				(*(short*)(stack + sp)) = (*(short*)(stack + fp + reg.l));
 				sp += 2;
 			break;
 
 			case Load4:
-				//memcpy(&reg.l, program + ++pc, 8);
+				// memcpy(&reg.l, program + ++pc, 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				//memcpy(stack + sp, stack + fp + reg.l, 4);
+				// memcpy(stack + sp, stack + fp + reg.l, 4);
 				(*(int*)(stack + sp)) = (*(int*)(stack + fp + reg.l));
 				sp += 4;
 			break;
 
 			case Load8:
-				//memcpy(&reg.l, program + ++pc, 8);
+				// memcpy(&reg.l, program + ++pc, 8);
                 reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				//memcpy(stack + sp, stack + fp + reg.l, 8);
+				// memcpy(stack + sp, stack + fp + reg.l, 8);
 				(*(uint64*)(stack + sp)) = (*(uint64*)(stack + fp + reg.l));
 				sp += 8;
 			break;
 
 			case LoadX:
-				//Get data size
+				// Get data size
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 8;
-				//Get location
+				// Get location
 				reg2.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				//Copy data;
+				// Copy data;
 				memcpy(stack + sp, stack + fp + reg2.l, reg.l);
 				sp += reg.l;
 			break;
 
 			case StoreGlobal1:
-				//Get global offset
+				// Get global offset
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				//Store
+				// Store
 				sp -= 1;
 				memcpy(stack + reg.l, stack + sp, 1);
 			break;
 			
 			case StoreGlobal2:
-				//Get global offset
+				// Get global offset
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				//Store
+				// Store
 				sp -= 2;
 				memcpy(stack + reg.l, stack + sp, 2);
 			break;
 
 			case StoreGlobal4:
-				//Get global offset
+				// Get global offset
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				//Store
+				// Store
 				sp -= 4;
 				memcpy(stack + reg.l, stack + sp, 4);
 			break;
 
 			case StoreGlobal8:
-				//Get global offset
+				// Get global offset
 				reg.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
-				//Store
+				// Store
 				sp -= 8;
 				memcpy(stack + reg.l, stack + sp, 8);
 			break;
@@ -291,7 +286,7 @@ void SilentStartVM(char* prog)
 			case Alloc1:
 			{
 				uint64 temp = SilentAlloc(&gc, 1);
-				//pc += 7;
+				// pc += 7;
 				memcpy(stack + sp, &temp, 8);
 				sp += 8;
 			}
@@ -300,7 +295,7 @@ void SilentStartVM(char* prog)
 			case Alloc2:
 			{
 				uint64 temp = SilentAlloc(&gc, 2);
-				//pc += 7;
+				// pc += 7;
 				memcpy(stack + sp, &temp, 8);
 				sp += 8;
 			}
@@ -309,7 +304,7 @@ void SilentStartVM(char* prog)
 			case Alloc4:
 			{
 				uint64 temp = SilentAlloc(&gc, 4);
-				//pc += 7;
+				// pc += 7;
 				memcpy(stack + sp, &temp, 8);
 				sp += 8;
 			}
@@ -318,7 +313,7 @@ void SilentStartVM(char* prog)
 			case Alloc8:
 			{
 				uint64 temp = SilentAlloc(&gc, 8);
-				//pc += 7;
+				// pc += 7;
 				memcpy(stack + sp, &temp, 8);
 				sp += 8;
 			}
@@ -326,10 +321,10 @@ void SilentStartVM(char* prog)
 
 			case AllocX:
 			{
-				//Get alloc size
+				// Get alloc size
 				uint64 temp = 
 					SilentAlloc(&gc, (uint64)*((uint64*)(program+(++pc))));
-				//pc += 7;
+				pc += 7;
 				memcpy(stack + sp, &temp, 8);
 				sp += 8;
 			}
@@ -824,7 +819,7 @@ void SilentStartVM(char* prog)
 			break;
 
 			case Equal:
-				//switch(program[++pc])
+				// switch(program[++pc])
 				switch(*(program + (++pc)))
 				{
 					case INT8:
@@ -879,7 +874,7 @@ void SilentStartVM(char* prog)
 						(*(double*)(stack + sp+8));
 					break;
 				}
-				//stack[sp++] = reg.c;
+				// stack[sp++] = reg.c;
 				*(char*)(stack + (sp++)) = reg.c;
 			break;
 
@@ -983,7 +978,7 @@ void SilentStartVM(char* prog)
 		pc++;
     }
 	endLoop:
-	printf("%I64u\n", (uint64)*(uint64*)(stack));
+	printf("%llu\n", (uint64)*(uint64*)(stack));
 }
 
 uint64 SilentAlloc(SilentGC* gc, uint64 size)
@@ -1001,7 +996,7 @@ uint64 SilentAlloc(SilentGC* gc, uint64 size)
 		}
 
 	#if DEBUG
-	printf("Allocated %I64u bytes on location %I64u\n", size, returnPos);
+	printf("Allocated %5llu bytes on location %llu\n", size, returnPos);
 	#endif
 	return returnPos;
 }
@@ -1009,7 +1004,7 @@ uint64 SilentAlloc(SilentGC* gc, uint64 size)
 void SilentFree(SilentGC* gc, uint64 pos)
 {
 	#if DEBUG
-	printf("Attempting to free item at position %I64u \n",pos);
+	printf("Attempting to free item at position %llu \n",pos);
 	#endif
 	gc->heap[pos].occupied = 0;
 	free(gc->heap[pos].data);

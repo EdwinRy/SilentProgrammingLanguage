@@ -108,6 +108,22 @@ namespace Silent::Structures
         std::string data;
     };
 
+    class Operator
+    {
+        public:
+        unsigned long long importance;
+        enum class OutputType
+        {
+            Number,
+            Bool,
+            Struct,
+            Null
+        };
+
+        OutputType outputType;
+        std::string value;
+    };
+
     class Variable
     {
         public:
@@ -118,8 +134,6 @@ namespace Silent::Structures
         unsigned long long GetLocalPos(){return localPos;}
         std::string GetId(){return identifier;}
         DataType GetType(){return type;}
-
-        bool isReference;
 
         private:
         unsigned long long size;
@@ -132,7 +146,6 @@ namespace Silent::Structures
     class Structure
     {
         public:
-        //Structure();
         bool Parse(Parser &parser, Namespace& scope);
         //bool Compile(CodeGenerator &cg);
         std::string GetId(){return identifier;}
@@ -144,6 +157,12 @@ namespace Silent::Structures
         unsigned long long size;
         bool initialised;
         std::string identifier;
+    };
+
+    class Class
+    {
+        public:
+        bool Parse(Parser &parser, Namespace& scope);
     };
 
     class LocalScope
@@ -185,7 +204,6 @@ namespace Silent::Structures
     class Function
     {
         public:
-        //Function();
         bool Parse(Parser &parser, Namespace &scope);
         bool Compile(CodeGenerator &cg);
         std::string GetId(){return identifier;}
@@ -249,7 +267,8 @@ namespace Silent::Structures
             Number,
             String,
             Variable,
-            Members
+            Members,
+            NewObject
         };
 
         enum class ExpressionType
@@ -278,9 +297,11 @@ namespace Silent::Structures
 
         enum class Type
         {
-            VarInit,
+            PrimInit,
+            StructInit,
             Expression,
             FunctionCall,
+            TypeAlloc,
             If,
             While,
             For,

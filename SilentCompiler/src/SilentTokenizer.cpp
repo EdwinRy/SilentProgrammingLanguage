@@ -328,10 +328,10 @@ namespace Silent
                         {
                             token.type = TokenType::Delete;
                         }
-                        else if(token.value == "ref")
-                        {
-                            token.type = TokenType::Reference;
-                        }
+                        // else if(token.value == "ref")
+                        // {
+                        //     token.type = TokenType::Reference;
+                        // }
                         else if(token.value == "return")
                         {
                             token.type = TokenType::Return;

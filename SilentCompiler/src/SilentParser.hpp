@@ -48,6 +48,7 @@ namespace Silent
         Structures::Function* currentFunction;
 
         private:
+        uint64 errorCount;
         Structures::Namespace* globalNamespace;
         Token ct; //Current token
         uint64 tokenCursor;

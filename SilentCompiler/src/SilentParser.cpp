@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdlib.h>
 
-#define DEBUG_ENABLED 1
+#define DEBUG_ENABLED 0
 #define ERROR(args...) printf(args);
 #if DEBUG_ENABLED
 #define DEBUG(args...) printf(args);
@@ -18,27 +18,25 @@ namespace Silent::Structures
     {
         DEBUG("Parsing variable\n")
 
-        //Get variable information
+        // Get variable information
         this->type = parser.GetType();
         this->size = this->type.size;
         this->localPos = scope.GetLocalPos();
 
-        //Get variable identifier
+        // Get variable identifier
         std::string id = parser.NextToken().value;
         if(scope.GetVariable(id) != NULL)
             parser.ErrorMsg("Redefinition of a variable: " + id);
         this->identifier = id;
 
-        //Parse structure member or a parameter
+        // Parse structure member or a parameter
         if(scope.parentType == LocalScope::ParentType::Structure || isParam)
         {
-            //parser.NextToken();
             if(!isParam)
-                //Enforce semicolon at the end if it's not a parameter
+                // Enforce semicolon at the end if it's not a parameter
                 parser.ExpectNextToken(TokenType::Semicolon, 
                     "Expected \";\" at the end of "
                     "declaration of a structure member");
-            //else parser.NextToken();
         }
         else
         {
@@ -66,7 +64,7 @@ namespace Silent::Structures
     {
         DEBUG("Parsing struct\n")
 
-        //Check whether the struct has been defined within parent namespace
+        // Check whether the struct has been defined within parent namespace
         std::string id = parser.NextToken().value;
         if(scope.ContainsStructure(id))
         {
@@ -75,12 +73,12 @@ namespace Silent::Structures
             return false;
         }
 
-        //Get structure identifier
+        // Get structure identifier
         this->identifier = id;
         parser.ExpectNextToken(
             TokenType::OpenScope, "Expected struct declaration");
 
-        //Parse struct body
+        // Parse struct body
         LocalScope tempScope;
         tempScope.parentType = LocalScope::ParentType::Structure;
         tempScope.parent.structure = this;
@@ -89,131 +87,73 @@ namespace Silent::Structures
 
         this->members = *tempScope.GetVariables();
         this->size = tempScope.GetLocalPos();
-        // //Parse until the closing scope token is found
-        // while(parser.GetToken().type != TokenType::CloseScope)
-        // {
-        //     //If member's type is not undefined parse member's declaration
-        //     if(parser.GetType().dataType != DataType::Type::Undefined)
-        //     {
-        //         Variable* var = new Variable();
-        //         this->members.push_back(var);
-        //         tempScope.Parse(parser);
-        //         var->Parse(parser, tempScope, false);
-        //         this->size += var->GetSize();
-        //     } 
-        //     else 
-        //     {
-        //         parser.ErrorMsg("Use of non-existing type");
-        //         break;
-        //     }
-        // }
-        //parser.NextToken();
         DEBUG("Struct size: %llu\n", this->size);
         DEBUG("Finished parsing struct \n")
         return true;
     }
 
-    //Parse local scope
+    // Parse local scope
     bool LocalScope::Parse(Parser &parser)
     {
         DEBUG("Parsing local scope\n")
-        //Parse until scope closing token is found
+        // Parse until scope closing token is found
         while(parser.GetToken().type != TokenType::CloseScope)
         {
             switch(parser.GetToken().type)
             {
-                //Parse variable as reference to datatype
-                case TokenType::Reference:
-                {
-                    parser.NextToken();
-                    Statement* statement = new Statement();
-                    statement->parentScope = this;
-                    statement->type = Statement::Type::VarInit;
-                    statements.push_back(statement);
-
-                    statement->valType = Statement::ValType::Variable;
-                    statement->val.variable = new Variable();
-                    variables.push_back(statement->val.variable);
-                    statement->val.variable->Parse(parser, *this, false);
-                    varSize += statement->val.variable->GetSize();
-                    statement->val.variable->isReference = true;
-                }
-                break;
-
-                //Handle explicit deletion of a reference
-                case TokenType::Delete:
-                {
-                    //Setup statement
-                    Statement* statement = new Statement();
-                    statement->parentScope = this;
-                    statement->type = Statement::Type::Delete;
-                    //Add statement to this scope's statement list
-                    this->statements.push_back(statement);
-                    //Create new node for the statement
-                    statement->valType = Statement::ValType::Variable;
-                    //Get variable to delete from this scope
-                    statement->val.variable = 
-                        this->GetVariable(parser.NextToken().value);
-
-                    //Skip through semicolon for syntactic consistency
-                    parser.NextToken(); parser.NextToken();
-                }
-                break;
-                
-                //Parse variable of primitive type
+                // Parse variable of primitive type
                 case TokenType::Primitive:
                 {
-                    //Setup statement
+                    // Setup statement
                     Statement* statement = new Statement();
-                    statement->type = Statement::Type::VarInit;
-                    //Add statement to this scope's statement list
+                    statement->type = Statement::Type::PrimInit;
+                    // Add statement to this scope's statement list
                     this->statements.push_back(statement);
-                    //Set statement value type
+                    // Set statement value type
                     statement->valType = Statement::ValType::Variable;
-                    //Parse new variable declaration
+                    // Parse new variable declaration
                     Variable* var = new Variable();
                     this->variables.push_back(var);
                     var->Parse(parser, *this, false);
-                    var->isReference = false;
                     this->varSize += var->GetSize();
-                    //Add variable to statement
+                    // Add variable to statement
                     statement->val.variable = var;
                 }
                 break;
                 
                 case TokenType::Identifier:
                 {
-                    //If it's a definition
+                    // If it's a definition
                     if(parser.GetType().dataType != DataType::Type::Undefined)
                     {
-                        //Setup statement
+                        // Setup statement
                         Statement* statement = new Statement();
-                        statement->type = Statement::Type::VarInit;
-                        //Add statement to this scope's statement list
+                        statement->type = Statement::Type::StructInit;
+                        // Add statement to this scope's statement list
                         this->statements.push_back(statement);
-                        //Declare statement's value type
+                        // Declare statement's value type
                         statement->valType = Statement::ValType::Variable;
-                        //Parse new variable declaration
+                        // Parse new variable declaration
                         Variable* var = new Variable();
                         this->variables.push_back(var);
                         var->Parse(parser, *this, false);
-                        var->isReference = false;
+                        // var->isReference = false;
                         this->varSize += var->GetSize();
-                        //Add variable to statement
+                        // Add variable to statement
                         statement->val.variable = var;
                     }
-                    //If it's a statement starting with an identifier
+                    // If it's a statement starting with an identifier
                     else
                     {
                         Variable* var = 
                            parser.GetVariable(*this,parser.GetToken().value);
 
-                        //If it's not a valid variable (function call)
+                        // If it's not a valid variable (function call)
                         if(var == NULL)
                         {
                             DEBUG("FUNCTION CALL\n");
                             Statement* statement = new Statement();
-                            // statement->type = StatementType::FunctionCall;
+                            //  statement->type = StatementType::FunctionCall;
                             statement->type = Statement::Type::FunctionCall;
                             statement->valType=Statement::ValType::FunctionCall;
                             this->statements.push_back(statement);
@@ -225,22 +165,22 @@ namespace Silent::Structures
                             DEBUG("VARIABLE STATEMENT\n");
                             Statement* statement = new Statement();
                             statement->Parse(parser, *this);
-                            //statement->type = StatementType::Expression;
+                            // statement->type = StatementType::Expression;
                             this->statements.push_back(statement);
-                            //statement->val = new Node();
-                            //statement->val->type = NodeType::Operand;
+                            // statement->val = new Node();
+                            // statement->val->type = NodeType::Operand;
                         }
                     }
                 }
                 break;
                 
-                //Parse if statement
+                // Parse if statement
                 case TokenType::If:
                 {
                     Statement* statement = new Statement();
-                    // statement->type = StatementType::If;
+                    //  statement->type = StatementType::If;
                     statement->type = Statement::Type::If;
-                    // statement->val = new Node();
+                    //  statement->val = new Node();
                     statement->valType = Statement::ValType::IfStatement;
                     IfStatement* ifStatement = new IfStatement();
                     statement->val.ifStatement = ifStatement;
@@ -250,13 +190,13 @@ namespace Silent::Structures
                 }
                 break;
                 
-                //Parse else statement
+                // Parse else statement
                 case TokenType::Else:
                 {
-                    //Set the last if statement to have a next if
+                    // Set the last if statement to have a next if
                     this->statements.back()->val.ifStatement->hasNext = true;
                     parser.NextToken();
-                    //If it's an else if statement
+                    // If it's an else if statement
                     if(parser.GetToken().type == TokenType::If)
                     {
                         Statement* statement = new Statement();
@@ -268,7 +208,7 @@ namespace Silent::Structures
                         ifStatement->Parse(parser, *this);
                         this->statements.push_back(statement);
                     }
-                    //If it's an else on its own
+                    // If it's an else on its own
                     else if(parser.GetToken().type == TokenType::OpenScope)
                     {
                         DEBUG("Parsing else statement\n");
@@ -303,19 +243,32 @@ namespace Silent::Structures
                 }
                 break;
                 
-                //Parse return statement
+                case TokenType::Delete:
+                {
+                    DEBUG("Parsing delete\n");
+                    Statement* statement = new Statement();
+                    statement->type = Statement::Type::Delete;
+                    statement->valType = Statement::ValType::Operand;
+                    parser.NextToken();
+                    Operand* op = Operand::ParseFactor(parser, *this);
+                    statement->val.operand = op;
+                    parser.NextToken();
+                }
+                break;
+
+                // Parse return statement
                 case TokenType::Return:
                 {
                     DEBUG("Parsing return statement\n");
-                    //If an expression follows the return statement
+                    // If an expression follows the return statement
                     if(parser.NextToken().type != TokenType::Semicolon)
                     {
                         DEBUG("Parsing return statement with expression\n");
-                        //Set expected type to return type
+                        // Set expected type to return type
                         parser.currentType = 
                             parser.currentFunction->GetReturnType();
                     
-                        //Parse return expression
+                        // Parse return expression
                         Statement* returnExpression = new Statement();
                         returnExpression->type = Statement::Type::Expression;
                         Operand* op = new Operand();
@@ -323,11 +276,11 @@ namespace Silent::Structures
                         returnExpression->val.operand = op;
                         op->Parse(parser, *this); 
                         this->statements.push_back(returnExpression);
-                        //if(parser.GetToken().type != TokenType::Semicolon)
-                        //    parser.ErrorMsg("Expected end of statement");
+                        // if(parser.GetToken().type != TokenType::Semicolon)
+                        //     parser.ErrorMsg("Expected end of statement");
                     }
                     parser.NextToken();
-                    //Add return statement
+                    // Add return statement
                     Statement* statement = new Statement();
                     statement->type = Statement::Type::Return;
                     statement->valType = Statement::ValType::DataType;
@@ -338,7 +291,7 @@ namespace Silent::Structures
                 }
                 break;
                 
-                //Handle unknown token in the local scope
+                // Handle unknown token in the local scope
                 default: 
                 {
                     parser.ErrorMsg("Unexpected token in the local scope");
@@ -347,7 +300,7 @@ namespace Silent::Structures
                 break;
             }
         }
-        //parser.ExpectToken(TokenType::CloseScope, "Expected closing scope\n");
+        // parser.ExpectToken(TokenType::CloseScope, "Expected closing scope\n");
         if(parser.GetToken().type != TokenType::CloseScope)
             parser.ErrorMsg("Expected closing scope");
         parser.NextToken();
@@ -363,23 +316,10 @@ namespace Silent::Structures
 
         while(parser.GetToken().type != TokenType::CloseParam)
         {
-            if(parser.GetToken().type == TokenType::Reference)
-            {
-                parser.NextToken();
-                Variable* var = new Variable();
-                this->variables.push_back(var);
-                var->Parse(parser, *this, true);
-                var->isReference = true;
-                this->varSize += 8;
-            }
-            else
-            {
-                Variable* var = new Variable();
-                this->variables.push_back(var);
-                var->Parse(parser, *this, true);
-                var->isReference = false;
-                this->varSize += var->GetSize();
-            }
+            Variable* var = new Variable();
+            this->variables.push_back(var);
+            var->Parse(parser, *this, true);
+            this->varSize += var->GetSize();
             if(parser.GetToken().value == ",") {parser.NextToken(); continue;}
             else if(parser.GetToken().type == TokenType::CloseParam) break;
             else parser.ErrorMsg("Got invalid token whilst parsing parameters");
@@ -400,10 +340,10 @@ namespace Silent::Structures
 
         parser.currentFunction = this;
 
-        //Get return type
+        // Get return type
         this->returnType = parser.GetType(parser.NextToken().value);
 
-        //Check whether function has already been declared in the namespace
+        // Check whether function has already been declared in the namespace
         std::string id = parser.NextToken().value;
         if(scope.ContainsFunction(id))
         {
@@ -412,20 +352,20 @@ namespace Silent::Structures
             return false;
         }
 
-        //Assign name to the function
+        // Assign name to the function
         this->identifier = id;
         DEBUG("Got function identifier: %s\n", id.data());
 
-        //Parse function parameters
+        // Parse function parameters
         parser.ExpectNextToken(TokenType::OpenParam, "Expected token \"(\"");
         this->scope = new LocalScope();
         this->scope->ParseParameters(parser, *this);
 
-        //Get information about parameters
+        // Get information about parameters
         this->parameterCount = this->scope->GetVariables()->size();
         this->parameterSize = this->scope->GetLocalPos();
 
-        //Parse local scope
+        // Parse local scope
         if(parser.GetToken().type == TokenType::OpenScope)
         {
             parser.NextToken();
@@ -449,63 +389,63 @@ namespace Silent::Structures
 
     bool Operand::Parse(Parser &parser, LocalScope &scope)
     {
-        //Parse expression
+        // Parse expression
         Operand* op = ParseExpression(parser, scope);
 
-        //Copy data to this instance
+        // Copy data to this instance
         value = op->value;
         expressionType = op->expressionType;
         operandType = op->operandType;
         left = op->GetLeft();
         right = op->GetRight();
 
-        //Clean up old object
-        // delete op;
+        // Clean up old object
+        //  delete op;
 
         return true;
     }
 
     FunctionCall* Operand::ParseFunctionCall(Parser &parser, LocalScope &scope)
     {
-        //Setup function call and get the called function reference
+        // Setup function call and get the called function reference
         FunctionCall* call = new FunctionCall();
         call->function = parser.GetFunction();
         parser.NextToken(); parser.NextToken();
 
-        uint64 argPtr = 0; //Number of arguments
+        uint64 argPtr = 0; // Number of arguments
 
-        //Save previous expected data type
+        // Save previous expected data type
         DataType oldType = parser.currentType;
 
-        //Parse arguments until ran out of parameters or met with ")"
+        // Parse arguments until ran out of parameters or met with ")"
         while(parser.GetToken().type != TokenType::CloseParam || 
             argPtr < call->function->GetParameterCount()
         )
         {
-            //Assign expected type to the parameter's type
+            // Assign expected type to the parameter's type
             parser.currentType = 
                 call->function->GetVariables()->at(argPtr)->GetType();
-            //Add expression as function call's argument
+            // Add expression as function call's argument
             Operand* op = new Operand();
             call->arguments.push_back(op);
             op->Parse(parser, scope);
             argPtr++;
-            //If there is a next argument skip the comma
+            // If there is a next argument skip the comma
             if(parser.GetToken().type == TokenType::Comma) parser.NextToken();
-            //Otherwise, stop parsing arguments
+            // Otherwise, stop parsing arguments
             else break;
         }
 
-        //Check whether the number of arguments matches to parameters
+        // Check whether the number of arguments matches to parameters
         if(argPtr != call->function->GetParameterCount())
             parser.ErrorMsg(
                 "Insufficient number arguments provided to call function" +
                 call->function->GetId());
 
-        //Restore old expected data type
+        // Restore old expected data type
         parser.currentType = oldType;
 
-        //Expect semicolon at the end
+        // Expect semicolon at the end
         parser.ExpectToken(
             TokenType::Semicolon, "Expected end of statement");
 
@@ -533,7 +473,7 @@ namespace Silent::Structures
             case TokenType::Identifier:
             {
                 Operand* op = new Operand();
-                //Parse function call
+                // Parse function call
                 if(parser.PeakToken().type == TokenType::OpenParam)
                 {
                     op->operandType = OperandType::FunctionCall;
@@ -541,7 +481,7 @@ namespace Silent::Structures
                     op->value.nodeType = Node::Type::FunctionCall;
                     op->value.functionCall = ParseFunctionCall(parser,scope);
                 }
-                //Parse statement referencing variable
+                // Parse statement referencing variable
                 else
                 {
                     if(parser.PeakToken().type == TokenType::FullStop)
@@ -580,6 +520,21 @@ namespace Silent::Structures
                 op->Parse(parser, scope);
                 parser.ExpectNextToken(
                     TokenType::CloseParam, "Expected token ')'");
+                return op;
+            }
+            break;
+
+            case TokenType::New:
+            {
+                parser.NextToken();
+                Operand* op = new Operand();
+                op->expressionType = ExpressionType::Data;
+                op->operandType = OperandType::NewObject;
+                DataType type = parser.GetType();
+                parser.ExpectToken(TokenType::Semicolon, 
+                    "Expected the end of statement");
+                op->value.nodeType = Node::Type::DataType;
+                op->value.dataType = new DataType(type);
                 return op;
             }
             break;
@@ -883,8 +838,6 @@ namespace Silent::Structures
             switch(parser.GetToken().type)
             {
                 case TokenType::Assign:
-                    // parser.currentType = 
-                    //     op->left->value->data.variable->GetType();
                     parser.currentType = op->left->value.variable->GetType();
                     op->operandType = OperandType::Assign;
                     op->expressionType = ExpressionType::Memory;
@@ -897,8 +850,6 @@ namespace Silent::Structures
 
                 case TokenType::AddAssign:
                 {
-                    // parser.currentType = 
-                    //     op->left->value->data.variable->GetType();
                     parser.currentType = op->left->value.variable->GetType();
                     op->operandType = OperandType::Assign;
                     op->expressionType = ExpressionType::Memory;
@@ -917,8 +868,6 @@ namespace Silent::Structures
 
                 case TokenType::SubtractAssign:
                 {
-                    // parser.currentType = 
-                    //     op->left->value->data.variable->GetType();
                     parser.currentType = op->left->value.variable->GetType();
                     op->operandType = OperandType::Assign;
                     op->expressionType = ExpressionType::Memory;
@@ -937,8 +886,6 @@ namespace Silent::Structures
 
                 case TokenType::MultiplyAssign:
                 {
-                    // parser.currentType = 
-                    //     op->left->value->data.variable->GetType();
                     parser.currentType = op->left->value.variable->GetType();
                     op->operandType = OperandType::Assign;
                     op->expressionType = ExpressionType::Memory;
@@ -957,8 +904,6 @@ namespace Silent::Structures
 
                 case TokenType::DivideAssign:
                 {
-                    //parser.currentType = 
-                    //    op->left->value->data.variable->GetType();
                     parser.currentType = op->left->value.variable->GetType();
                     op->operandType = OperandType::Assign;
                     op->expressionType = ExpressionType::Memory;
@@ -998,7 +943,6 @@ namespace Silent::Structures
                     parser.ErrorMsg("Expected end of statement");
             }
             break;
-
 
             default: 
             {
@@ -1069,24 +1013,24 @@ namespace Silent::Structures
     {
         DEBUG("Parsing namespace\n")
 
-        //Assign parent scope
+        // Assign parent scope
         this->parent = scope;
         hasParent = scope == NULL ? false : true;
 
         if(hasParent)
         {
-            //Get namespace identifier
+            // Get namespace identifier
             std::string id = parser.ExpectToken(TokenType::Identifier,
                 "Expected namespace identifier\n").value;
 
-            //Check for conflicting namespace identifiers in parent scope
+            // Check for conflicting namespace identifiers in parent scope
             for(Namespace* name : scope->namespaces)
                 if(name->identifier == id)
                     parser.ErrorMsg("Conflicting namespaces\n");
 
             this->identifier = id;
 
-            //Check for proper declaration syntax
+            // Check for proper declaration syntax
             parser.ExpectNextToken(
                 TokenType::OpenScope,"Expected scope declaration\n");
         }
@@ -1097,7 +1041,7 @@ namespace Silent::Structures
 
         parser.PushNewNamespace(this);
 
-        //Parse namespace scope
+        // Parse namespace scope
         while(parser.GetToken().type != TokenType::CloseScope)
         {
             switch(parser.GetToken().type)
@@ -1126,11 +1070,11 @@ namespace Silent::Structures
                 }
                 break;
 
-                // case TokenType::Identifier:
-                // break;
+                //  case TokenType::Identifier:
+                //  break;
 
-                // case TokenType::Primitive:
-                // break;
+                //  case TokenType::Primitive:
+                //  break;
 
                 default: 
                     parser.ErrorMsg("Unexpected token");
@@ -1181,6 +1125,7 @@ namespace Silent
     {
         globalNamespace = new Structures::Namespace();
         tokenCursor = 0;
+        errorCount = 0;
     }
     Parser::~Parser(){delete globalNamespace;}
 
@@ -1193,16 +1138,16 @@ namespace Silent
         if(!globalNamespace->Parse(*this, NULL))
             ERROR("Failed parsing global namespace\n");
 
-
-        DEBUG("Parsing succsessfull\n");
+        printf("Parsing successful with %llu errors\n", errorCount);
         return true;
     }
 
     void Parser::ErrorMsg(std::string msg)
     {
-        //ERROR((char*)"Parser error on line %llu:\n", ct.line);
-        //ERROR(msg.data());
-        //ERROR((char*)"At token: %s\n", ct.value.data());
+        // ERROR((char*)"Parser error on line %llu:\n", ct.line);
+        // ERROR(msg.data());
+        // ERROR((char*)"At token: %s\n", ct.value.data());
+        errorCount++;
         std::cout << "Parser error on line " << ct.line << "\n";
         std::cout << msg << "\n";
         std::cout << "At token: " << ct.value << "\n";
@@ -1312,7 +1257,7 @@ namespace Silent
         }
         else
         {
-            //t.type->type = NodeType::Structure;
+            // t.type->type = NodeType::Structure;
             t.dataType = DataType::Type::Structure;
             bool found = false;
             for(int64 i = accessibleNamespaces.size()-1; i >= 0 && !found; i--)
@@ -1376,7 +1321,7 @@ namespace Silent
         NextToken();
         while(true)
         {
-            //ExpectNextToken(TokenType::FullStop, "Expected \".\"");
+            // ExpectNextToken(TokenType::FullStop, "Expected \".\"");
             if(ct.type == TokenType::FullStop) NextToken();
             else break;
 

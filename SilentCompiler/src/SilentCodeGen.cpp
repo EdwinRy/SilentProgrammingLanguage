@@ -4,8 +4,7 @@
 #include <iostream>
 #include <cstring>
 
-#define DEBUG_ENABLED 1
-#define ERROR(args...) printf(args);
+#define DEBUG_ENABLED 0
 #if DEBUG_ENABLED
 #define DEBUG(args...) printf(args);
 #else
@@ -27,38 +26,56 @@ namespace Silent::Structures
                 //Variable* var = this->left->value.variable;
                 Variable var;
                 if(this->left->value.nodeType == Node::Type::Members)
-                {
                     var = *this->left->value.members->back();
-                    uint64 offset = 0;
-                    for(Variable* tempVar : *this->left->value.members)
-                        offset += tempVar->GetLocalPos();
-
-                    var.SetLocalPos(offset);
-                    DEBUG("MEMBER OFFSET %llu\n", offset);
-                }
                 else var = *this->left->value.variable;
 
 
                 gc.currentType = var.GetType();
                 this->right->Compile(gc);
-                if(var.isReference)
+
+                if(this->left->value.nodeType == Node::Type::Members)
                 {
-                    if(var.GetType().dataType == DataType::Type::Primitive)
+                    // uint64 offset = 0;
+                    Variable* fVar = this->left->value.members->at(0);
+                    Variable* lVar = this->left->value.members->back();
+                    this->left->value.members->pop_back();
+
+                    gc.code.AddVal<char>((char)Opcodes::Load8);
+                    gc.code.AddVal<uint64>(fVar->GetLocalPos());
+
+                    for(uint64 i = 1; i < this->left->value.members->size();i++)
+                    {
+                        Variable* tempVar = this->value.members->at(i);
+                        gc.code.AddVal<char>((char)Opcodes::LoadPtr8);
+                        gc.code.AddVal<uint64>(tempVar->GetLocalPos());
+                    }
+                    if(lVar->GetType().dataType == DataType::Type::Primitive)
                     {
                         gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                            var.GetType().primitive,Opcodes::Load1));
-                        gc.code.AddVal<uint64>(var.GetLocalPos());
+                            lVar->GetType().primitive,Opcodes::StorePtr1
+                        ));
+                        gc.code.AddVal<uint64>(lVar->GetLocalPos());
+                    }
+                    else
+                    {
                         gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                            var.GetType().primitive,Opcodes::StorePtr1));
-                        gc.code.AddVal<uint64>(0ll);
+                            lVar->GetType().primitive,Opcodes::StorePtrX
+                        ));
+                        gc.code.AddVal<uint64>(lVar->GetSize());
+                        gc.code.AddVal<uint64>(lVar->GetLocalPos());
                     }
                 }
                 else
                 {
-                    if(var.GetType().dataType == DataType::Type::Primitive)
+                    if(var.GetType().dataType == DataType::Type::Structure)
+                    {
+                        gc.code.AddVal<char>((char)Opcodes::Store8);
+                        gc.code.AddVal<uint64>(var.GetLocalPos());
+                    }
+                    else if(var.GetType().dataType == DataType::Type::Primitive)
                     {
                         gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                            var.GetType().primitive,Opcodes::Store1));
+                        var.GetType().primitive,Opcodes::Store1));
                         gc.code.AddVal<uint64>(var.GetLocalPos());
                     }
                 }
@@ -76,16 +93,17 @@ namespace Silent::Structures
                 for(uint64 i = 0; i < func->GetParameterCount(); i++)
                 {
                     Operand* arg = funcCall->arguments[i];
-                    if(func->GetScope()->GetVariables()->at(i)->isReference)
-                    {
-                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                            arg->value.variable->GetType().primitive, 
-                            Opcodes::Load1
-                        ));
-                        gc.code.AddVal<uint64>(
-                            arg->value.variable->GetLocalPos());
-                    }
-                    else arg->Compile(gc);
+                    // if(func->GetScope()->GetVariables()->at(i)->isReference)
+                    // {
+                    //     gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                    //         arg->value.variable->GetType().primitive, 
+                    //         Opcodes::Load1
+                    //     ));
+                    //     gc.code.AddVal<uint64>(
+                    //         arg->value.variable->GetLocalPos());
+                    // }
+                    //else 
+                    arg->Compile(gc);
                 }
                 gc.code.AddVal<char>((char)Opcodes::Call);
                 gc.code.AddVal<uint64>(gc.GetFuncPtr(func));
@@ -216,59 +234,54 @@ namespace Silent::Structures
             }
             break;
 
+            case OperandType::NewObject:
+            {
+                if(this->value.dataType->dataType == DataType::Type::Structure)
+                {
+                    gc.code.AddVal<char>((char)Opcodes::AllocX);
+                    gc.code.AddVal<uint64>(this->value.dataType->size);
+                }
+                else
+                {
+                    gc.code.AddPush(*this->value.dataType, "0");
+                }
+            }
+            break;
+
             case OperandType::Members:
             {
                 DEBUG("STRUCT\n");
                 DataType oldType = gc.currentType;
-                gc.currentType = this->value.members->back()->GetType();
 
-                //Variable* lastMember = this->value.members->back();
-                //this->value.members->pop_back();
+                Variable* firstMember = this->value.members->at(0);
+                Variable *lastMember = this->value.members->back();
+                this->value.members->pop_back();
 
-                uint64 offset = 0;
-                for(Variable* var : *this->value.members)
-                    offset += var->GetLocalPos();
+                //Load reference to the 1st member
+                gc.code.AddVal<char>((char)Opcodes::Load8);
+                gc.code.AddVal<uint64>(firstMember->GetLocalPos());
 
-                DEBUG("Member offset -> %i\n", offset);
-
-                Variable* var = this->value.members->back();
-
-                if(var->isReference)
+                //Iterate through members ignoring the 1st one
+                for(uint64 i = 1; i < this->value.members->size(); i++)
                 {
-                    // if(var->GetType().dataType == DataType::Type::Primitive)
-                    // {
-                    //     gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                    //         var->GetType().primitive,
-                    //         Opcodes::Load1
-                    //     ));
-                    //     gc.code.AddVal<uint64>(var->GetLocalPos());
-                    //     gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                    //         var->GetType().primitive,
-                    //         Opcodes::StorePtr1
-                    //     ));
-                    //     gc.code.AddVal<uint64>(0ll);
-                    // }
-                    // else
-                    // {
-                    //     //TODO: add init structure reference variables
-                    // }
+                    Variable* var = this->value.members->at(i);
+                    gc.code.AddVal<char>((char)Opcodes::LoadPtr8);
+                    gc.code.AddVal<uint64>(var->GetLocalPos());
+                }
+
+                if(lastMember->GetType().dataType == DataType::Type::Primitive)
+                {
+                    gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                            lastMember->GetType().primitive,
+                            Opcodes::LoadPtr1
+                        ));
+                    gc.code.AddVal<uint64>(lastMember->GetLocalPos());
                 }
                 else
                 {
-                    if(var->GetType().dataType == DataType::Type::Primitive)
-                    {
-                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                            var->GetType().primitive,
-                            Opcodes::Load1
-                        ));
-                        gc.code.AddVal<uint64>(offset);
-                    }
-                    else
-                    {
-                        //TODO: add init structure variables
-                    }
+                    gc.code.AddVal<char>((char)Opcodes::LoadPtr8);
+                    gc.code.AddVal<uint64>(lastMember->GetLocalPos());
                 }
-
                 gc.currentType = oldType;
             }
             break;
@@ -279,41 +292,27 @@ namespace Silent::Structures
                 DataType oldType = gc.currentType;
                 Variable* var = this->value.variable;
                 gc.currentType = var->GetType();
-                if(var->isReference)
-                {
-                    if(var->GetType().dataType == DataType::Type::Primitive)
-                    {
-                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                            var->GetType().primitive,
-                            Opcodes::Load1
-                        ));
-                        gc.code.AddVal<uint64>(var->GetLocalPos());
-                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                            var->GetType().primitive,
-                            Opcodes::StorePtr1
-                        ));
-                        gc.code.AddVal<uint64>(0ll);
-                    }
-                    else
-                    {
-                        //TODO: add init structure reference variables
-                    }
-                }
-                else
-                {
-                    if(var->GetType().dataType == DataType::Type::Primitive)
-                    {
-                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                            var->GetType().primitive,
-                            Opcodes::Load1
-                        ));
-                        gc.code.AddVal<uint64>(var->GetLocalPos());
-                    }
-                    else
-                    {
-                        //TODO: add init structure variables
-                    }
-                }
+                // if(var->isReference)
+                // {
+                //     gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                //         var->GetType().primitive,
+                //         Opcodes::Load1
+                //     ));
+                //     gc.code.AddVal<uint64>(var->GetLocalPos());
+                //     gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                //         var->GetType().primitive,
+                //         Opcodes::StorePtr1
+                //     ));
+                //     gc.code.AddVal<uint64>(0ll);
+                // }
+                // else
+                // {
+                gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
+                    var->GetType().primitive,
+                    Opcodes::Load1
+                ));
+                gc.code.AddVal<uint64>(var->GetLocalPos());
+                // }
                 gc.currentType = oldType;
             }
             break;
@@ -329,33 +328,27 @@ namespace Silent::Structures
         DEBUG("Compiling statement\n");
         switch(this->type)
         {
-            case Statement::Type::VarInit:
-                if(this->val.variable->isReference)
+            case Statement::Type::PrimInit:
+                gc.code.AddPush(this->val.variable->GetType(),"0");
+            break;
+
+            case Statement::Type::StructInit:
+                gc.code.AddVal<char>((char)Opcodes::Push8);
+                gc.code.AddVal<uint64>(0ll);
+            break;
+
+            case Statement::Type::TypeAlloc:
+            {
+                if(this->val.dataType->dataType == DataType::Type::Structure)
                 {
-                    switch(this->val.variable->GetSize())
-                    {
-                        case 1: 
-                            gc.code.AddVal<char>((char)Opcodes::Alloc1);
-                        break;
-                        case 2: 
-                            gc.code.AddVal<char>((char)Opcodes::Alloc2);
-                        break;
-                        case 4: 
-                            gc.code.AddVal<char>((char)Opcodes::Alloc4);
-                        break;
-                        case 8: 
-                            gc.code.AddVal<char>((char)Opcodes::Alloc8);
-                        break;
-                        default:
-                        {
-                            gc.code.AddVal<char>((char)Opcodes::AllocX);
-                            gc.code.AddVal<uint64>(
-                                this->val.variable->GetSize());
-                        }
-                        break;
-                    }
+                    gc.code.AddVal<char>((char)Opcodes::AllocX);
+                    gc.code.AddVal<uint64>(val.dataType->structure->GetSize());
                 }
-                else gc.code.AddPush(this->val.variable->GetType(),"0");
+                else
+                {
+                    //TODO: add support for primitive objects
+                }
+            }
             break;
 
             case Statement::Type::Delete:
@@ -370,7 +363,6 @@ namespace Silent::Structures
             case Statement::Type::Return:
                 gc.code.AddVal<char>((char)Opcodes::Return);
                 gc.code.AddVal<uint64>(gc.currentType.size);
-
             break;
 
             default: break;

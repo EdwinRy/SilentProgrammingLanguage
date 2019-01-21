@@ -5,10 +5,16 @@ struct vec3
     int64 z;
 }
 
+
 func int64 main()
 {
-    int64 b = 1;
-    vec3 v;
-    v.x = 21;
-    b = v.x;
+    int64 b;
+
+    vec3 v1 = new vec3;
+    v1.x = 9;
+    v1.y = 10;
+    v1.z = 2;
+
+    v1.z = v1.x + v1.y;
+    b = v1.z;
 }

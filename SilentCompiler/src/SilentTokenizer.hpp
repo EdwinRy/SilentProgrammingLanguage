@@ -45,7 +45,7 @@ namespace Silent
         Not,
         New,
         Delete,
-        Reference,
+        //Reference,
         Function,
         Struct,
         Return,
