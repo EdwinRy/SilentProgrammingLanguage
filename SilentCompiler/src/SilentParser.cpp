@@ -1,3 +1,5 @@
+// TODO: add more elaborate errors, operators on objects
+
 #include "SilentStructures.hpp"
 #include "SilentParser.hpp"
 #include <iostream>
@@ -253,6 +255,7 @@ namespace Silent::Structures
                     Operand* op = Operand::ParseFactor(parser, *this);
                     statement->val.operand = op;
                     parser.NextToken();
+                    this->statements.push_back(statement);
                 }
                 break;
 

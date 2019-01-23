@@ -2,7 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define DEBUG 1
+#define DEBUG_ENABLED 1
+#if DEBUG_ENABLED
+#define DEBUG(args...) printf(args);
+#else
+#define DEBUG(args...) 
+#endif
 typedef unsigned long long uint64;
 typedef unsigned int uint32;
 typedef long long int64;
@@ -427,8 +432,11 @@ void SilentStartVM(char* prog)
 			break;
 
 			case Free:
-				SilentFree(&gc, (uint64)*((uint64*)(program + (++pc))));
-				pc += 7;
+				DEBUG("Freeing object\n");
+				// reg.l = (uint64)*((uint64*)(program + (++pc)));
+				sp -= 8;
+				SilentFree(&gc, (uint64)*((uint64*)(stack + (sp))));
+				// pc += 7; 
 			break;
 
 			case GetPtr:
@@ -995,17 +1003,14 @@ uint64 SilentAlloc(SilentGC* gc, uint64 size)
 			break;
 		}
 
-	#if DEBUG
-	printf("Allocated %5llu bytes on location %llu\n", size, returnPos);
-	#endif
+
+	DEBUG("Allocated %llu bytes on location %llu\n", size, returnPos);
 	return returnPos;
 }
 
 void SilentFree(SilentGC* gc, uint64 pos)
 {
-	#if DEBUG
-	printf("Attempting to free item at position %llu \n",pos);
-	#endif
+	DEBUG("Attempting to free item at position %llu \n",pos);
 	gc->heap[pos].occupied = 0;
 	free(gc->heap[pos].data);
 	if(pos < gc->lastFree) gc->lastFree = pos;

@@ -1,3 +1,4 @@
+// TODO: add delete command
 #include "SilentCodeGen.hpp"
 #include "SilentParser.hpp"
 #include "SilentStructures.hpp"
@@ -352,8 +353,11 @@ namespace Silent::Structures
             break;
 
             case Statement::Type::Delete:
+                this->val.operand->Compile(gc);
+                // gc.code.AddVal<char>((char)Opcodes::Load8);
+                // gc.code.AddVal<uint64>(val.variable->GetLocalPos());
                 gc.code.AddVal<char>((char)Opcodes::Free);
-                gc.code.AddVal<uint64>(val.variable->GetLocalPos());
+                // gc.code.AddVal<uint64>(val.variable->GetLocalPos());
             break;
 
             case Statement::Type::Expression:

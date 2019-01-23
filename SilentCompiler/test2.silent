@@ -17,4 +17,7 @@ func int64 main()
 
     v1.z = v1.x + v1.y;
     b = v1.z;
+    //delete v1; //Segmentation fault if commented out
+    v1.x = 5;
+    b = v1.x;
 }
