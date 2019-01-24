@@ -8,81 +8,59 @@
 using namespace Silent;
 
 SilentCompiler::SilentCompiler() { this->source = ""; }
-void SilentCompiler::Compile(SilentCompileMode mode)
+
+void SilentCompiler::Compile(char* inFile, char* outPath)
 {
-    if(mode == SilentCompileMode::Src)
-    {
-        if(this->source == "")
-        {
-            char* source = readAllText(this->path);
-            this->source.assign(source,strlen(source)+1);
-        }
-
-        //std::vector<SilentToken>* tokens = tokenizer.Tokenize(this->source);
-        Tokenizer tokenizer;
-        if(!tokenizer.Tokenize(this->source))
-        {
-            std::cout << "Could not tokenize source\n";
-        }
-
-        Parser parser;
-        if(!parser.Parse(tokenizer.GetTokens()))
-        {
-            std::cout << "Parsing unsuccessful\n";
-        }
-
-        CodeGenerator codeGen;
-        codeGen.GenerateBytecode(parser);
-        uint64 codeLen;
-        char* output = codeGen.GetOutput(&codeLen);
-        writeAllBytes("package.si", output, codeLen);
-
-        //SilentCodeGenerator codeGen;
-        //codeGen.Compile(&parser);
-
-        //std::string intCode = SilentGenerateIntCode(parser.GetGlobalNamespace());
-
-        //writeAllText("package.si", codeGen.GetOutput());
-        //SilentParserInfo* parserOutput = SilentParse(tokenizer.GetTokens());
-        //std::string intCode = SilentGenerateIntCode(parserOutput);
-        //this->libOutput = intCode;
-        //this->output = SilentCompileAST(*parserOutput);
-        //this->output = SilentGenerateAssembly(intCode->code);
-
-        //SilentCleaner cleaner;
-        //cleaner.CleanupParser(&parser);
-    }
-    else
-    {
-        //SilentAssembler assembler = SilentAssembler();
-        //assembler.Assemble(this->path);
-    }
-    std::cout << "\nDone!\n";
+    char* fileContent = readAllText(inFile);
+    std::string tempSource;
+    tempSource.assign(fileContent, strlen(fileContent)+1);
+    this->CompileSource(tempSource, outPath);
 }
 
-void SilentCompiler::SetSource(char* source) { this->source = source; }
-void SilentCompiler::SetPath(char* path) { this->path = path; }
+void SilentCompiler::CompileSource(std::string source, char* outFile)
+{
+    this->source = source;
+    this->outPath = outFile;
+
+    Tokenizer tokenizer;
+    if(!tokenizer.Tokenize(this->source))
+    {
+        std::cout << "Could not tokenize source\n";
+    }
+
+    Parser parser;
+    if(!parser.Parse(tokenizer.GetTokens()))
+    {
+        std::cout << "Parsing unsuccessful\n";
+    }
+
+    CodeGenerator codeGen;
+    codeGen.GenerateBytecode(parser);
+    uint64 codeLen;
+    char* binOutput = codeGen.GetOutput(&codeLen);
+
+    if(outFile != NULL)
+    {
+        writeAllBytes(outFile, binOutput, codeLen);
+    }
+    this->output.assign(binOutput, codeLen);
+    std::cout << "\nDone!\n";
+}
 
 int main(int argc, char** argv)
 {
     SilentCompiler compiler = SilentCompiler();
     
-    if(strcmp(argv[1], "-c") == 0)
+    char* outPath = NULL;
+    char* inFile = NULL;
+
+    for(uint64 i = 1; i < (uint64)argc; i++)
     {
-        //SilentConsole console;
-        //console.Start();
+        if(strcmp(argv[i], "-o") == 0) outPath = argv[++i];
+        else inFile = argv[i];
     }
-    //else if(argc > 1)
-    //{
-    //    for(int i = 0; i < argc; i++)
-    //    {
-    //        if(strcmp(argv[1], "-o"))
-    //    }
-    //}
-    else
-    {
-        compiler.SetPath(argv[1]);
-        compiler.Compile(SilentCompileMode::Src);
-    }
+    
+    if(inFile != NULL) compiler.Compile(inFile, outPath);
+
     return 0;
 }

@@ -10,7 +10,6 @@ struct vec2
     int64 y;
 }
 
-
 func int64 main()
 {
     int64 b;
@@ -23,5 +22,9 @@ func int64 main()
 
     v1.y = v1.x.val + v1.x.val2 + 2;
 
-    b = v1.y;
+    num n = v1.x;
+    
+    delete v1;
+
+    b = n.val2;
 }

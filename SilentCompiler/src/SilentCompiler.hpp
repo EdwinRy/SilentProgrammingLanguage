@@ -1,27 +1,25 @@
 #pragma once
 #include <iostream>
+#include <vector>
 namespace Silent
 {
-    enum class SilentCompileMode
-    {
-        Asm,Src
-    };
-    
     class SilentCompiler
     {
         private:
         std::string source;
-        char* path;
-        char* libPath;
+        // char* path;
+        // char* libPath;
+
+        char* inFile;
+        char* outPath;
 
         std::string output;
-        std::string libOutput;
+        // std::string libOutput;
 
         public:
         SilentCompiler();
-        void Compile(SilentCompileMode mode);
-        void SetSource(char* source);
-        void SetPath(char* path);
-        void SetLibPath(char* path);
+        void Compile(char* inFile, char* outPath);
+        void CompileSource(std::string source, char* outFile);
+        std::string GetOutput(){return output;}
     };
 }
