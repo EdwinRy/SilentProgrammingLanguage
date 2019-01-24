@@ -499,7 +499,7 @@ namespace Silent::Structures
                         std::vector<Variable*>* members = new 
                             std::vector<Variable*>(parser.GetMember(var));
                         op->value.members = members;
-                        parser.NextToken();
+                        // parser.NextToken();
                     }
                     else
                     {
@@ -1147,9 +1147,6 @@ namespace Silent
 
     void Parser::ErrorMsg(std::string msg)
     {
-        // ERROR((char*)"Parser error on line %llu:\n", ct.line);
-        // ERROR(msg.data());
-        // ERROR((char*)"At token: %s\n", ct.value.data());
         errorCount++;
         std::cout << "Parser error on line " << ct.line << "\n";
         std::cout << msg << "\n";
@@ -1338,7 +1335,7 @@ namespace Silent
                 }
             }
             var = members.back();
-            if(var->GetType().dataType == DataType::Type::Primitive) break;
+            // if(var->GetType().dataType == DataType::Type::Primitive) break;
             NextToken();
         }
 

@@ -46,23 +46,20 @@ namespace Silent::Structures
 
                     for(uint64 i = 1; i < this->left->value.members->size();i++)
                     {
-                        Variable* tempVar = this->value.members->at(i);
+                        Variable* tempVar = this->left->value.members->at(i);
                         gc.code.AddVal<char>((char)Opcodes::LoadPtr8);
                         gc.code.AddVal<uint64>(tempVar->GetLocalPos());
                     }
                     if(lVar->GetType().dataType == DataType::Type::Primitive)
                     {
                         gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                            lVar->GetType().primitive,Opcodes::StorePtr1
+                            lVar->GetType().primitive, Opcodes::StorePtr1
                         ));
                         gc.code.AddVal<uint64>(lVar->GetLocalPos());
                     }
                     else
                     {
-                        gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                            lVar->GetType().primitive,Opcodes::StorePtrX
-                        ));
-                        gc.code.AddVal<uint64>(lVar->GetSize());
+                        gc.code.AddVal<char>((char)Opcodes::StorePtr8);
                         gc.code.AddVal<uint64>(lVar->GetLocalPos());
                     }
                 }
@@ -76,7 +73,7 @@ namespace Silent::Structures
                     else if(var.GetType().dataType == DataType::Type::Primitive)
                     {
                         gc.code.AddVal<char>((char)gc.code.ToBytecodeSize(
-                        var.GetType().primitive,Opcodes::Store1));
+                            var.GetType().primitive,Opcodes::Store1));
                         gc.code.AddVal<uint64>(var.GetLocalPos());
                     }
                 }
@@ -354,10 +351,7 @@ namespace Silent::Structures
 
             case Statement::Type::Delete:
                 this->val.operand->Compile(gc);
-                // gc.code.AddVal<char>((char)Opcodes::Load8);
-                // gc.code.AddVal<uint64>(val.variable->GetLocalPos());
                 gc.code.AddVal<char>((char)Opcodes::Free);
-                // gc.code.AddVal<uint64>(val.variable->GetLocalPos());
             break;
 
             case Statement::Type::Expression:

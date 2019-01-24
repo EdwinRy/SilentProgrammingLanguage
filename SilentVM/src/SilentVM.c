@@ -427,6 +427,9 @@ void SilentStartVM(char* prog)
 				reg2.l = (uint64)*((uint64*)(program + (++pc)));
 				pc += 7;
 				sp -= reg.l;
+				DEBUG("%llu\n", (uint64)*((uint64*)(stack+(sp))));
+				DEBUG("%llu\n", reg.l);
+				DEBUG("%llu\n", reg2.l);
 				memcpy(gc.heap[(uint64)*((uint64*)(stack+(sp)))].data + reg2.l, 
 					stack+sp, reg.l);
 			break;

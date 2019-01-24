@@ -1,8 +1,13 @@
-struct vec3
+struct num
 {
-    int64 x;
+    int64 val;
+    int64 val2;
+}
+
+struct vec2
+{
+    num x;
     int64 y;
-    int64 z;
 }
 
 
@@ -10,14 +15,13 @@ func int64 main()
 {
     int64 b;
 
-    vec3 v1 = new vec3;
-    v1.x = 9;
-    v1.y = 10;
-    v1.z = 2;
+    vec2 v1 = new vec2;
 
-    v1.z = v1.x + v1.y;
-    b = v1.z;
-    //delete v1; //Segmentation fault if commented out
-    v1.x = 5;
-    b = v1.x;
+    v1.x = new num;
+    v1.x.val = 9;
+    v1.x.val2 = 10;
+
+    v1.y = v1.x.val + v1.x.val2 + 2;
+
+    b = v1.y;
 }
