@@ -304,10 +304,10 @@ namespace Silent
                         {
                             token.type = TokenType::While;
                         }
-                        else if(token.value == "struct")
-                        {
-                            token.type = TokenType::Struct;
-                        }
+                        // else if(token.value == "struct")
+                        // {
+                        //     token.type = TokenType::Struct;
+                        // }
                         else if(token.value == "namespace")
                         {
                             token.type = TokenType::Namespace;

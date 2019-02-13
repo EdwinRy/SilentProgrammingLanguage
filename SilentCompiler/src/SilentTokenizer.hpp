@@ -47,7 +47,7 @@ namespace Silent
         Delete,
         //Reference,
         Function,
-        Struct,
+        // Struct,
         Return,
         Namespace,
         Class,

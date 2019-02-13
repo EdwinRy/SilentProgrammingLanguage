@@ -9,11 +9,11 @@ MKDIR = mkdir
 
 SOURCES = \
 	$(SRC_PATH)/SilentCompiler.cpp \
-	$(SRC_PATH)/SilentConsole.cpp \
 	$(SRC_PATH)/SilentParser.cpp \
 	$(SRC_PATH)/SilentTokenizer.cpp \
 	$(SRC_PATH)/SilentCodeGen.cpp 
 	
+	# $(SRC_PATH)/SilentConsole.cpp 
 #$(SRC_PATH)/SilentCleanup.cpp 
 #	$(SRC_PATH)/SilentIntCode.cpp
 #	$(SRC_PATH)/SilentDebugger.cpp

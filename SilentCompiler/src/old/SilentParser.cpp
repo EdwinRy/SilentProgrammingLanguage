@@ -1012,11 +1012,13 @@ namespace Silent::Structures
         return true;
     }
 
-    bool Namespace::Parse(Parser &parser, Namespace *parentScope)
+    bool Namespace::Parse(Parser &parser, Namespace *scope)
     {
+        DEBUG("Parsing namespace\n")
+
         // Assign parent scope
-        this->parent = parentScope;
-        hasParent = this->parent == NULL ? false : true;
+        this->parent = scope;
+        hasParent = scope == NULL ? false : true;
 
         if(hasParent)
         {
@@ -1039,8 +1041,6 @@ namespace Silent::Structures
         {
             identifier = "global";
         }
-
-        DEBUG("Parsing namespace\n")
 
         parser.PushNewNamespace(this);
 

@@ -10,7 +10,6 @@ namespace Silent
     class SymTable
     {
         public:
-        void AddEntry(std::string id, Structures::Node* node);
         private:
         std::unordered_map<std::string, Structures::Node*> table;
     };
