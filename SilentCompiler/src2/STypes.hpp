@@ -1,5 +1,6 @@
 #pragma once
 #include "SParser.hpp"
+#include <iostream>
 #include <vector>
 namespace Silent
 {
@@ -14,6 +15,9 @@ namespace Silent::Types
     {
         public:
         static void Parse(Parser &parser, ScopeResolution parent);
+        std::string identifier;
+        ScopeResolution* scopeResolution;
+
     };
 
     class Function
@@ -33,11 +37,14 @@ namespace Silent::Types
 
     class Node
     {
+        public:
         enum class Type
         {
+            Namespace,
             Class,
             Function,
             Variable
+
 
         }nodeType;
 
@@ -46,6 +53,7 @@ namespace Silent::Types
             Type *type;
             Function *function;
             Variable *variable;
+            Namespace *module;
         };
     };
 };

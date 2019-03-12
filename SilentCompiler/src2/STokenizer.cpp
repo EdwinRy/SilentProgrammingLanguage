@@ -572,7 +572,7 @@ namespace Silent
             case TokenType::CloseBracket:
             case TokenType::OpenScope:
             case TokenType::CloseScope:
-            case TokenType::ScopeResolution:
+            // case TokenType::ScopeResolution:
                 return true;
             break;
 

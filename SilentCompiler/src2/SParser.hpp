@@ -4,9 +4,9 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+
 namespace Silent
 {
-
     class ScopeResolution
     {
         public:
@@ -18,6 +18,7 @@ namespace Silent
         std::string scopeFormatted;
 
         ScopeResolution& operator+=(std::string rhs);
+        bool operator==(const ScopeResolution& rhs) const;
         ScopeResolution& operator--();
 
     };
@@ -27,8 +28,9 @@ namespace Silent
         public:
         ScopeResolution scopeReference;
         Types::Node node;
-        std::vector<SymTableNode> children;
-        static std::unordered_map<ScopeResolution, SymTableNode*> symTableData;
+        std::vector<SymTableNode*> children;
+        static thread_local 
+            std::unordered_map<ScopeResolution, SymTableNode*> symTable;
     };
 
     class Parser
@@ -45,15 +47,22 @@ namespace Silent
         SymTableNode Parse(std::vector<Silent::Token> tokens);
         SymTableNode symTable;
 
-        std::unordered_map<ScopeResolution, SymTableNode*>& GetSymData()
-        {
-            return symTable.symTableData;
-        }
-
         private:
         unsigned long long errorCount;
         Token ct;
         unsigned long long tokenCursor;
         std::vector<Silent::Token> *tokensPtr;
+    };
+}
+
+namespace std
+{
+    template<>
+    struct hash<Silent::ScopeResolution>
+    {
+        std::size_t operator()(const Silent::ScopeResolution& sr) const
+        {
+            return std::hash<std::string>{}(sr.scopeFormatted);
+        }
     };
 }

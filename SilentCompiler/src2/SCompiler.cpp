@@ -1,5 +1,6 @@
 #include "SCompiler.hpp"
 #include "SFiles.hpp"
+#include "SParser.hpp"
 #include "STokenizer.hpp"
 #include <iostream>
 #include <vector>
@@ -26,7 +27,8 @@ void SilentCompiler::CompileSource(std::string source, char* outFile)
         std::cout << "Could not tokenize source\n";
     }
 
-    // Parser parser;
+    Parser parser;
+    parser.Parse(tokenizer.GetTokens());
     // if(!parser.Parse(tokenizer.GetTokens()))
     // {
     //     std::cout << "Parsing unsuccessful\n";

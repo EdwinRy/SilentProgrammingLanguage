@@ -1,6 +1,9 @@
 #include "SParser.hpp"
 #include <sstream>
-#define DEBUG_ENABLED 0
+
+
+// Define debug output functions
+#define DEBUG_ENABLED 1
 #define ERROR(args...) printf(args);
 #if DEBUG_ENABLED
 #define DEBUG(args...) printf(args);
@@ -10,6 +13,9 @@
 
 namespace Silent
 {
+    thread_local 
+        std::unordered_map<ScopeResolution, SymTableNode*> SymTableNode::symTable;
+
     ScopeResolution::ScopeResolution(std::string scope)
     {
         this->scopeFormatted = scope;
@@ -28,6 +34,7 @@ namespace Silent
                 scopeBuffer += scope[i];
             }
         }
+        scopeList.push_back(scopeBuffer);
     }
 
     ScopeResolution::ScopeResolution(std::vector<std::string> scope)
@@ -61,6 +68,7 @@ namespace Silent
                 scopeBuffer += rhs[i];
             }
         }
+        scopeList.push_back(scopeBuffer);
 
         // Regenerate scope reference stirng
         this->scopeFormatted = "";
@@ -74,6 +82,11 @@ namespace Silent
         scopeFormatted += lastScope;
         scopeList.push_back(lastScope);
         return *this;
+    }
+
+    bool ScopeResolution::operator==(const ScopeResolution& rhs) const
+    {
+        return this->scopeFormatted == rhs.scopeFormatted;
     }
 
     ScopeResolution& ScopeResolution::operator--()
@@ -134,9 +147,9 @@ namespace Silent
 
     SymTableNode Parser::Parse(std::vector<Silent::Token> tokens)
     {
+        DEBUG("Started parsing\n");
         ct = tokens[0];
 
-        DEBUG("Started parsing\n");
         tokensPtr = &tokens;
         tokens.push_back({TokenType::CloseScope, "}", 0});
 
@@ -145,7 +158,7 @@ namespace Silent
             switch(this->GetToken().type)
             {
                 case TokenType::Namespace:
-                    Types::Namespace::Parse(*this);
+                    Types::Namespace::Parse(*this, ScopeResolution(""));
                 break;
 
                 case TokenType::Function:
@@ -171,21 +184,100 @@ namespace Silent::Types
 {
     void Namespace::Parse(Parser &parser, ScopeResolution parent)
     {
+        DEBUG("Parsing Namespace\n");
+
         // Skip through namespace keyword
+        parser.NextToken(); 
+
+        // Check for namespace definition syntax
+        if(parser.GetToken().type != TokenType::Identifier)
+            parser.ErrorMsg("Unexpected token in namespace declaration");
+
+        // Get the namespace identifier
+        std::string namespaceIdentifier = parser.GetToken().value;
         parser.NextToken();
 
-        if(parser.GetToken().type != TokenType::Identifier)
+        // Generate the namespace address from global scope
+        ScopeResolution scopeReference(
+            parent.scopeFormatted + "::" + namespaceIdentifier);
+
+        DEBUG("Got scope resolution %s\n",scopeReference.scopeFormatted.data());
+
+        // Prepare space for a node in the table
+        SymTableNode* tableNode;
+
+        // Pointer for the namespace to be parsed
+        Namespace* thisNamespace;
+
+        // If the namespace is not in the symbol table
+        if(SymTableNode::symTable[scopeReference] == NULL)
+        {
+            // Create new symbol table node
+            DEBUG("New namespace definition\n");
+            tableNode = new SymTableNode();
+            tableNode->scopeReference = scopeReference;
+            
+            // Check if the parent of the namespace is not global
+            if(parent.scopeFormatted != "")
+                // Append the node to the parent's children
+                SymTableNode::symTable[parent]->
+                    children.push_back(tableNode);
+
+            // Add the node to the symbol table
+            SymTableNode::symTable[scopeReference] = tableNode;
+
+            // Create the namespace object
+            thisNamespace = new Namespace();
+            thisNamespace->identifier = namespaceIdentifier;
+            thisNamespace->scopeResolution =new ScopeResolution(scopeReference);
+        }
+        // If the namespace is already declared
+        else
+        {
+            DEBUG("Appending to already existing namespace\n");
+            tableNode = SymTableNode::symTable[scopeReference];
+
+            // TODO: add node type check
+            thisNamespace = tableNode->node.module;
+
+        }
+        
+
+
+        // Check for either open scope indicating initialisation of members
+        // or semicolon for just the declaration
+        if(parser.GetToken().type == TokenType::OpenScope)
+            parser.NextToken();
+        else if(parser.GetToken().type == TokenType::Semicolon)
+        {
+            parser.NextToken();
+            return;
+        }
+        else
         {
             parser.ErrorMsg("Unexpected token in namespace declaration");
         }
 
-        SymTableNode* tableNode = new SymTableNode();
-        ScopeResolution scopeReference(parent += parser.GetToken().value);
 
-        if(parser.GetSymData().count(scopeReference) == 1)
+        
+        // Parse Namespace scope
+        while(parser.GetToken().type != TokenType::CloseScope)
         {
+            switch(parser.GetToken().type)
+            {
+                case TokenType::Namespace:
+                {
+                    Namespace* newNamespace = new Namespace();
+                    // namespaces.push_back(newNamespace);
+                    newNamespace->Parse(parser, scopeReference);
+                }
+                break;
 
+                default:break;
+            }
         }
+        parser.NextToken();
+        DEBUG("Finished parsing namespace\n");
         
     }
 }

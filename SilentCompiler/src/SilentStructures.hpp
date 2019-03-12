@@ -363,8 +363,8 @@ namespace Silent::Structures
     class Namespace
     {
         public:
-        //Namespace();
-        bool Parse(Parser &parser, Namespace *scope);
+        Namespace(){}
+        void Parse(Parser &parser, Namespace *scope);
         bool Compile(CodeGenerator &cg);
         bool ContainsFunction(std::string id);
         bool ContainsStructure(std::string id);
