@@ -8,12 +8,16 @@ using namespace Silent;
 
 SilentCompiler::SilentCompiler() { this->source = ""; }
 
-void SilentCompiler::Compile(char* inFile, char* outPath)
+void SilentCompiler::Compile(std::vector<char*> inFiles, char* outPath)
 {
-    char* fileContent = readAllText(inFile);
-    std::string tempSource;
-    tempSource.assign(fileContent, strlen(fileContent)+1);
-    this->CompileSource(tempSource, outPath);
+
+    for(char* file : inFiles)
+    {
+        char* fileContent = readAllText(file);
+        std::string tempSource;
+        tempSource.assign(fileContent, strlen(fileContent)+1);
+        this->CompileSource(tempSource, outPath);
+    }
 }
 
 void SilentCompiler::CompileSource(std::string source, char* outFile)
@@ -52,15 +56,18 @@ int main(int argc, char** argv)
     SilentCompiler compiler = SilentCompiler();
     
     char* outPath = NULL;
-    char* inFile = NULL;
+    // char* inFile = NULL;
+
+    std::vector<char*> inFiles;
 
     for(unsigned long long i = 1; i < (unsigned long long)argc; i++)
     {
         if(strcmp(argv[i], "-o") == 0) outPath = argv[++i];
-        else inFile = argv[i];
+        // else inFile = argv[i];
+        else inFiles.push_back(argv[i]);
     }
     
-    if(inFile != NULL) compiler.Compile(inFile, outPath);
+    if(inFiles.size() > 0) compiler.Compile(inFiles, outPath);
 
     return 0;
 }

@@ -275,7 +275,7 @@ namespace Silent
                 //     }
                 // break;
                 default:
-                    if(isalpha(source[i]))
+                    if(isalpha(source[i]) || source[i] == ':')
                     {
                         while(
                             isalpha(source[i]) || 
@@ -343,9 +343,13 @@ namespace Silent
                         {
                             token.type = TokenType::Import;
                         }
-                        else if(token.value == "export")
+                        // else if(token.value == "export")
+                        // {
+                        //     token.type = TokenType::Import;
+                        // }
+                        else if(token.value == "asm")
                         {
-                            token.type = TokenType::Import;
+                            token.type = TokenType::Asm;
                         }
 
                         // Primitives

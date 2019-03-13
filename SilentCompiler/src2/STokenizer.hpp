@@ -32,7 +32,8 @@ namespace Silent
         Delete,
         Namespace,
         Import,
-        Export,
+        // Export,
+        Asm,
 
         // Arithmetic Symbols
         Add,

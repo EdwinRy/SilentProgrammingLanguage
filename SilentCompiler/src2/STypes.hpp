@@ -16,13 +16,17 @@ namespace Silent::Types
         public:
         static void Parse(Parser &parser, ScopeResolution parent);
         std::string identifier;
-        ScopeResolution* scopeResolution;
+        ScopeResolution *scopeResolution;
 
     };
 
     class Function
     {
-
+        public:
+        static void Parse(Parser &parser, ScopeResolution parent);
+        std::string identifier;
+        ScopeResolution *scopeResolution;
+        ScopeResolution *returnType;
     };
 
     class Variable

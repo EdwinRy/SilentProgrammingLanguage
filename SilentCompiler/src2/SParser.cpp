@@ -119,6 +119,14 @@ namespace Silent
         std::cout << "At token: " << ct.value << "\n";
     }
 
+    void Parser::WarningMsg(std::string msg)
+    {
+        errorCount++;
+        std::cout << "Parser warning on line " << ct.line << "\n";
+        std::cout << msg << "\n";
+        std::cout << "At token: " << ct.value << "\n";
+    }
+
     Token Parser::GetToken()
     {
         return ct;
@@ -197,9 +205,21 @@ namespace Silent::Types
         std::string namespaceIdentifier = parser.GetToken().value;
         parser.NextToken();
 
+        ScopeResolution scopeReference;
+
         // Generate the namespace address from global scope
-        ScopeResolution scopeReference(
-            parent.scopeFormatted + "::" + namespaceIdentifier);
+        // if(namespaceIdentifier.substr(0,2) == "::")
+        if(namespaceIdentifier.compare(0, 2, "::") == 0)
+        {
+            ScopeResolution tempScopeReference(namespaceIdentifier);
+            scopeReference = tempScopeReference;
+        }
+        else
+        {
+            ScopeResolution tempScopeReference(
+                parent.scopeFormatted + "::" + namespaceIdentifier);
+            scopeReference = tempScopeReference;
+        }
 
         DEBUG("Got scope resolution %s\n",scopeReference.scopeFormatted.data());
 
@@ -216,6 +236,7 @@ namespace Silent::Types
             DEBUG("New namespace definition\n");
             tableNode = new SymTableNode();
             tableNode->scopeReference = scopeReference;
+            tableNode->node.nodeType = Node::Type::Namespace;
             
             // Check if the parent of the namespace is not global
             if(parent.scopeFormatted != "")
@@ -230,6 +251,7 @@ namespace Silent::Types
             thisNamespace = new Namespace();
             thisNamespace->identifier = namespaceIdentifier;
             thisNamespace->scopeResolution =new ScopeResolution(scopeReference);
+            tableNode->node.module = thisNamespace;
         }
         // If the namespace is already declared
         else
@@ -241,8 +263,6 @@ namespace Silent::Types
             thisNamespace = tableNode->node.module;
 
         }
-        
-
 
         // Check for either open scope indicating initialisation of members
         // or semicolon for just the declaration
@@ -253,12 +273,7 @@ namespace Silent::Types
             parser.NextToken();
             return;
         }
-        else
-        {
-            parser.ErrorMsg("Unexpected token in namespace declaration");
-        }
-
-
+        else parser.ErrorMsg("Unexpected token in namespace declaration");
         
         // Parse Namespace scope
         while(parser.GetToken().type != TokenType::CloseScope)
@@ -268,16 +283,147 @@ namespace Silent::Types
                 case TokenType::Namespace:
                 {
                     Namespace* newNamespace = new Namespace();
-                    // namespaces.push_back(newNamespace);
                     newNamespace->Parse(parser, scopeReference);
                 }
                 break;
 
-                default:break;
+                case TokenType::Function:
+                {
+                    Function* newFunction = new Function();
+                    newFunction->Parse(parser, scopeReference);
+                }
+                break;
+
+                default:parser.NextToken(); parser.NextToken();break;
             }
         }
         parser.NextToken();
         DEBUG("Finished parsing namespace\n");
-        
+    }
+
+    void Function::Parse(Parser &parser, ScopeResolution parent)
+    {
+        DEBUG("Parsing Function\n");
+
+        // Skip through the function keyword
+        parser.NextToken();
+
+        // Check for function definition syntax
+        if(parser.GetToken().type != TokenType::Identifier)
+            parser.ErrorMsg("Unexpected token in function declaration");
+
+        // Get the return type of the function
+        ScopeResolution returnTypeReference = 
+            ScopeResolution(parser.GetToken().value);
+        parser.NextToken();
+
+        // Get function identifier
+        std::string functionIdentifier = parser.GetToken().value;
+        parser.NextToken();
+
+        ScopeResolution functionReference;
+        // Generate table reference
+        if(functionIdentifier.compare(0, 2, "::") == 0)
+        {
+            ScopeResolution tempFunctionReference(functionIdentifier);
+            functionReference = tempFunctionReference;
+        }
+        else
+        {
+            ScopeResolution tempFunctionReference(
+                parent.scopeFormatted + "::" + functionIdentifier);
+            functionReference = tempFunctionReference;
+        }
+
+        DEBUG("Got function reference %s\n", 
+            functionReference.scopeFormatted.data());
+
+        // Prepare space for a node in the table
+        SymTableNode* tableNode;
+
+        // Pointer for the function to be parsed
+        Function* thisFunction;
+
+        // If the function is not in the symbol table
+        if(SymTableNode::symTable[functionReference] == NULL)
+        {
+            // Create new symbol table node
+            DEBUG("Function definition\n");
+            tableNode = new SymTableNode();
+            tableNode->scopeReference = functionReference;
+            tableNode->node.nodeType = Node::Type::Function;
+            
+            // Check if the parent of the function is not global
+            if(parent.scopeFormatted != "")
+                // Append the node to the parent's children
+                SymTableNode::symTable[parent]->
+                    children.push_back(tableNode);
+
+            // Add the node to the symbol table
+            SymTableNode::symTable[functionReference] = tableNode;
+
+            // Create the namespace object
+            thisFunction = new Function();
+            thisFunction->identifier = functionIdentifier;
+            thisFunction->scopeResolution = 
+                new ScopeResolution(functionReference);
+            thisFunction->returnType = new ScopeResolution(returnTypeReference);
+            tableNode->node.function = thisFunction;
+        }
+        // If the function is already declared
+        else
+        {
+            parser.WarningMsg("Function " + functionIdentifier + " at " + 
+                functionReference.scopeFormatted + 
+                "has already been declared and so it " 
+                "will be overriden by the following declaration");
+
+            tableNode = SymTableNode::symTable[functionReference];
+
+            // TODO: add node type check
+            thisFunction = tableNode->node.function;
+            thisFunction->returnType = new ScopeResolution(returnTypeReference);
+        }
+
+
+        // Check for either open scope indicating initialisation of the scope
+        // or semicolon for just the declaration
+        if(parser.GetToken().type == TokenType::OpenScope)
+            parser.NextToken();
+        else if(parser.GetToken().type == TokenType::Semicolon)
+        {
+            parser.NextToken();
+            return;
+        }
+        else parser.ErrorMsg("Unexpected token in function declaration");
+
+        // Parse function scope
+        while(parser.GetToken().type != TokenType::CloseScope)
+        {
+            switch(parser.GetToken().type)
+            {
+                case TokenType::Identifier:
+                {
+
+                }
+                break;
+
+                case TokenType::If:
+                {
+
+                }
+                break;
+
+                case TokenType::IfNot:
+                {
+
+                }
+                break;
+
+                default:parser.NextToken(); parser.NextToken();break;
+            }
+        }
+        parser.NextToken();
+        DEBUG("Finished parsing function\n");
     }
 }

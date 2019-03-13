@@ -1,17 +1,14 @@
+namespace randomNamespace;
+
 namespace TestNamespace
 {
     namespace test
     {
-
+        
     }
 
     namespace test2
     {
 
     }
-}
-
-namespace TestNamespace2
-{
-    
 }

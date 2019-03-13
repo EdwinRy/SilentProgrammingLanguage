@@ -38,6 +38,7 @@ namespace Silent
         public:
         Parser();
         void ErrorMsg(std::string msg);
+        void WarningMsg(std::string msg);
 
         Token GetToken();
         Token NextToken();
