@@ -20,6 +20,51 @@ namespace Silent::Types
 
     };
 
+    class AsmInstruction
+    {
+        public:
+        enum class OpCodeType
+        {
+
+        }Opcode;
+
+        std::vector<std::string> values;
+    };
+
+    class Asm
+    {
+        public:
+        void Parse(Parser &parser, ScopeResolution parent);
+
+        std::vector<AsmInstruction> instructions;
+
+        
+    };
+
+    class Expression
+    {
+
+    };
+
+    class Statement
+    {
+        public:
+        void Parse(Parser &parser, ScopeResolution parent);
+        enum class Type
+        {
+            Asm,
+            If,
+            While,
+            Expression
+        }StatementType;
+
+        union
+        {
+            /* data */
+        };
+        
+    };
+
     class Function
     {
         public:
@@ -27,6 +72,8 @@ namespace Silent::Types
         std::string identifier;
         ScopeResolution *scopeResolution;
         ScopeResolution *returnType;
+
+        std::vector<Statement> statements;
     };
 
     class Variable

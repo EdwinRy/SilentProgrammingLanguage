@@ -467,7 +467,7 @@ namespace Silent
             case TokenType::Delete:
             case TokenType::Namespace:
             case TokenType::Import:
-            case TokenType::Export:
+            // case TokenType::Export:
                 return true;
             break;
 

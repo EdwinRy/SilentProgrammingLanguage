@@ -385,7 +385,6 @@ namespace Silent::Types
             thisFunction->returnType = new ScopeResolution(returnTypeReference);
         }
 
-
         // Check for either open scope indicating initialisation of the scope
         // or semicolon for just the declaration
         if(parser.GetToken().type == TokenType::OpenScope)
@@ -400,8 +399,16 @@ namespace Silent::Types
         // Parse function scope
         while(parser.GetToken().type != TokenType::CloseScope)
         {
+            Statement statement;
+            thisFunction->statements.push_back(Statement());
             switch(parser.GetToken().type)
             {
+                case TokenType::Asm:
+                {
+
+                }
+                break;
+
                 case TokenType::Identifier:
                 {
 
