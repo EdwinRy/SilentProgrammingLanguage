@@ -343,10 +343,10 @@ namespace Silent
                         {
                             token.type = TokenType::Import;
                         }
-                        // else if(token.value == "export")
-                        // {
-                        //     token.type = TokenType::Import;
-                        // }
+                        else if(token.value == "inline")
+                        {
+                            token.type = TokenType::Inline;
+                        }
                         else if(token.value == "asm")
                         {
                             token.type = TokenType::Asm;

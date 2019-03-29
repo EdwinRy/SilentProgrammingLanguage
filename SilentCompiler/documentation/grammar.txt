@@ -3,3 +3,11 @@
 <integer> ::= -<natural-number>|<natural-number>
 <float> ::= <integer> | <integer>.<natural-number>
 <arithmetic-operators> ::= + | - | * | /
+<identifier> ::= <letter> | <letter> <digit> | <letter> <identifier>
+
+<typeIdentifier> ::= <identifier> 
+                    | ::<typeIdentifier> 
+                    | <identifier>::<typeIdentifier>
+
+<parameters> ::= (<typeIdentifier> <identifier> 
+                    | <typeIdentifier> <identifier>, <parameters>)

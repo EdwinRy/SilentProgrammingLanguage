@@ -4,7 +4,10 @@ namespace TestNamespace
 {
     namespace test
     {
-        
+        function int8 meme()
+        {
+            
+        }
     }
 
     namespace test2

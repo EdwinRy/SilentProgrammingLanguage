@@ -32,6 +32,7 @@ namespace Silent
         Delete,
         Namespace,
         Import,
+        Inline,
         // Export,
         Asm,
 
