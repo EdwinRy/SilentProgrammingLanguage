@@ -28,7 +28,7 @@ namespace Silent
         public:
         ScopeResolution scopeReference;
         Types::Node node;
-        std::vector<SymTableNode*> children;
+        // std::vector<SymTableNode*> children;
         static thread_local 
             std::unordered_map<ScopeResolution, SymTableNode*> symTable;
     };

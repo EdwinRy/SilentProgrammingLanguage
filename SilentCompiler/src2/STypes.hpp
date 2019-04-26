@@ -183,6 +183,13 @@ namespace Silent::Types
         Node* value;
     };
 
+    class Variable
+    {
+        public:
+        ScopeResolution *type;
+        std::string identifier;
+    };
+
     class Statement
     {
         public:
@@ -192,21 +199,16 @@ namespace Silent::Types
             Asm,
             If,
             While,
-            Expression
+            Expression,
+            Declaration,
         }StatementType;
 
         union
         {
             Asm *assembly;
+            Variable *var;
         };
         
-    };
-
-    class Variable
-    {
-        public:
-        ScopeResolution *type;
-        std::string identifier;
     };
 
     class Type

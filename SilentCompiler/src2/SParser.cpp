@@ -234,11 +234,11 @@ namespace Silent::Types
             tableNode->scopeReference = scopeReference;
             tableNode->node.nodeType = Node::Type::Namespace;
             
-            // Check if the parent of the namespace is not global
-            if(parent.scopeFormatted != "")
-                // Append the node to the parent's children
-                SymTableNode::symTable[parent]->
-                    children.push_back(tableNode);
+            // // Check if the parent of the namespace is not global
+            // if(parent.scopeFormatted != "")
+            //     // Append the node to the parent's children
+            //     SymTableNode::symTable[parent]->
+            //         children.push_back(tableNode);
 
             // Add the node to the symbol table
             SymTableNode::symTable[scopeReference] = tableNode;
@@ -379,10 +379,10 @@ namespace Silent::Types
             tableNode->node.nodeType = Node::Type::Function;
             
             // Check if the parent of the function is not global
-            if(parent.scopeFormatted != "")
-                // Append the node to the parent's children
-                SymTableNode::symTable[parent]->
-                    children.push_back(tableNode);
+            // if(parent.scopeFormatted != "")
+            //     // Append the node to the parent's children
+            //     SymTableNode::symTable[parent]->
+            //         children.push_back(tableNode);
 
             // Add the node to the symbol table
             SymTableNode::symTable[functionReference] = tableNode;
@@ -441,6 +441,7 @@ namespace Silent::Types
     {
         switch(parser.GetToken().type)
         {
+
             case TokenType::Asm:
             {
                 this->StatementType = Type::Asm;
@@ -451,7 +452,25 @@ namespace Silent::Types
 
             case TokenType::Identifier:
             {
+                // In case of pointer definition
+                if(parser.PeakToken().type == TokenType::Multiply)
+                {
+                    parser.NextToken(); parser.NextToken(); 
+                } 
 
+                // Variable definition
+                if(parser.PeakToken().type == TokenType::Identifier)
+                {
+                    this->StatementType = Type::Declaration;
+                }
+
+                // Member access
+                else if(parser.PeakToken().type == TokenType::Fullstop)
+                {
+
+                }
+
+                else parser.ErrorMsg("Unexpected token after identifier");
             }
             break;
 
@@ -694,6 +713,8 @@ namespace Silent::Types
                 op->left = temp;
             }
             break;
+
+            default:{} break;
         }
         return op->left;
     }
@@ -728,6 +749,8 @@ namespace Silent::Types
                 op->left = temp;
             }
             break;
+
+            default:{} break;
         }
         return op->left;
     }
@@ -773,6 +796,8 @@ namespace Silent::Types
                 op->left = temp;
             }
             break;
+
+            default:{} break;
         }
         return op->left;
     }
