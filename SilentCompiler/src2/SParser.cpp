@@ -109,6 +109,8 @@ namespace Silent
     {
         tokenCursor = 0;
         errorCount = 0;
+
+        //Initiate basic types
     }
 
     void Parser::ErrorMsg(std::string msg)
@@ -166,11 +168,11 @@ namespace Silent
             switch(this->GetToken().type)
             {
                 case TokenType::Namespace:
-                    Types::Namespace::Parse(*this, ScopeResolution(""));
+                    ParserTypes::Namespace::Parse(*this, ScopeResolution(""));
                 break;
 
                 case TokenType::Function:
-                    Types::Function::Parse(*this, ScopeResolution(""));
+                    ParserTypes::Function::Parse(*this, ScopeResolution(""));
                 break;
 
                 default:
@@ -185,11 +187,11 @@ namespace Silent
     }
 };
 
-namespace Silent::Types
+namespace Silent::ParserTypes
 {
     void Namespace::Parse(Parser &parser, ScopeResolution parent)
     {
-        DEBUG("Parsing Namespace\n");
+        DEBUG("\nParsing Namespace\n");
 
         // Skip through namespace keyword
         parser.NextToken(); 
@@ -232,7 +234,7 @@ namespace Silent::Types
             DEBUG("New namespace definition\n");
             tableNode = new SymTableNode();
             tableNode->scopeReference = scopeReference;
-            tableNode->node.nodeType = Node::Type::Namespace;
+            tableNode->node.nodeType = Node::NodeType::Namespace;
             
             // // Check if the parent of the namespace is not global
             // if(parent.scopeFormatted != "")
@@ -266,6 +268,7 @@ namespace Silent::Types
             parser.NextToken();
         else if(parser.GetToken().type == TokenType::Semicolon)
         {
+            DEBUG("Finished parsing namespace\n");
             parser.NextToken();
             return;
         }
@@ -284,11 +287,110 @@ namespace Silent::Types
                     Function::Parse(parser, scopeReference);
                 break;
 
+                case TokenType::Type:
+                    Type::Parse(parser, scopeReference);
+                break;
+
                 default: parser.NextToken(); parser.NextToken(); break;
             }
         }
         parser.NextToken();
-        DEBUG("Finished parsing namespace\n");
+        DEBUG("\nFinished parsing namespace\n");
+    }
+
+    void Type::Parse(Parser &parser, ScopeResolution parent)
+    {
+        DEBUG("\nParsing type declaration\n");
+
+        // Skip type token
+        parser.NextToken();
+
+        // Check for type definition syntax
+        if(parser.GetToken().type != TokenType::Identifier)
+            parser.ErrorMsg("Unexpected token in type declaration");
+        
+        // Get type identifier
+        std::string typeIdentifier = parser.GetToken().value;
+        parser.NextToken();
+
+        ScopeResolution scopeReference;
+
+        // Generate scope reference
+        if(typeIdentifier.compare(0,2,"::") == 0)
+        {
+            ScopeResolution tempTypeReference(typeIdentifier);
+            scopeReference = tempTypeReference;
+        }
+        else
+        {
+            ScopeResolution tempTypeReference(
+                parent.scopeFormatted + "::" + typeIdentifier);
+            scopeReference = tempTypeReference;
+        }
+
+        DEBUG("Got scope resolution %s\n",scopeReference.scopeFormatted.data());
+
+        // Generate node for the lookup table
+        SymTableNode *tableNode;
+        Type *thisType;
+
+        // Check for conflicting symbols
+        if(SymTableNode::symTable[scopeReference] == NULL)
+        {
+            // Create new symbol table node
+            DEBUG("New type definition\n");
+            tableNode = new SymTableNode();
+            tableNode->scopeReference = scopeReference;
+            tableNode->node.nodeType = Node::NodeType::Type;
+
+            // Add the node to the symbol table
+            SymTableNode::symTable[scopeReference] = tableNode;
+
+            // Create the type object
+            thisType = new Type();
+            thisType->identifier = typeIdentifier;
+            thisType->scopeResolution = new ScopeResolution(scopeReference);
+            tableNode->node.type = thisType;
+        }
+        // If the type is already declared
+        else
+        {
+            DEBUG("Type already exists\n");
+            tableNode = SymTableNode::symTable[scopeReference];
+
+            parser.ErrorMsg("Conflicting type identifiers\n");
+
+        }
+
+        // Check for syntax
+        if(parser.GetToken().type == TokenType::OpenScope)
+            parser.NextToken();
+        else parser.ErrorMsg("Unexpected token in type declaration");
+        
+        // Parse type scope
+        while(parser.GetToken().type != TokenType::CloseScope)
+        {
+            switch(parser.GetToken().type)
+            {
+                case TokenType::Method:
+                    Method::Parse(parser, scopeReference);
+                break;
+
+                case TokenType::Type:
+                    Type::Parse(parser, scopeReference);
+                break;
+
+                default: parser.NextToken(); parser.NextToken(); break;
+            }
+        }
+        parser.NextToken();
+
+        DEBUG("\nFinished parsing type\n");
+    }
+
+    void Method::Parse(Parser &parser, ScopeResolution parent)
+    {
+        
     }
 
     void Function::ParseParameters(Parser &parser)
@@ -324,7 +426,7 @@ namespace Silent::Types
 
     void Function::Parse(Parser &parser, ScopeResolution parent)
     {
-        DEBUG("Parsing Function\n");
+        DEBUG("\nParsing Function\n");
 
         // Skip through the function keyword
         parser.NextToken();
@@ -376,7 +478,7 @@ namespace Silent::Types
             DEBUG("Function definition\n");
             tableNode = new SymTableNode();
             tableNode->scopeReference = functionReference;
-            tableNode->node.nodeType = Node::Type::Function;
+            tableNode->node.nodeType = Node::NodeType::Function;
             
             // Check if the parent of the function is not global
             // if(parent.scopeFormatted != "")
@@ -434,19 +536,20 @@ namespace Silent::Types
             statement.Parse(parser, functionReference);
         }
         parser.NextToken();
-        DEBUG("Finished parsing function\n");
+        DEBUG("\nFinished parsing function\n");
     }
 
     void Statement::Parse(Parser &parser, ScopeResolution parent)
     {
         switch(parser.GetToken().type)
         {
-
             case TokenType::Asm:
             {
+                DEBUG("\nParsing assembly block\n");
                 this->StatementType = Type::Asm;
                 this->assembly = new Asm();
                 this->assembly->Parse(parser);
+                DEBUG("\nFinished parsing inline asm\n");
             }
             break;
 
@@ -614,7 +717,19 @@ namespace Silent::Types
     void AsmInstruction::Parse(Parser &parser)
     {
         // Get instruction opcode
-        this->Opcode = StrToOpcode(parser.GetToken().value);
+        std::string opStr = parser.GetToken().value;
+
+        // Check if label declaration
+        if(opStr[0] == '-')
+        {
+            parser.NextToken();
+            this->Opcode = OpcodeType::Label;
+            this->values.push_back(parser.GetToken().value);
+            parser.NextToken();
+            return;
+        }
+
+        this->Opcode = StrToOpcode(opStr);
 
         DEBUG("Got opcode %s\n", parser.GetToken().value.data());
 
@@ -658,7 +773,7 @@ namespace Silent::Types
                 Operand *op = new Operand();
                 op->value = new Node();
                 op->Operator = OperatorType::None;
-                op->value->nodeType = Node::Type::Value;
+                op->value->nodeType = Node::NodeType::Value;
                 op->value->strValue = new std::string(parser.GetToken().value);
                 DEBUG("Got factor %s\n", op->value->strValue->data());
                 parser.NextToken();

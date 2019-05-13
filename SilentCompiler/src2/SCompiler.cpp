@@ -8,9 +8,9 @@ using namespace Silent;
 
 SilentCompiler::SilentCompiler() { this->source = ""; }
 
+// Compile an array of files and output an executable
 void SilentCompiler::Compile(std::vector<char*> inFiles, char* outPath)
 {
-
     for(char* file : inFiles)
     {
         char* fileContent = readAllText(file);

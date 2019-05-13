@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <string.h>
+
+// Read all characters from parameter passed path
 char* readAllText(char* path)
 {
     char* text;
@@ -23,6 +25,7 @@ char* readAllText(char* path)
     return text;
 }
 
+// Write a string into the file at path 
 void writeAllText(const char* path, std::string text)
 {
     std::ofstream outFile;
@@ -31,6 +34,7 @@ void writeAllText(const char* path, std::string text)
     outFile.close();
 }
 
+// Read binary from file
 char* readAllBytes(char* path)
 {
     char* text;
@@ -52,6 +56,7 @@ char* readAllBytes(char* path)
     return text;
 }
 
+// Write binary to file
 void writeAllBytes(const char* path, const char* text, unsigned long long size)
 {
     std::ofstream outFile (path, std::ofstream::binary);

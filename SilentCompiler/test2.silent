@@ -2,11 +2,27 @@ namespace randomNamespace;
 
 namespace TestNamespace
 {
+
+    type vec2
+    {
+        method add(int8 x, int8 y)
+        {
+            
+        }
+    }
+
     namespace test
     {
         function int8 meme()
         {
-            
+            asm
+            {
+                push4 5;
+                push4 3;
+                add;
+                -jmp
+                call jmp;
+            }
         }
     }
 

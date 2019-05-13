@@ -26,7 +26,7 @@ namespace Silent
         Else,
         For,
         While,
-        Class,
+        Type,
         Return,
         New,
         Delete,

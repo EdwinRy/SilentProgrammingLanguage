@@ -319,9 +319,9 @@ namespace Silent
                         {
                             token.type = TokenType::While;
                         }
-                        else if(token.value == "class")
+                        else if(token.value == "type")
                         {
-                            token.type = TokenType::Class;
+                            token.type = TokenType::Type;
                         }
                         else if(token.value == "return")
                         {
@@ -461,7 +461,7 @@ namespace Silent
             case TokenType::Else:
             case TokenType::For:
             case TokenType::While:
-            case TokenType::Class:
+            case TokenType::Type:
             case TokenType::Return:
             case TokenType::New:
             case TokenType::Delete:

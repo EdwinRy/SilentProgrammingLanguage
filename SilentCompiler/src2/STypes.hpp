@@ -8,7 +8,16 @@ namespace Silent
     typedef class ScopeResolution ScopeResolution;
 }
 
-namespace Silent::Types
+namespace Silent::SemanticTypes
+{
+    class Namespace
+    {
+        public:
+        unsigned long long size;
+    };
+}
+
+namespace Silent::ParserTypes
 {
 
     class Namespace
@@ -133,7 +142,8 @@ namespace Silent::Types
             And,
             Or,
             Xor,
-            Not
+            Not,
+            Label
 
         }Opcode;
 
@@ -148,8 +158,6 @@ namespace Silent::Types
         void Parse(Parser &parser);
 
         std::vector<AsmInstruction> instructions;
-
-        
     };
 
     typedef class Node node;
@@ -211,9 +219,43 @@ namespace Silent::Types
         
     };
 
+    typedef class TypeMember typeMember;
+
+    class Method
+    {
+        public:
+        static void Parse(Parser &parser, ScopeResolution parent);
+        static void ParseParameters(Parser &parser, ScopeResolution parent);
+    };
+
+    class TypeMember
+    {
+        public:
+        enum class Type
+        {
+            Method,
+            Variable
+        }memberType;
+
+        union
+        {
+            Method* method;
+        };
+
+        enum class AccessModifier
+        {
+            Public,
+            Protected,
+            Private
+        }accessModifier;
+    };
+
     class Type
     {
-
+        public:
+        static void Parse(Parser &parser, ScopeResolution parent);
+        std::string identifier;
+        ScopeResolution *scopeResolution;
     };
 
     class Function
@@ -232,10 +274,10 @@ namespace Silent::Types
     class Node
     {
         public:
-        enum class Type
+        enum class NodeType
         {
             Namespace,
-            Class,
+            Type,
             Function,
             Variable,
             Value
