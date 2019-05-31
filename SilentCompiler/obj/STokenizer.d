@@ -1,3 +1,3 @@
-obj/STokenizer.o: src2/STokenizer.cpp src2/STokenizer.hpp
+obj/STokenizer.o: src/STokenizer.cpp src/STokenizer.hpp
 
-src2/STokenizer.hpp:
+src/STokenizer.hpp:

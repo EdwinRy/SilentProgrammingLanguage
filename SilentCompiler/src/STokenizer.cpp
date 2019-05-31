@@ -1,5 +1,4 @@
-#include "SilentTokenizer.hpp"
-#define DEBUG 0
+#include "STokenizer.hpp"
 namespace Silent
 {
     Tokenizer::Tokenizer()
@@ -9,7 +8,7 @@ namespace Silent
     }
 
     std::string Tokenizer::TokenizeString(
-        std::string source, uint64 &index
+        std::string source, unsigned long long &index
     )
     {
         std::string out;
@@ -66,7 +65,7 @@ namespace Silent
     bool Tokenizer::Tokenize(std::string source)
     {
         //uint64 line = 1;
-        for(uint64 i = 0; i < source.length(); i++)
+        for(unsigned long long i = 0; i < source.length(); i++)
         {
             //Skip next line
             if(source[i] == '\n')
@@ -100,7 +99,7 @@ namespace Silent
             }
 
             Token token;
-            token.type = TokenType::Unrecognised;
+            token.type = TokenType::Identifier;
             token.value = "";
             token.line = this->line;
 
@@ -115,7 +114,7 @@ namespace Silent
                     token.value = ",";
                 break;
                 case '.':
-                    token.type = TokenType::FullStop;
+                    token.type = TokenType::Fullstop;
                     token.value = ".";
                 break;
                 case '=':
@@ -212,12 +211,12 @@ namespace Silent
                     if(source[i+1] == '=')
                     {
                         i++;
-                        token.type = TokenType::SmallerOrEqual;
+                        token.type = TokenType::LessThanOrEqualTo;
                         token.value = "<=";
                     }
                     else
                     {
-                        token.type = TokenType::Smaller;
+                        token.type = TokenType::LessThan;
                         token.value = "<";
                     }
                 break;
@@ -225,12 +224,12 @@ namespace Silent
                     if(source[i+1] == '=')
                     {
                         i++;
-                        token.type = TokenType::LargerOrEqual;
+                        token.type = TokenType::MoreThanOrEqualTo;
                         token.value = ">=";
                     }
                     else
                     {
-                        token.type = TokenType::Larger;
+                        token.type = TokenType::MoreThan;
                         token.value = ">";
                     }
                 break;
@@ -284,9 +283,17 @@ namespace Silent
                             i++;
                         }
                         i--;
-                        if(token.value == "func")
+
+
+                        //  Keywords
+
+                        if(token.value == "function")
                         {
                             token.type = TokenType::Function;
+                        }
+                        else if(token.value == "method")
+                        {
+                            token.type = TokenType::Method;
                         }
                         else if(token.value == "if")
                         {
@@ -294,31 +301,27 @@ namespace Silent
                         }
                         else if(token.value == "ifn")
                         {
-                            token.type = TokenType::Ifn;
+                            token.type = TokenType::IfNot;
                         }
                         else if(token.value == "else")
                         {
                             token.type = TokenType::Else;
                         }
+                        else if(token.value == "for")
+                        {
+                            token.type = TokenType::While;
+                        }
                         else if(token.value == "while")
                         {
                             token.type = TokenType::While;
                         }
-                        // else if(token.value == "struct")
-                        // {
-                        //     token.type = TokenType::Struct;
-                        // }
-                        else if(token.value == "namespace")
+                        else if(token.value == "type")
                         {
-                            token.type = TokenType::Namespace;
+                            token.type = TokenType::Type;
                         }
-                        else if(token.value == "class")
+                        else if(token.value == "return")
                         {
-                            token.type = TokenType::Class;
-                        }
-                        else if(token.value == "method")
-                        {
-                            token.type = TokenType::Method;
+                            token.type = TokenType::Return;
                         }
                         else if(token.value == "new")
                         {
@@ -328,59 +331,70 @@ namespace Silent
                         {
                             token.type = TokenType::Delete;
                         }
-                        // else if(token.value == "ref")
-                        // {
-                        //     token.type = TokenType::Reference;
-                        // }
-                        else if(token.value == "return")
+                        else if(token.value == "namespace")
                         {
-                            token.type = TokenType::Return;
+                            token.type = TokenType::Namespace;
                         }
+                        else if(token.value == "import")
+                        {
+                            token.type = TokenType::Import;
+                        }
+                        else if(token.value == "inline")
+                        {
+                            token.type = TokenType::Inline;
+                        }
+                        else if(token.value == "asm")
+                        {
+                            token.type = TokenType::Asm;
+                        }
+
+                        // Primitives
+
                         else if(token.value == "int8")
                         {
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::I8;
                         }
                         else if(token.value == "uint8")
                         {
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::UI8;
                         }
                         else if(token.value == "int16")
                         {
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::I16;
                         }
                         else if(token.value == "uint16")
                         {
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::UI16;
                         }
                         else if(token.value == "int32" || token.value == "int")
                         {
                             token.value = "int32";
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::I32;
                         }
                         else if(token.value == "uint32")
                         {
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::UI32;
                         }
                         else if(token.value == "int64" || token.value == "long")
                         {
                             token.value = "int64";
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::I64;
                         }
                         else if(token.value == "uint64")
                         {
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::UI64;
                         }
                         else if(token.value == "float32")
                         {
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::F32;
                         }
                         else if(token.value == "float64")
                         {
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::F64;
                         }
                         else if(token.value == "string")
                         {
-                            token.type = TokenType::Primitive;
+                            token.type = TokenType::String;
                         }
                         else
                         {
@@ -389,13 +403,13 @@ namespace Silent
                     }
                     else if(isdigit(source[i]))
                     {
-                        while(isdigit(source[i]) || source[i] == '.')
+                        while(isdigit(source[i]) /*|| source[i] == '.'*/)
                         {
                             token.value += source[i];
                             i++;
                         }
                         i--;
-                        token.type = TokenType::Number;
+                        token.type = TokenType::Digits;
                     }
                     else
                     {
@@ -403,13 +417,190 @@ namespace Silent
                     }
                 break;
             }
-            #if DEBUG
-            std::cout << token.line << (": " + token.value + "\n").data();
-            #endif
             this->tokens.push_back(token);
         }
         return true;
     }
 
-    std::vector<Token> Tokenizer::GetTokens(){return this->tokens;}
+    bool Token::IsPrimitive()
+    {
+        switch(type)
+        {
+            case TokenType::I8:
+            case TokenType::UI8:
+            case TokenType::I16:
+            case TokenType::UI16:
+            case TokenType::I32:
+            case TokenType::UI32:
+            case TokenType::I64:
+            case TokenType::UI64:
+            case TokenType::F32:
+            case TokenType::F64:
+            case TokenType::String:
+                return true;
+            break;
+
+            default:
+                return false;
+            break;
+        }
+    }
+
+    bool Token::IsKeyword()
+    {
+        switch(type)
+        {
+            case TokenType::Function:
+            case TokenType::Method:
+            case TokenType::If:
+            case TokenType::IfNot:
+            case TokenType::Else:
+            case TokenType::For:
+            case TokenType::While:
+            case TokenType::Type:
+            case TokenType::Return:
+            case TokenType::New:
+            case TokenType::Delete:
+            case TokenType::Namespace:
+            case TokenType::Import:
+            // case TokenType::Export:
+                return true;
+            break;
+
+            default:
+                return false;
+            break;
+        }
+    }
+
+    bool Token::IsArithmetic()
+    {
+        switch(type)
+        {
+            case TokenType::Add:
+            case TokenType::Subtract:
+            case TokenType::Multiply:
+            case TokenType::Divide:
+                return true;
+            break;
+
+            default:
+                return false;
+            break;
+        }
+    }
+
+    bool Token::IsComparison()
+    {
+        switch(type)
+        {
+            case TokenType::Equal:
+            case TokenType::NotEqual:
+            case TokenType::LessThan:
+            case TokenType::LessThanOrEqualTo:
+            case TokenType::MoreThan:
+            case TokenType::MoreThanOrEqualTo:
+                return true;
+            break;
+
+            default:
+                return false;
+            break;
+        }
+    }
+
+    bool Token::IsLogic()
+    {
+        switch(type)
+        {
+            case TokenType::And:
+            case TokenType::Or:
+            case TokenType::Xor:
+            case TokenType::Not:
+                return true;
+            break;
+
+            default:
+                return false;
+            break;
+        }
+    }
+    
+    bool Token::IsBitShift()
+    {
+        switch(type)
+        {
+            case TokenType::RightShift:
+            case TokenType::LeftShift:
+                return true;
+            break;
+
+            default:
+                return false;
+            break;
+        }
+    }
+
+    bool Token::IsAssignment()
+    {
+        switch(type)
+        {
+            case TokenType::Assign:
+            case TokenType::AddAssign:
+            case TokenType::SubtractAssign:
+            case TokenType::MultiplyAssign:
+            case TokenType::DivideAssign:
+                return true;
+            break;
+
+            default:
+                return false;
+            break;
+        }
+    }
+
+    bool Token::IsOtherSymbol()
+    {
+        switch(type)
+        {
+            case TokenType::Semicolon:
+            case TokenType::Comma:
+            case TokenType::Fullstop:
+            case TokenType::OpenParam:
+            case TokenType::CloseParam:
+            case TokenType::OpenBracket:
+            case TokenType::CloseBracket:
+            case TokenType::OpenScope:
+            case TokenType::CloseScope:
+            // case TokenType::ScopeResolution:
+                return true;
+            break;
+
+            default:
+                return false;
+            break;
+        }
+    }
+
+    bool Token::IsOther()
+    {
+        switch(type)
+        {
+            case TokenType::Identifier:
+            case TokenType::Digits:
+            case TokenType::StringValue:
+            case TokenType::Unrecognised:
+                return true;
+            break;
+            
+            default:
+                return false;
+            break;
+        }
+    }
+
+    std::vector<Token> Tokenizer::GetTokens()
+    {
+        return this->tokens;
+    }
 }

@@ -1,12 +1,10 @@
-obj/SCompiler.o: src2/SCompiler.cpp src2/SCompiler.hpp src2/SFiles.hpp \
- src2/SParser.hpp src2/STypes.hpp src2/STokenizer.hpp
+obj/SCompiler.o: src/SCompiler.cpp src/SCompiler.hpp src/SFiles.hpp \
+ src/SParser.hpp src/STokenizer.hpp
 
-src2/SCompiler.hpp:
+src/SCompiler.hpp:
 
-src2/SFiles.hpp:
+src/SFiles.hpp:
 
-src2/SParser.hpp:
+src/SParser.hpp:
 
-src2/STypes.hpp:
-
-src2/STokenizer.hpp:
+src/STokenizer.hpp:

@@ -14,6 +14,8 @@ namespace Silent::SemanticTypes
     {
         public:
         unsigned long long size;
+        std::string id;
+        
     };
 }
 

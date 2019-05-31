@@ -1,0 +1,7 @@
+namespace Silent
+{
+    namespace Semantics
+    {
+        
+    }
+}

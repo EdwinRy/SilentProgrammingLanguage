@@ -390,7 +390,115 @@ namespace Silent::ParserTypes
 
     void Method::Parse(Parser &parser, ScopeResolution parent)
     {
-        
+        //Skip method keyword
+        parser.NextToken();
+
+        if(parser.GetToken().type != TokenType::Identifier &&
+            !parser.GetToken().IsPrimitive())
+            parser.ErrorMsg("Unexpected token in function declaration");
+
+        // Get the return type of the function
+        ScopeResolution returnTypeReference = 
+            ScopeResolution(parser.GetToken().value);
+        parser.NextToken();
+
+        DEBUG("Got function return type: %s\n", 
+            returnTypeReference.scopeFormatted.data());
+
+        // Get function identifier
+        std::string functionIdentifier = parser.GetToken().value;
+        parser.NextToken();
+
+        ScopeResolution functionReference;
+        // Generate table reference
+        if(functionIdentifier.compare(0, 2, "::") == 0)
+        {
+            ScopeResolution tempFunctionReference(functionIdentifier);
+            functionReference = tempFunctionReference;
+        }
+        else
+        {
+            ScopeResolution tempFunctionReference(
+                parent.scopeFormatted + "::" + functionIdentifier);
+            functionReference = tempFunctionReference;
+        }
+
+        DEBUG("Got function reference %s\n", 
+            functionReference.scopeFormatted.data());
+
+        // Prepare space for a node in the table
+        SymTableNode* tableNode;
+
+        // Pointer for the function to be parsed
+        Function* thisFunction;
+
+        // If the function is not in the symbol table
+        if(SymTableNode::symTable[functionReference] == NULL)
+        {
+            // Create new symbol table node
+            DEBUG("Function definition\n");
+            tableNode = new SymTableNode();
+            tableNode->scopeReference = functionReference;
+            tableNode->node.nodeType = Node::NodeType::Function;
+            
+            // Check if the parent of the function is not global
+            // if(parent.scopeFormatted != "")
+            //     // Append the node to the parent's children
+            //     SymTableNode::symTable[parent]->
+            //         children.push_back(tableNode);
+
+            // Add the node to the symbol table
+            SymTableNode::symTable[functionReference] = tableNode;
+
+            // Create the namespace object
+            thisFunction = new Function();
+            thisFunction->identifier = functionIdentifier;
+            thisFunction->scopeResolution = 
+                new ScopeResolution(functionReference);
+            thisFunction->returnType = new ScopeResolution(returnTypeReference);
+            tableNode->node.function = thisFunction;
+        }
+        // If the function is already declared
+        else
+        {
+            parser.WarningMsg("Function " + functionIdentifier + " at " + 
+                functionReference.scopeFormatted + 
+                "has already been declared and so it " 
+                "will be overriden by the following declaration");
+
+            tableNode = SymTableNode::symTable[functionReference];
+
+            // TODO: add node type check
+            thisFunction = tableNode->node.function;
+            thisFunction->returnType = new ScopeResolution(returnTypeReference);
+        }
+
+        // Parse function parameters
+        thisFunction->ParseParameters(parser);
+
+        // Check for either open scope indicating initialisation of the scope
+        // or semicolon for just the declaration
+        if(parser.GetToken().type == TokenType::OpenScope)
+        {
+            parser.NextToken();
+        }
+        else if(parser.GetToken().type == TokenType::Semicolon)
+        {
+            parser.NextToken();
+            return;
+        }
+        else parser.ErrorMsg("Unexpected token in function declaration");
+
+        // Parse function scope
+        while(parser.GetToken().type != TokenType::CloseScope)
+        {
+            Statement statement;
+            thisFunction->statements.push_back(statement);
+            statement.Parse(parser, functionReference);
+        }
+        parser.NextToken();
+        DEBUG("\nFinished parsing function\n");
+
     }
 
     void Function::ParseParameters(Parser &parser)

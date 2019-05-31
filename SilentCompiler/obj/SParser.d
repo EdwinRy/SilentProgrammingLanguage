@@ -1,8 +1,5 @@
-obj/SParser.o: src2/SParser.cpp src2/SParser.hpp src2/STypes.hpp \
- src2/STokenizer.hpp
+obj/SParser.o: src/SParser.cpp src/SParser.hpp src/STokenizer.hpp
 
-src2/SParser.hpp:
+src/SParser.hpp:
 
-src2/STypes.hpp:
-
-src2/STokenizer.hpp:
+src/STokenizer.hpp:
