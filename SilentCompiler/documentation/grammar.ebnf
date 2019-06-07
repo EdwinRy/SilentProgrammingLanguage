@@ -8,7 +8,7 @@
 
 <digits> ::= <digit> {digit}
 
-<float> ::= <digits>.<digits>
+<float> ::= [<sign>] <digits> "." <digits>
 
 <integer> ::= [<sign>] <digits>
 
@@ -19,11 +19,12 @@
 <type-name> ::= <identifier>
     | <namespace-name> "::" <type-name>
 
-<expression-lhs> ::= <identifier>
-    | <name> "." <identifier>
+# <expression-lhs> ::= <identifier>
+#     | <name> "." <identifier>
 
-<name> ::= <identifier>
-    | <name> "." <identifier>
+<name> ::= <identifier> {"." <identifier>}
+
+<function-name> ::= <identifier> {"::" <identifier>}
 
 <primitive> ::= "int8" | "uint8" 
     | "int16" | "uint16" 
@@ -39,7 +40,9 @@
 (* ----------------------------- EXPRESSIONS ----------------------------- *)
 
 
-<expression> ::= <assignment>
+<expression> ::= <assignment> | <function-call>
+
+<function-call>
 
 <assignment> ::= <left-hand-side> <assignment-operator> <conditional-expression>
 
@@ -64,26 +67,35 @@
 
 <conditional-operator> ::= "||" | "&&"
 
+
 <logical-expression> ::= <comparison-expression>
     | <logical-expression> <logical-operator> <comparison-expression>
 
 <logical-operator> ::= "&" | "|" | "^"
+
 
 <comparison-expression> ::= <shift-expression>
     | <comparison-expression> <comparison-operator> <shift-expression>
 
 <comparison-operator> ::= "==" | "!=" | "<=" | ">="
 
+
 <shift-expression> ::= <addition>
     | <shift-expression> <shift-operator> <addition>
 
 <shift-operator> ::= "<<" | ">>"
 
-<addition> ::= <multiplication> "+" <multiplication>
-    | <multiplication> "-" <multiplication>
 
-<multiplication> ::= <factor> "*" <factor>
-    | <factor> "/" <factor>
+<addition> ::= <multiplication>
+    | <addition> <addition-operator> <multiplication>
+
+<addition-operator> ::= "+" | "-"
+
+
+<multiplication> ::= <factor> 
+    | <multiplication> <multiplication-operator> <factor>
+
+<multiplication-operator> ::= "*" | "/"
 
 <factor> ::= <literal> | "(" <expression> ")" | <function-call>
 
@@ -97,24 +109,29 @@
 
 <namespace-scope> ::= "{" <namespace-statements> "}"
 
-<namespace-statements> ::= <namespace-statement>  {<namespace-statement>}
+<namespace-statements> ::= { <namespace-statement> }
 
 <namespace-statement> ::= <function-declaration> | <type-declaration>
 
-<scope> ::= "{" "}" | "{" <scope-statements> "}"
+<local-scope> ::= "{" <local-statements> "}"
 
-<scope-statements> ::= <scope-statement> {<scope-statement>}
+<local-statements> ::= { <local-statement> ";" }
 
-<scope-statement> ::= 
+<local-statement> ::= <variable-declaration> | <expression> 
 
 (* ----------------------------- TYPES ----------------------------- *)
 
 (* ----------------------------- DECLARATIONS ----------------------------- *)
 
-<function-declaration> ::= "function" <type> <>
+<function-declaration> ::= 
+    "function" [<function-properties>] <function-name> "(" <parameters> ")" 
+    <local-scope>
 
-<variable-declaration> ::= <type> <assignment>
-    | <type> <identifier>
+
+
+<function-properties> ::= 
+
+<variable-declaration> ::= <type> <variable-init>
 
 <array-init>
 

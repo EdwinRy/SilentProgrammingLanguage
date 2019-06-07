@@ -1,1 +1,7 @@
 namespace jeff
+{
+    function hava()
+    {
+        2 + 2;
+    }
+}

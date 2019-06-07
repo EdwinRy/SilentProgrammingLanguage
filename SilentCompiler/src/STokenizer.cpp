@@ -490,6 +490,21 @@ namespace Silent
         }
     }
 
+    bool Token::IsSign()
+    {
+        switch(type)
+        {
+            case TokenType::Add:
+            case TokenType::Subtract:
+                return true;
+            break;
+
+            default:
+                return false;
+            break;
+        }
+    }
+
     bool Token::IsComparison()
     {
         switch(type)

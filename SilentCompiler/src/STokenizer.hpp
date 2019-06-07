@@ -83,7 +83,8 @@ namespace Silent
         Identifier,
         Digits,
         StringValue,
-        Unrecognised
+        Unrecognised,
+        EndOfFile
     };
 
     class Token
@@ -96,6 +97,7 @@ namespace Silent
         bool IsPrimitive();
         bool IsKeyword();
         bool IsArithmetic();
+        bool IsSign();
         bool IsComparison();
         bool IsLogic();
         bool IsBitShift();
