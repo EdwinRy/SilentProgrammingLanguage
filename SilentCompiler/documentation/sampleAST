@@ -1,0 +1,50 @@
+program
+{
+    type-declaration
+    {
+        identifier: "int8",
+
+        type-body
+        {
+
+        }
+    },
+
+    namespace-declaration
+    {
+        identifier: "sampleNamespace",
+        function-declaration
+        {
+            identifier: "main",
+
+            local-scope
+            {
+                local-statement
+                {
+                    type: "variable declaration",
+                    variable-declaration
+                    {
+                        type-name : "typename",
+                        identifier: "sampleVar"
+                    }
+                },
+
+                local-statemet
+                {
+                    type: "expression",
+                    expression
+                    {
+                        type: "assignment"
+                        assignment
+                        {
+                            left: name {identifier = "sampleVar"},
+                            right: integer {value = "5"}
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}

@@ -1,0 +1,90 @@
+<program> ::= 
+    { <namespace-declaration> | <function-declaration> | <type-declaration> }
+
+<namespace-declaration> ::= "namespace" <identifier> <namespace-scope>
+
+<function-declaration> ::= 
+    "function" <identifier> <parameters> <local-scope>
+
+<type-declaration> ::= "type" <type-name> "{" <type-scope> "}"
+
+<type-name> ::= <primitive> | <identifier> | <identifier> "::" <identifier>
+
+<primitive> ::= "int8" | "uint8" 
+    | "int16" | "uint16" 
+    | "int32" | "uint32" 
+    | "int64" | "uint64"
+    | "float32" | "float64"
+
+<namespace-scope> ::= 
+    "{" { <function-declaration> | <type-declaration> } "}"
+
+<parameters> ::= "(" [ <parameter> {","<parameter>} ] ")"
+
+<parameter> ::= <type-name> <identifier>
+
+<local-scope> ::= "{" { <local-statement> } "}"
+
+<local-statement> ::= <variable-declaration> | <expression>
+
+<expression> ::= <assignment> | <function-call>
+
+<assignment> ::= <expression-lhs> <assignment-operator> <operand>
+
+<assignment-operator> ::= "=" | "+=" | "-=" | "*=" | "/="
+
+<expression-lhs> ::= <expression-name> | <array-access>
+
+<expression-name> ::= <identifier> {"." <identifier>}
+
+<variable-declaration> ::= <type-name> <identifier> ";"
+
+<literal> ::= <integer> | <float> | <string>
+
+<integer> ::= [<sign>] <unsigned_integer>
+
+<sign> ::= "+" | "-"
+
+<unsigned_integer> ::= <digits>
+
+<float> ::= [<sign>] <digits> ["." <digits>]
+
+
+<conditional-expression> ::= 
+    <logical-expression> {<conditional-operator> <logical-expression>}
+
+<conditional-operator> ::= "||" | "&&"
+
+
+<logical-expression> ::= <comparison-expression>
+    | <logical-expression> <logical-operator> <comparison-expression>
+
+<logical-operator> ::= "&" | "|" | "^"
+
+
+<comparison-expression> ::= <shift-expression>
+    | <comparison-expression> <comparison-operator> <shift-expression>
+
+<comparison-operator> ::= "==" | "!=" | "<=" | ">="
+
+
+<shift-expression> ::= <addition>
+    | <shift-expression> <shift-operator> <addition>
+
+<shift-operator> ::= "<<" | ">>"
+
+
+<addition> ::= <multiplication>
+    | <addition> <addition-operator> <multiplication>
+
+<addition-operator> ::= "+" | "-"
+
+
+<multiplication> ::= <factor> 
+    | <multiplication> <multiplication-operator> <factor>
+
+<multiplication-operator> ::= "*" | "/"
+
+<factor> ::= <literal> | "(" <expression> ")" | <function-call>
+
+

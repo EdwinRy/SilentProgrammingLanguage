@@ -17,12 +17,12 @@
 <namespace-name> ::= <identifier> {"::" <identifier>}
 
 <type-name> ::= <identifier>
-    | <namespace-name> "::" <type-name>
+    | <namespace-name> "::" <identifier>
 
 # <expression-lhs> ::= <identifier>
 #     | <name> "." <identifier>
 
-<name> ::= <identifier> {"." <identifier>}
+<expression-name> ::= <identifier> {"." <identifier>}
 
 <function-name> ::= <identifier> {"::" <identifier>}
 
@@ -32,7 +32,7 @@
     | "int64" | "uint64"
     | "float32" | "float64"
 
-<type> ::= <primitive> | <type-name>
+<type-specifier> ::= <primitive> | <type-name>
 
 <literal> ::= <integer> | <float> | <string>
 
@@ -46,9 +46,9 @@
 
 <assignment> ::= <left-hand-side> <assignment-operator> <conditional-expression>
 
-<left-hand-side> ::= <name> | <array-access>
+<left-hand-side> ::= <expression-name> | <array-access>
 
-<array-access> ::= <name> "["<expression>"]"
+<array-access> ::= <expression-name> "["<expression>"]"
 
 <assignment-operator> ::= "=" | "+=" | "-=" | "*=" | "/="
 
@@ -115,7 +115,7 @@
 
 <local-scope> ::= "{" <local-statements> "}"
 
-<local-statements> ::= { <local-statement> ";" }
+<local-statements> ::= { <local-statement> }
 
 <local-statement> ::= <variable-declaration> | <expression> 
 
@@ -123,19 +123,26 @@
 
 (* ----------------------------- DECLARATIONS ----------------------------- *)
 
+<program> ::= 
+    { <namespace-declaration> | <function-declaration> | <type-declaration>}
+
 <function-declaration> ::= 
-    "function" [<function-properties>] <function-name> "(" <parameters> ")" 
+    "function" [<function-properties>] <function-name> "(" [<parameters>] ")" 
     <local-scope>
 
+<parameters> ::= <parameter> {"," <parameter>}
 
+<parameter> ::= <type-specifier> <identifier>
 
 <function-properties> ::= 
 
-<variable-declaration> ::= <type> <variable-init>
+<variable-declaration> ::= <type-specifier> <identifier> ";"
+    | <type-specifier> <variable-init>
 
 <array-init>
 
 <variable-init> ::= <expression> | <array-init>
 
-<namespace-declaration> ::= "namespace" <namespace-name> <namespace-scope>
+<namespace-declaration> ::= 
+    "namespace" <namespace-name> (<namespace-scope> | ";")
 

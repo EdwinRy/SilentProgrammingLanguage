@@ -11,6 +11,7 @@ namespace Silent
 
         enum class Type
         {
+            Program,
             Digits,
             String,
             Integer,
@@ -46,8 +47,18 @@ namespace Silent
             MultiplicationOperator,
             Factor,
             Literal,
-            FunctionName
+            FunctionName,
+            Parameters,
+            Parameter,
+            TypeSpecifier,
+            TypeName
         }type;
+
+        union 
+        {
+            
+        };
+        
 
         Node(){}
         Node(Type type);
@@ -94,12 +105,12 @@ namespace Silent
         Node* ParseFloat();
         Node* ParseNamespaceName();
         Node* ParseFunctionName();
-        Node* ParseTypeName();//
+        Node* ParseTypeName();
         // Node* ParseExpressionLhs();//
         Node* ParseName();
-        Node* ParsePrimitive();//
-        Node* ParseType();//
-        Node* ParseLiteral();//
+        Node* ParsePrimitive();
+        Node* ParseLiteral();
+        Node* ParseTypeSpecifier();
 
         //EXPRESSIONS
         Node* ParseExpression();
@@ -143,11 +154,15 @@ namespace Silent
 
         //DECLARATIONS
         Node* ParseFunctionDeclaration();
+        Node* ParseParameters();
+        Node* ParseParameter();
         Node* ParseFunctionProperties();//
         Node* ParseVariableDeclaration();//
         Node* ParseNamespaceDeclaration();
+    };
 
+    class Program : Node
+    {
 
-        
     };
 }

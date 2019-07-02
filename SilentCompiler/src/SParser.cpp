@@ -321,8 +321,8 @@ namespace Silent
         Node* identifier = ParseIdentifier();
         if(identifier == NULL) return NULL;
 
-        Node* namespaceName = new Node(Node::Type::FunctionName);
-        namespaceName->children.push_back(identifier);
+        Node* functionName = new Node(Node::Type::FunctionName);
+        functionName->children.push_back(identifier);
 
         while(Match(TokenType::ScopeResolution))
         {
@@ -333,10 +333,51 @@ namespace Silent
                 PreviousToken();
                 break;
             }
-            namespaceName->children.push_back(identifier2);
+            functionName->children.push_back(identifier2);
         }
         DEBUG("Function name\n");
-        return namespaceName;
+        return functionName;
+    }
+
+    // <type-name> ::= <identifier>
+    //     | <namespace-name> "::" <identifier>
+    Node* Parser::ParseTypeName()
+    {
+        Node* name = ParseIdentifier();
+        if(name != NULL)
+        {
+            Node* typeName = new Node(Node::Type::TypeName);
+            typeName->children.push_back(name);
+            return typeName;
+        }
+
+        uint64_t backtrackPtr = tokenCursor;
+
+        name = ParseNamespaceName();
+        if(name == NULL) return NULL;
+
+        if(!Match(TokenType::ScopeResolution))
+        {
+            DeleteNode(name);
+            PreviousToken(tokenCursor-backtrackPtr);
+            return NULL;
+        }
+
+        Node* identifier = ParseIdentifier();
+        if(identifier == NULL)
+        {
+            DeleteNode(name);
+            PreviousToken(tokenCursor-backtrackPtr);
+            return NULL;
+        }
+
+        Node* typeName = new Node(Node::Type::TypeName);
+        typeName->children.push_back(name);
+        typeName->children.push_back(identifier);
+        return typeName;
+
+
+
     }
 
     // <name> ::= <identifier> {"." <identifier>}
@@ -361,6 +402,29 @@ namespace Silent
         }
         DEBUG("Name\n");
         return name;
+    }
+
+    // <primitive> ::= "int8" | "uint8" 
+    //     | "int16" | "uint16" 
+    //     | "int32" | "uint32" 
+    //     | "int64" | "uint64"
+    //     | "float32" | "float64"
+    Node* Parser::ParsePrimitive()
+    {
+        std::string tokenVal = GetToken().value;
+        if(
+            tokenVal == "int8" || tokenVal == "uint8" ||
+            tokenVal == "int16" || tokenVal == "uint16" ||
+            tokenVal == "int32" || tokenVal == "uint32" ||
+            tokenVal == "int64" || tokenVal == "uint64" ||
+            tokenVal == "float32" || tokenVal == "float64"
+        )
+        {
+            Node* primitive = new Node(Node::Type::Primitive);
+            primitive->value = tokenVal;
+            return primitive;
+        }
+        return NULL;
     }
 
     // <literal> ::= <integer> | <float> | <string>
@@ -394,6 +458,20 @@ namespace Silent
         }
 
         return NULL;
+    }
+
+    // <type-specifier> ::= <primitive> | <type-name>
+    Node* Parser::ParseTypeSpecifier()
+    {
+        Node* specifier = ParsePrimitive();
+        if(specifier == NULL) return NULL;
+
+        specifier = ParseTypeName();
+        if(specifier == NULL) return NULL;
+
+        Node* typeSpecifier = new Node(Node::Type::TypeSpecifier);
+        typeSpecifier->children.push_back(specifier);
+        return typeSpecifier;
     }
 
     // EXPRESSIONS
@@ -1010,11 +1088,11 @@ namespace Silent
         {
             Node* n = ParseLocalStatement();
             if(n == NULL) break;
-            if(!Match(TokenType::Semicolon))
-            {
-                ErrorMsg("Expected semicolon");
-                NextToken();
-            }
+            // if(!Match(TokenType::Semicolon))
+            // {
+            //     ErrorMsg("Expected semicolon");
+            //     NextToken();
+            // }
             localStatements->children.push_back(n);
         }
 
@@ -1052,18 +1130,55 @@ namespace Silent
 
     //DECLARATIONS
 
-    // <function-declaration> ::= "function"[<function-properties>]<local-scope>
+    // <function-declaration> ::= 
+    //     "function" [<function-properties>] <function-name> 
+    //     "(" [<parameters>] ")" <local-scope>
     Node* Parser::ParseFunctionDeclaration()
     {
         uint64_t backtrackPtr = tokenCursor;
         if(!Match(TokenType::Function)) return NULL;
 
         // TODO: parse function properties
+        Node* functionProperties = ParseFunctionProperties();
+
+        Node* functionName = ParseFunctionName();
+        if(functionName == NULL)
+        {
+            PreviousToken(tokenCursor-backtrackPtr);
+            DeleteNode(functionProperties);
+            return NULL;
+        }
+
+        if(!Match(TokenType::OpenParam))
+        {
+            PreviousToken(tokenCursor-backtrackPtr);
+            DeleteNode(functionProperties);
+            return NULL;
+        }
+
+        Node* parameters = ParseParameters();
+
+        if(!Match(TokenType::CloseParam))
+        {
+            PreviousToken(tokenCursor-backtrackPtr);
+            DeleteNode(functionProperties);
+            DeleteNode(parameters);
+            return NULL;
+        }
+        // if(parameters == NULL)
+        // {
+        //     PreviousToken(tokenCursor-backtrackPtr);
+        //     DeleteNode(functionProperties);
+        //     DeleteNode(functionName);
+        //     return NULL;
+        // }
 
         Node* localScope = ParseLocalScope();
         if(localScope == NULL)
         {
             PreviousToken(tokenCursor-backtrackPtr);
+            DeleteNode(functionProperties);
+            DeleteNode(functionName);
             return NULL;
         }
 
@@ -1071,6 +1186,52 @@ namespace Silent
         functionDeclaration->children.push_back(localScope);
         DEBUG("Function declaration\n");
         return functionDeclaration;
+    }
+
+    // <parameters> ::= <parameter> {"," <parameter>}
+    Node* Parser::ParseParameters()
+    {
+        Node* parameter = ParseParameter();
+        if(parameter == NULL) return NULL;
+
+        Node* parameters = new Node(Node::Type::Parameters);
+        parameters->children.push_back(parameter);
+
+        while(Match(TokenType::Comma))
+        {
+            parameter = ParseParameter();
+            if(parameter == NULL)
+            {
+                ErrorMsg("Unexpected token");
+                PreviousToken();
+                break;
+            }
+            parameters->children.push_back(parameter);
+        }
+        DEBUG("Parameters\n");
+        return parameters;
+    }
+
+    // <parameter> ::= <type-specifier> <identifier>
+    Node* Parser::ParseParameter()
+    {
+        uint64_t backtrackPtr = tokenCursor;
+        Node* type = ParseTypeSpecifier();
+        if(type == NULL) return NULL;
+
+        Node* identifier = ParseIdentifier();
+        if(identifier == NULL)
+        {
+            DeleteNode(type);
+            PreviousToken(tokenCursor-backtrackPtr);
+            return NULL;
+        }
+
+        Node* parameter = new Node(Node::Type::Parameter);
+        parameter->children.push_back(type);
+        parameter->children.push_back(identifier);
+        DEBUG("Parameter\n");
+        return parameter;
     }
 
     Node* Parser::ParseFunctionProperties()

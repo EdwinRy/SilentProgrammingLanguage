@@ -1,7 +1,8 @@
 #include "SCompiler.hpp"
 #include "SFiles.hpp"
-#include "SParser.hpp"
+#include "SParser2.hpp"
 #include "STokenizer.hpp"
+#include "SCodeGen.hpp"
 #include <iostream>
 #include <vector>
 using namespace Silent;
@@ -32,7 +33,10 @@ void SilentCompiler::CompileSource(std::string source, char* outFile)
     }
 
     Parser parser;
-    parser.Parse(tokenizer.GetTokens());
+    Program* ast = parser.Parse(tokenizer.GetTokens());
+
+    CodeGenerator codeGen;
+    codeGen.GenBytecode(ast);
     // if(!parser.Parse(tokenizer.GetTokens()))
     // {
     //     std::cout << "Parsing unsuccessful\n";

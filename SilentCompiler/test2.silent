@@ -1,7 +1,7 @@
 namespace jeff
 {
-    function hava()
+    function meme(int16 a, int32 b)
     {
-        2 + 2;
+        int8 x;
     }
 }
