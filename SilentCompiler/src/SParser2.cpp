@@ -273,7 +273,9 @@ namespace Silent
 
     bool Expression::Parse(Parser &parser)
     {
-        return false;
+        op->ParseAssignment(parser);
+        if(op == NULL) return false;
+        return true;
     }
 
     // <variable-declaration> ::= <type-name> <identifier> ";"
@@ -282,7 +284,11 @@ namespace Silent
         // Get ptr to backtrack to
         uint64_t tokenPtr = parser.GetTokenCursor();
 
-        if(!type.Parse(parser)) return false;
+        if(!type.Parse(parser)) 
+        {
+            parser.PreviousToken(parser.GetTokenCursor()-tokenPtr);
+            return false;
+        }
         if(!parser.IsType(TokenType::Identifier))
         {
             parser.PreviousToken(parser.GetTokenCursor()-tokenPtr);
@@ -378,16 +384,25 @@ namespace Silent
             if(parser.Match(TokenType::ScopeResolution))
             {
                 if(parser.IsType(TokenType::Identifier))
+                {
                     value += "::" + parser.GetTokenVal();
+                    parser.NextToken();
+                    return true;
+                }
 
                 else
                 {
+                    parser.PreviousToken(2);
                     parser.ErrorMsg("Invalid syntax for type name");
                     return false;
                 }
             }
+            else
+            {
+                parser.PreviousToken();
+                return false;
+            }
         }
-        return false;
     }
 
     // <parameter> ::= <type-name> <identifier>
@@ -491,7 +506,7 @@ namespace Silent
             value = parser.GetTokenVal();
             if(parser.NextToken().type == TokenType::Digits)
             {
-                value = parser.GetTokenVal();
+                value += parser.GetTokenVal();
                 parser.NextToken();
                 return true;
             }
@@ -508,13 +523,79 @@ namespace Silent
         return false;
     }
 
+    // <float> ::= [<sign>] <digits> ["." <digits>]
     bool Float::Parse(Parser &parser)
     {
-
+        if(parser.GetToken().IsSign())
+        {
+            value = parser.GetTokenVal();
+            if(parser.NextToken().type == TokenType::Digits)
+            {
+                value += parser.GetTokenVal();
+                if(parser.NextToken().type == TokenType::Fullstop)
+                {
+                    if(parser.NextToken().type == TokenType::Digits)
+                    {
+                        value += "." + parser.GetTokenVal();
+                    }
+                    else
+                    {
+                        parser.PreviousToken(3);
+                        return false;
+                    }
+                    
+                }
+                return true;
+                
+            }
+        }
+        else
+        {
+            if(parser.GetTokenType() == TokenType::Digits)
+            {
+                value = parser.GetTokenVal();
+                if(parser.NextToken().type == TokenType::Fullstop)
+                {
+                    if(parser.NextToken().type == TokenType::Digits)
+                    {
+                        value += "." + parser.GetTokenVal();
+                    }
+                    else
+                    {
+                        parser.PreviousToken(3);
+                        return false;
+                    }
+                    
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     // <literal> ::= <integer> | <float> | <string>
     bool Literal::Parse(Parser &parser)
+    {
+        Float f;
+        Integer i;
+        if(f.Parse(parser)) value = f.value;
+        else if(i.Parse(parser)) value = i.value;
+
+        // TODO: add string literals
+
+        else
+        {
+            return false;
+        }
+        
+    }
+
+    bool ExpressionName::Parse(Parser &parser)
+    {
+        
+    }
+
+    bool ExpressionLHS::Parse(Parser &parser)
     {
 
     }
@@ -522,14 +603,43 @@ namespace Silent
     // <factor> ::= <literal> | "(" <expression> ")" | <function-call>
     Operand* Operand::ParseFactor(Parser &parser)
     {
-        
+        Operand* op;
+        Literal l;
+        Expression e;
+        FunctionCall f;
+        if(l.Parse(parser))
+        {
+            op->type = Operand::Type::Factor;
+            op->node = TableNode(new Literal(l), TableNode::NodeType::Literal);
+            return op;
+        }
+
+        else if(parser.GetTokenType() == TokenType::OpenParam)
+        {
+            // Get ptr to backtrack to
+            uint64_t tokenPtr = parser.GetTokenCursor();
+            parser.NextToken();
+            if(!e.Parse(parser))return NULL;
+            if(!parser.Match(TokenType::CloseParam))
+            {
+                parser.PreviousToken(parser.GetTokenCursor()-tokenPtr);
+                return NULL;
+            }
+            op->type = Operand::Type::Expression;
+            op->node = 
+                TableNode(new Expression(e), TableNode::NodeType::Expression);
+        }
+
+        // TODO: Add function call
+
+        return NULL;
     }
 
     Operand* Operand::ParseTerm(Parser &parser)
     {
         Operand* op = new Operand();
         Operand* temp = new Operand();
-        op->left = ParseSum(parser);
+        op->left = ParseFactor(parser);
 
         switch(parser.GetTokenType())
         {
@@ -538,7 +648,7 @@ namespace Silent
             {
                 op->type = Operand::TokenToOperandType(parser.GetTokenType());
                 parser.NextToken();
-                op->right = ParseSum(parser);
+                op->right = ParseFactor(parser);
                 temp = op;
                 op = new Operand();
                 op->left = temp;
@@ -601,14 +711,60 @@ namespace Silent
         return op->left;
     }
 
+    // <comparison-expression> ::= <shift-expression>
+    //     | <comparison-expression> <comparison-operator> <shift-expression>
+    // <comparison-operator> ::= "==" | "!=" | "<=" | ">="
     Operand* Operand::ParseComparison(Parser &parser)
     {
+        Operand* op = new Operand();
+        Operand* temp = new Operand();
+        op->left = ParseSum(parser);
 
+        switch(parser.GetTokenType())
+        {
+            case TokenType::Equal:
+            case TokenType::NotEqual:
+            case TokenType::LessThanOrEqualTo:
+            case TokenType::MoreThanOrEqualTo:
+            {
+                op->type = Operand::TokenToOperandType(parser.GetTokenType());
+                parser.NextToken();
+                op->right = ParseSum(parser);
+                temp = op;
+                op = new Operand();
+                op->left = temp;
+            }
+
+            default: break;
+        }
+
+        return op->left;
     }
 
     Operand* Operand::ParseConditional(Parser &parser)
     {
+        // TODO:
+    }
 
+    Operand* Operand::ParseAssignment(Parser &parser)
+    {
+        Operand* op = new Operand();
+        Operand* temp = new Operand();
+        op->left = ParseComparison(parser);
+
+        if(parser.GetToken().IsAssignment())
+        {
+            op->type = Operand::TokenToOperandType(parser.GetTokenType());
+            parser.NextToken();
+            op->right = ParseComparison(parser);
+            temp = op;
+            op = new Operand();
+            op->left = temp;
+        }
+
+        else return NULL;
+
+        return op->left;
     }
 
     Operand::Type Operand::TokenToOperandType(TokenType tokenType)
@@ -622,6 +778,14 @@ namespace Silent
             case TokenType::Subtract: return Type::Sub; break;
             case TokenType::Multiply: return Type::Mul; break;
             case TokenType::Divide: return Type::Div; break;
+
+            case TokenType::Assign: return Type::Assign; break;
+            case TokenType::AddAssign: return Type::AddAssign; break;
+            case TokenType::SubtractAssign: return Type::SubtractAssign; break;
+            case TokenType::MultiplyAssign: return Type::MultiplyAssign; break;
+            case TokenType::DivideAssign: return Type::DivideAssign; break;
+
+            default: return Type::None; break;
         }
     }
 }

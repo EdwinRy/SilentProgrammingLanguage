@@ -27,9 +27,11 @@
 
 <local-statement> ::= <variable-declaration> | <expression>
 
-<expression> ::= <assignment> | <function-call>
+<expression> ::= <assignment>
 
-<assignment> ::= <expression-lhs> <assignment-operator> <operand>
+(* <assignment> ::= <expression-lhs> <assignment-operator> <operand> *)
+<logical-expression> ::= <comparison-expression>
+    | <logical-expression> <logical-operator> <comparison-expression>
 
 <assignment-operator> ::= "=" | "+=" | "-=" | "*=" | "/="
 

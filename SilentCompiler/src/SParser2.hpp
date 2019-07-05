@@ -40,7 +40,9 @@ namespace Silent
             Function,
             Structure,
             LocalScope,
-            Variable
+            Variable,
+            Literal,
+            Expression
         }nodeType;
 
         template <class Type>
@@ -80,7 +82,7 @@ namespace Silent
         void WarningMsg(std::string msg);
 
         Token GetToken();
-        unsigned long long GetTokenCursor();
+        uint64_t GetTokenCursor();
         Token NextToken();
         Token NextToken(int offset);
         Token PeakToken();
@@ -149,6 +151,26 @@ namespace Silent
         std::string value;
     };
 
+    class ExpressionName
+    {
+        public:
+        bool Parse(Parser &parser);
+        std::string name;
+    };
+
+    class ExpressionLHS
+    {
+        public:
+        bool Parse(Parser &parser);
+        enum class Type
+        {
+            ExpressionName,
+            ArrayAccess
+        }type;
+
+        ExpressionName expressionName;
+    };
+
     class Operand
     {
         public:
@@ -163,6 +185,13 @@ namespace Silent
             Mul,
             Div,
             None,
+
+            Literal,
+            Assign,
+            AddAssign,
+            SubtractAssign,
+            MultiplyAssign,
+            DivideAssign,
 
             Factor,
             Term,
@@ -179,6 +208,7 @@ namespace Silent
         static Operand* ParseLogic(Parser &parser);
         static Operand* ParseComparison(Parser &parser);
         static Operand* ParseConditional(Parser &parser);
+        static Operand* ParseAssignment(Parser &parser);
 
         static Type TokenToOperandType(TokenType tokenType);
 
@@ -198,7 +228,6 @@ namespace Silent
         public:
         bool Parse(Parser &parser);
         std::string value;
-        bool isNegative;
     };
 
     class Literal
@@ -211,26 +240,8 @@ namespace Silent
             Float,
             String
         }type;
+
         std::string value;
-    };
-
-    class ExpressionName
-    {
-        public:
-        bool Parse(Parser &parser);
-        std::string name;
-    };
-
-    class ExpressionLHS
-    {
-        enum class Type
-        {
-            ExpressionName,
-            ArrayAccess
-        }type;
-
-        ExpressionName expressionName;
-
     };
 
     class Assignment
@@ -247,6 +258,8 @@ namespace Silent
     {
         public:
         bool Parse(Parser &parser);
+        private:
+        Operand *op;
     };
 
     class VariableDeclaration
