@@ -87,6 +87,7 @@
 
 <multiplication-operator> ::= "*" | "/"
 
-<factor> ::= <literal> | "(" <expression> ")" | <function-call>
+<factor> ::= <literal> | "(" <expression> ")" | <function-call> 
+    | <expression-lhs>
 
 

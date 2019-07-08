@@ -590,17 +590,31 @@ namespace Silent
         
     }
 
+    // <expression-name> ::= <identifier> {"." <identifier>}
     bool ExpressionName::Parse(Parser &parser)
     {
-        
+        if(parser.IsType(TokenType::Identifier))
+        {
+            name = parser.GetTokenVal();
+            parser.NextToken();
+        }
+        return false;
     }
 
+    // <expression-lhs> ::= <expression-name> | <array-access>
     bool ExpressionLHS::Parse(Parser &parser)
-    {
-
+    {   
+        if(expressionName.Parse(parser))
+        {
+            this->type = ExpressionLHS::Type::ExpressionName;
+            return true;
+        }
+        return false;
     }
 
-    // <factor> ::= <literal> | "(" <expression> ")" | <function-call>
+    
+    // <factor> ::= <literal> | "(" <expression> ")" | <function-call> 
+    //    | <expression-lhs>
     Operand* Operand::ParseFactor(Parser &parser)
     {
         Operand* op;
