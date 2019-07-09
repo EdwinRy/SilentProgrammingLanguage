@@ -1,6 +1,6 @@
 #include "SCompiler.hpp"
 #include "SFiles.hpp"
-#include "SParser2.hpp"
+#include "SParser.hpp"
 #include "STokenizer.hpp"
 #include "SCodeGen.hpp"
 #include <iostream>

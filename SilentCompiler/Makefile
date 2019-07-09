@@ -22,7 +22,7 @@ MKDIR = mkdir
 SOURCES = \
 	$(SRC_PATH)/SCompiler.cpp \
 	$(SRC_PATH)/STokenizer.cpp  \
-	$(SRC_PATH)/SParser2.cpp  \
+	$(SRC_PATH)/SParser.cpp  \
 	$(SRC_PATH)/SCodeGen.cpp 
 
 
