@@ -66,11 +66,11 @@ namespace Silent
         Token GetToken();
         uint64_t GetTokenCursor();
         Token NextToken();
-        Token NextToken(int offset);
+        Token NextToken(uint64_t offset);
         Token PeakToken();
-        Token PeakToken(int offset);
+        Token PeakToken(uint64_t offset);
         Token PreviousToken();
-        Token PreviousToken(int offset);
+        Token PreviousToken(uint64_t offset);
         void Revert(uint64_t revertPtr);
         bool Match(TokenType type);
         bool IsType(TokenType type);

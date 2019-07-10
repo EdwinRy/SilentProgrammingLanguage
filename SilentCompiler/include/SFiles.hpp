@@ -9,7 +9,8 @@ char* readAllText(char* path)
     char* text;
     FILE *f;
 
-    if((f = fopen(path,"r"))==NULL)
+    fopen_s(&f,path,"r");
+    if(f == NULL)
     {
         printf("File %s could not be opened!\n", path);
         exit(-1);
@@ -40,7 +41,8 @@ char* readAllBytes(char* path)
     char* text;
     FILE *f;
 
-    if((f = fopen(path,"rb"))==NULL)
+    fopen_s(&f, path, "rb");
+    if(f == NULL)
     {
         printf("File %s could not be opened!\n", path);
         exit(-1);

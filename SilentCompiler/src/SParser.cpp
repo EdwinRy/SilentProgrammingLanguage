@@ -2,9 +2,9 @@
 
 // Define debug output functions
 #define DEBUG_ENABLED 1
-#define ERROR(args...) printf(args);
+#define ERROR(...) printf(__VA_ARGS__);
 #if DEBUG_ENABLED
-#define DEBUG(args...) printf(args);
+#define DEBUG(...) printf(__VA_ARGS__);
 #else
 #define DEBUG(args...) 
 #endif
@@ -105,7 +105,7 @@ namespace Silent
         return ct;
     }
 
-    Token Parser::NextToken(int offset)
+    Token Parser::NextToken(uint64_t offset)
     {
         tokenCursor += offset;
         if(tokenCursor == tokensPtr->size()) tokenCursor--;
@@ -118,7 +118,7 @@ namespace Silent
         return (*tokensPtr)[tokenCursor + 1];
     }
 
-    Token Parser::PeakToken(int offset)
+    Token Parser::PeakToken(uint64_t offset)
     {
         return (*tokensPtr)[tokenCursor + offset];
     }
@@ -131,7 +131,7 @@ namespace Silent
         return ct;
     }
 
-    Token Parser::PreviousToken(int offset)
+    Token Parser::PreviousToken(uint64_t offset)
     {
         tokenCursor -= offset;
         if((long long)tokenCursor == -1) tokenCursor++;
@@ -230,7 +230,7 @@ namespace Silent
                 break;
             }
         }
-        
+        return true;
         DEBUG("Finished parsing program\n");
     }
 
@@ -350,6 +350,18 @@ namespace Silent
         return true;
     }
 
+    bool VariableDeclaration::Parse(Parser &parser)
+    {
+        // TODO
+        return true;
+    }
+
+    bool Expression::Parse(Parser &parser)
+    {
+        // TODO
+        return true;
+    }
+
     bool Function::Parse(Parser &parser)
     {
         DEBUG("Parsing function\n");
@@ -380,7 +392,7 @@ namespace Silent
             return false;
         }
 
-        // Parse funcion scope
+        // Parse function scope
         if(!ParseScope(parser))
         {
             parser.ErrorMsg("Could not parse function scope");
@@ -539,6 +551,7 @@ namespace Silent
                 return false;
             }
         }
+        return true;
     }
 
 
