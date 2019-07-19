@@ -1,4 +1,8 @@
 namespace jeff
 {
-    
+	function heff(int8 n)
+	{
+		int8 x = 5;
+		x = 5 + 1;
+	}
 }

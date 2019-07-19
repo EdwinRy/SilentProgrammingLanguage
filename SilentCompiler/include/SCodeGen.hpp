@@ -12,6 +12,6 @@ namespace Silent
         private:
         bool TraverseNode(Program* node);
         std::vector<char> code;
-        char* bytecodeOut;
+        char* bytecodeOut = NULL;
     };
 }

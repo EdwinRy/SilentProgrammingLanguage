@@ -16,7 +16,7 @@ char* readAllText(char* path)
         exit(-1);
     }
     fseek(f,0,SEEK_END);
-    text = (char*)malloc(ftell(f) + 1);
+    text = (char*)malloc(ftell(f) + 1l);
     fseek(f,0,SEEK_SET);
     long count = 0;
     char c;

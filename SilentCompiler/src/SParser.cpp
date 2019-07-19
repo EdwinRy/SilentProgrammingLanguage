@@ -1,32 +1,34 @@
 #include "SParser.hpp"
-
-// Define debug output functions
-#define DEBUG_ENABLED 1
-#define ERROR(...) printf(__VA_ARGS__);
-#if DEBUG_ENABLED
-#define DEBUG(...) printf(__VA_ARGS__);
-#else
-#define DEBUG(args...) 
-#endif
+#include <string>
 
 namespace Silent
 {
-
     thread_local SymbolTable* SymbolTable::currentTable = 0;
 
-    template <class Type>
-    TableNode::TableNode(Type* node, NodeType type)
+    template <class T>
+    TableNode::TableNode(T* node, Type type)
     {
         nodeType = type;
         this->node = (void*)node;
     }
 
-    void SymbolTable::AddItem(TableNode node)
+    TableNode::TableNode()
     {
-        items.push_back(node);
+        this->nodeType = Type::Null;
+        this->node = NULL;
     }
 
-    void SymbolTable::AddChild(SymbolTable child)
+    SymbolTable::SymbolTable()
+    {
+        parent = NULL;
+    }
+
+    void SymbolTable::AddItem(TableNode *node)
+    {
+         items.push_back(node);
+    }
+
+    void SymbolTable::AddChild(SymbolTable *child)
     {
         children.push_back(child);
     }
@@ -36,18 +38,6 @@ namespace Silent
         this->parent = parent;
     }
 
-    void SymbolTable::SetupChild()
-    {
-        SetParent(currentTable);
-        currentTable = this;
-    }
-
-    void SymbolTable::AddCurrentChild()
-    {
-        currentTable = this->GetParent();
-        currentTable->AddChild(*this);
-    }
-
     SymbolTable* SymbolTable::GetParent()
     {
         return parent;
@@ -55,9 +45,13 @@ namespace Silent
 
     Parser::Parser()
     {
+        this->warningCount = 0;
         this->tokensPtr = 0;
         this->tokenCursor = 0;
         this->errorCount = 0;
+        this->errorsEnabled = true;
+        this->warningsEnabled = true;
+        this->debuggingEnabled = true;
     }
 
     Program* Parser::Parse(std::vector<Silent::Token> tokens)
@@ -67,24 +61,46 @@ namespace Silent
 
         tokens.push_back({TokenType::EndOfFile, "End of file", 0});
         Program* program = new Program();
-        if(program->Parse(*this)) return program;
+        if (program->Parse(*this)) 
+        {
+            DebugMsg("Parsing Finished with:");
+            DebugMsg(std::to_string(errorCount) + " Errors and");
+            DebugMsg(std::to_string(warningCount) + " Warnings");
+            return program;
+        }
         else return NULL;
     }
 
     void Parser::ErrorMsg(std::string msg)
     {
         errorCount++;
-        std::cout << "Parser error on line " << ct.line << "\n";
-        std::cout << msg << "\n";
-        std::cout << "At token: " << ct.value << "\n";
+        if (errorsEnabled)
+        {
+            std::cout << "Parser error on line " << ct.line << "\n";
+            std::cout << msg << "\n";
+            std::cout << "At token: " << ct.value << "\n";
+        }
+        if (errorCount > 5000) (void)NextToken(2);
     }
 
 
     void Parser::WarningMsg(std::string msg)
     {
-        std::cout << "Parser warning on line " << ct.line << "\n";
-        std::cout << msg << "\n";
-        std::cout << "At token: " << ct.value << "\n";
+        warningCount++;
+        if (warningsEnabled)
+        {
+            std::cout << "Parser warning on line " << ct.line << "\n";
+            std::cout << msg << "\n";
+            std::cout << "At token: " << ct.value << "\n";
+        }
+    }
+
+    void Parser::DebugMsg(std::string msg)
+    {
+        if (debuggingEnabled)
+        {
+            std::cout << msg << "\n";
+        }
     }
 
     Token Parser::GetToken()
@@ -141,14 +157,14 @@ namespace Silent
 
     void Parser::Revert(uint64_t revertPtr)
     {
-        PreviousToken(GetTokenCursor()-revertPtr);
+        (void)PreviousToken(GetTokenCursor()-revertPtr);
     }
 
     bool Parser::Match(TokenType type)
     {
         if(type == this->ct.type)
         {
-            NextToken();
+            (void)NextToken();
             return true;
         }
         return false;
@@ -170,13 +186,23 @@ namespace Silent
         return ct.type;
     }
 
+    Program::Program()
+    {
+        table = new SymbolTable();
+    }
+
+    Program::~Program()
+    {
+        delete table;
+    }
+
+
     // Parse program
     bool Program::Parse(Parser &parser)
     {
-        DEBUG("Parsing program\n");
-
-        table.SetParent(NULL);
-        SymbolTable::currentTable = &table;
+        parser.DebugMsg("Parsing program");
+        table = new SymbolTable();
+        SymbolTable::currentTable = table;
 
         while(!parser.IsType(TokenType::EndOfFile))
         {
@@ -185,15 +211,16 @@ namespace Silent
                 // Parse namespace definition
                 case TokenType::Namespace:
                 {
-                    Namespace newNamespace;
-                    if(newNamespace.Parse(parser))
+                    Namespace *newNamespace = new Namespace();
+                    if(newNamespace->Parse(parser))
                     {
                         namespaces.push_back(newNamespace);
                     }
                     else
                     {
+                        delete newNamespace;
                         parser.WarningMsg("Invalid namespace definition");
-                        parser.NextToken();
+                        (void)parser.NextToken();
                     }
                     
                 }
@@ -202,15 +229,16 @@ namespace Silent
                 // Parse function definition
                 case TokenType::Function:
                 {
-                    Function function;
-                    if(function.Parse(parser))
+                    Function *function = new Function();
+                    if(function->Parse(parser))
                     {
                         functions.push_back(function);
                     }
                     else
                     {
+                        delete function;
                         parser.WarningMsg("Invalid function definition");
-                        parser.NextToken();
+                        (void)parser.NextToken();
                     }
                 }
                 break;
@@ -225,18 +253,18 @@ namespace Silent
                 default:
                 {
                     parser.ErrorMsg("Invalid token in program scope");
-                    parser.NextToken(2);
+                    (void)parser.NextToken(2);
                 }
                 break;
             }
         }
         return true;
-        DEBUG("Finished parsing program\n");
+        parser.DebugMsg("Finished parsing program");
     }
 
     bool Namespace::Parse(Parser &parser)
     {
-        DEBUG("Parsing namespace\n");
+        parser.DebugMsg("Parsing namespace");
         uint64_t revertPtr = parser.GetTokenCursor();
 
         if(!ParseDeclaration(parser))
@@ -245,14 +273,23 @@ namespace Silent
             parser.Revert(revertPtr);
             return false;
         }
-
-        DEBUG("Finished parsing namespace\n");
+        parser.DebugMsg("Finished parsing namespace");
         return true;
+    }
+
+    Namespace::Namespace()
+    {
+        symTable = new SymbolTable();
+    }
+
+    Namespace::~Namespace()
+    {
+        delete symTable;
     }
 
     bool Namespace::ParseDeclaration(Parser &parser)
     {
-        DEBUG("Parsing namespace declaration\n");
+        parser.DebugMsg("Parsing namespace declaration");
         uint64_t revertPtr = parser.GetTokenCursor();
         // Check syntax
         parser.Match(TokenType::Namespace);
@@ -266,39 +303,49 @@ namespace Silent
         }
 
         SymbolTable::currentTable->
-            AddItem(TableNode(this,TableNode::NodeType::Namespace));
-        symTable.SetupChild();
+            AddItem(new TableNode(this, TableNode::Type::Namespace));
+
+        symTable->SetParent(SymbolTable::currentTable);
+        SymbolTable::currentTable = symTable;
 
         // Parse namespace scope
         if(!ParseScope(parser))
         {
-            symTable.AddCurrentChild();
+            // TODO: delete symbol table
+            SymbolTable::currentTable = symTable->GetParent();
+            SymbolTable::currentTable->AddChild(symTable);
             parser.ErrorMsg("Failed to parse namespace scope");
             parser.Revert(revertPtr);
             return false;
         }
 
-        symTable.AddCurrentChild();
-        DEBUG("Finished parsing namespace declaration\n");
+        SymbolTable::currentTable = symTable->GetParent();
+        SymbolTable::currentTable->AddChild(symTable);
+        parser.DebugMsg("Finished parsing namespace declaration");
         return true;
     }
 
     bool Namespace::ParseIdentifier(Parser &parser)
     {
+        parser.DebugMsg("Parsing namespace identifier");
         if(parser.GetTokenType() == TokenType::Identifier)
         {
             id = parser.GetTokenVal();
+            (void)parser.NextToken();
+            parser.DebugMsg("Finished parsing namespace identifier");
             return true;
+            
         }
         else
         {
+            parser.DebugMsg("Finished parsing namespace identifier");
             return false;
         }
     }
 
     bool Namespace::ParseScope(Parser &parser)
     {
-        DEBUG("Parsing namespace scope\n");
+        parser.DebugMsg("Parsing namespace scope");
         uint64_t revertPtr = parser.GetTokenCursor();
 
         // Check for open scope
@@ -316,13 +363,14 @@ namespace Silent
                 // Parse function declaration
                 case TokenType::Function:
                 {
-                    Function function;
-                    if(function.Parse(parser))
+                    Function *function = new Function();
+                    if(function->Parse(parser))
                     {
                         functions.push_back(function);
                     }
                     else 
                     {
+                        delete function;
                         parser.ErrorMsg("Invalid function declaration syntax");
                         parser.Revert(revertPtr);
                         return false;
@@ -346,25 +394,429 @@ namespace Silent
             }
         }
 
-        DEBUG("Finished parsing namespace scope\n");
+        parser.DebugMsg("Finished parsing namespace scope");
         return true;
     }
 
     bool VariableDeclaration::Parse(Parser &parser)
     {
-        // TODO
-        return true;
+        uint64_t revertPtr = parser.GetTokenCursor();
+        if (type.Parse(parser))
+        {
+            if (parser.IsType(TokenType::Identifier))
+            {
+                parser.DebugMsg("Parsing variable declaration");
+                id = parser.GetTokenVal();
+                (void)parser.NextToken();
+                parser.DebugMsg("Got variable identifier: " + id);
+
+                if (parser.Match(TokenType::Semicolon))
+                {
+                    parser.DebugMsg("Finished parsing variable declaration");
+                    return true;
+                }
+                else if (parser.Match(TokenType::Assign))
+                {
+                    if (init.Parse(parser))
+                    {
+                        if (!parser.Match(TokenType::Semicolon))
+                        {
+                            parser.WarningMsg("Expected end of expression");
+                        }
+                        parser.DebugMsg(
+                            "Finished parsing variable declaration");
+                        return true;
+                    }
+                    else
+                    {
+                        parser.ErrorMsg("Failed parsing variable init");
+                        parser.Revert(revertPtr);
+                        return false;
+                    }
+                }
+                else
+                {
+                    parser.ErrorMsg(
+                        "Invalid token following variable declaration");
+                    parser.Revert(revertPtr);
+                }
+            
+            }
+            else
+            {
+                parser.DebugMsg("Failed variable declaration production");
+                parser.Revert(revertPtr);
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool Literal::Parse(Parser& parser)
+    {
+        uint64_t revertPtr = parser.GetTokenCursor();
+        if (parser.GetTokenType() == TokenType::StringValue)
+        {
+            type = Type::String;
+            val = parser.GetTokenVal();
+            (void)parser.NextToken();
+            return true;
+        }
+
+        if(parser.IsType(TokenType::Add) || parser.IsType(TokenType::Subtract))
+        {
+            val = parser.GetTokenVal();
+            (void)parser.NextToken();
+        }
+
+        if (parser.IsType(TokenType::Digits))
+        {
+            val += parser.GetTokenVal();
+            (void)parser.NextToken();
+            if (parser.Match(TokenType::Fullstop))
+            {
+                if (parser.IsType(TokenType::Digits))
+                {
+                    type = Type::Float;
+                    val += "." + parser.GetTokenVal();
+                    return true;
+                }
+                else
+                {
+                    parser.ErrorMsg("Failed float production rule");
+                    parser.Revert(revertPtr);
+                    return false;
+                }
+            }
+            else
+            {
+                type = Type::Integer;
+                return true;
+            }
+        }
+        else
+        {
+            parser.Revert(revertPtr);
+            return false;
+        }
+    }
+
+    // <factor> ::= <literal> | "(" <expression> ")" | <function-call>
+    //              | <expression-lhs>
+    Operand* Operand::ParseFactor(Parser& parser)
+    {
+        Operand* op = new Operand();
+        op->type = Operand::Type::Factor;
+        Literal lit = {};
+        if (lit.Parse(parser))
+        {
+            op->node = TableNode(new Literal(lit), TableNode::Type::Literal);
+            return op;
+        }
+
+        ExpressionLHS expName = {};
+        if (expName.Parse(parser))
+        {
+            op->node = TableNode(
+                new ExpressionLHS(expName), 
+                TableNode::Type::ExpressionLHS);
+            return op;
+        }
+        // TODO: Add other productions
+        delete op;
+        return NULL;
+    }
+
+    Operand* Operand::ParseTerm(Parser& parser)
+    {
+        Operand *op = new Operand();
+        Operand *temp;
+
+        op->left = ParseFactor(parser);
+
+        switch (parser.GetTokenType())
+        {
+            case TokenType::Multiply:
+            case TokenType::Divide:
+            {
+                op->type = Operand::TokenToOperandType(parser.GetTokenType());
+                (void)parser.NextToken();
+                op->right = ParseFactor(parser);
+                return op;
+            }
+            break;
+
+            default: 
+            {
+                temp = op->left;
+                delete op;
+                return temp;
+            }
+            break;
+        }
+    }
+
+    Operand* Operand::ParseSum(Parser& parser)
+    {
+        Operand* op = new Operand();
+        Operand* temp;
+
+        op->left = ParseTerm(parser);
+
+        switch (parser.GetTokenType())
+        {
+            case TokenType::Add:
+            case TokenType::Subtract:
+            {
+                op->type = Operand::TokenToOperandType(parser.GetTokenType());
+                (void)parser.NextToken();
+                op->right = ParseTerm(parser);
+                return op;
+            }
+            break;
+
+            default:
+            {
+                temp = op->left;
+                delete op;
+                return temp;
+            }
+            break;
+        }
+    }
+
+    Operand* Operand::ParseLogic(Parser& parser)
+    {
+        Operand* op = new Operand();
+        Operand* temp;
+
+        op->left = ParseSum(parser);
+
+        switch (parser.GetTokenType())
+        {
+            case TokenType::And:
+            case TokenType::Or:
+            case TokenType::Not:
+            {
+                op->type = Operand::TokenToOperandType(parser.GetTokenType());
+                (void)parser.NextToken();
+                op->right = ParseSum(parser);
+                return op;
+            }
+            break;
+
+            default:
+            {
+                temp = op->left;
+                delete op;
+                return temp;
+            }
+            break;
+        }
+    }
+
+    Operand* Operand::ParseComparison(Parser& parser)
+    {
+        Operand* op = new Operand();
+        Operand* temp;
+
+        op->left = ParseLogic(parser);
+
+        switch (parser.GetTokenType())
+        {
+            case TokenType::Equal:
+            case TokenType::NotEqual:
+            case TokenType::LessThan:
+            case TokenType::LessThanOrEqualTo:
+            case TokenType::MoreThan:
+            case TokenType::MoreThanOrEqualTo:
+            {
+                op->type = Operand::TokenToOperandType(parser.GetTokenType());
+                (void)parser.NextToken();
+                op->right = ParseLogic(parser);
+                return op;
+            }
+            break;
+
+            default:
+            {
+                temp = op->left;
+                delete op;
+                return temp;
+            }
+            break;
+        }
+    }
+
+    Operand* Operand::ParseConditional(Parser& parser)
+    {
+        Operand* op = new Operand();
+        Operand* temp;
+
+        op->left = ParseComparison(parser);
+
+        switch (parser.GetTokenType())
+        {
+            case TokenType::ConditionalAnd:
+            case TokenType::ConditionalOr:
+            {
+                op->type = Operand::TokenToOperandType(parser.GetTokenType());
+                (void)parser.NextToken();
+                op->right = ParseComparison(parser);
+                return op;
+            }
+            break;
+
+            default:
+            {
+                temp = op->left;
+                delete op;
+                return temp;
+            }
+            break;
+        }
+    }
+
+    Operand* Operand::ParseAssignment(Parser& parser)
+    {
+        Operand* op = new Operand();
+        Operand* temp;
+
+        op->left = ParseConditional(parser);
+
+        switch (parser.GetTokenType())
+        {
+            case TokenType::Add:
+            case TokenType::Subtract:
+            {
+                op->type = Operand::TokenToOperandType(parser.GetTokenType());
+                (void)parser.NextToken();
+                op->right = ParseConditional(parser);
+                return op;
+            }
+            break;
+
+            default:
+            {
+                temp = op->left;
+                delete op;
+                return temp;
+            }
+            break;
+        }
+    }
+
+    Operand::Type Operand::TokenToOperandType(TokenType tokenType)
+    {
+        switch (tokenType)
+        {
+            case TokenType::And: return Type::And; break;
+            case TokenType::Or: return Type::Or; break;
+            case TokenType::Xor: return Type::Xor; break;
+            case TokenType::Add: return Type::Add; break;
+            case TokenType::Subtract: return Type::Sub; break;
+            case TokenType::Multiply: return Type::Mul; break;
+            case TokenType::Divide: return Type::Div; break;
+
+            case TokenType::Assign: return Type::Assign; break;
+            case TokenType::AddAssign: return Type::AddAssign; break;
+            case TokenType::SubtractAssign: return Type::SubtractAssign; break;
+            case TokenType::MultiplyAssign: return Type::MultiplyAssign; break;
+            case TokenType::DivideAssign: return Type::DivideAssign; break;
+
+            default: return Type::None; break;
+        }
     }
 
     bool Expression::Parse(Parser &parser)
     {
-        // TODO
-        return true;
+        op = Operand::ParseAssignment(parser);
+        return op != NULL;
+    }
+
+    bool ExpressionLHS::ObjectAccess::Parse(Parser& parser)
+    {
+        uint64_t revertPtr = parser.GetTokenCursor();
+        while (parser.Match(TokenType::Fullstop))
+        {
+            if (parser.IsType(TokenType::Identifier))
+            {
+                access.push_back(parser.GetTokenVal());
+            }
+            else
+            {
+                parser.ErrorMsg("Invalid expression name syntax");
+                parser.Revert(revertPtr);
+                return false;
+            }
+        }
+
+        if (access.size() == 0) return false;
+        else return true;
+    }
+
+    bool ExpressionLHS::ArrayAccess::Parse(Parser& parser)
+    {
+        uint64_t revertPtr = parser.GetTokenCursor();
+        while (parser.Match(TokenType::OpenBracket))
+        {
+            Expression ex;
+            if (ex.Parse(parser))
+            {
+                if (!parser.Match(TokenType::CloseBracket))
+                {
+                    parser.WarningMsg("Expected closing bracket");
+                    return false;
+                }
+                access.push_back(ex);
+            }
+            else
+            {
+                parser.ErrorMsg("Expected expression in array access");
+                parser.Revert(revertPtr);
+                return false;
+            }
+        }
+
+        if (access.size() == 0) return false;
+        else return true;
+    }
+
+    bool ExpressionLHS::Parse(Parser& parser)
+    {
+        uint64_t revertPtr = parser.GetTokenCursor();
+        if (parser.IsType(TokenType::Identifier))
+        {
+            id = parser.GetTokenVal();
+            (void)parser.NextToken();
+
+            ObjectAccess oa;
+            if (oa.Parse(parser)) objectAccess = new ObjectAccess(oa);
+
+            ArrayAccess aa;
+            if (aa.Parse(parser)) arrayAccess = new ArrayAccess(aa);
+
+            return true;
+        }
+        else return false;
+    }
+
+    Function::Function()
+    {
+        symTable = new SymbolTable();
+    }
+
+    Function::~Function()
+    {
+        delete symTable;
     }
 
     bool Function::Parse(Parser &parser)
     {
-        DEBUG("Parsing function\n");
+        parser.DebugMsg("Parsing function");
 
         uint64_t revertPtr = parser.GetTokenCursor();
 
@@ -401,26 +853,31 @@ namespace Silent
         }
 
 
-        DEBUG("Finished parsing function\n");
+        parser.DebugMsg("Finished parsing function");
         return true;
     }
 
     bool Function::ParseIdentifier(Parser &parser)
     {
+        parser.DebugMsg("Parsing function identifier");
         if(parser.GetTokenType() == TokenType::Identifier)
         {
             id = parser.GetTokenVal();
+            (void)parser.NextToken();
+            parser.DebugMsg("Got function identifier: " + id);
+            parser.DebugMsg("Finished parsing function identifier");
             return true;
         }
         else
         {
+            parser.DebugMsg("Parsing function identifier has failed");
             return false;
         }
     }
 
     bool Function::ParseParameters(Parser &parser)
     {
-        DEBUG("Parsing function parameters\n");
+        parser.DebugMsg("Parsing function parameters");
 
         uint64_t revertPtr = parser.GetTokenCursor();
 
@@ -431,20 +888,26 @@ namespace Silent
             return false;
         }
 
-        Parameter param;
+        Parameter param = {};
         if(param.Parse(parser))
         {
-            params.push_back(param);
+            params.push_back(new Parameter(param));
 
             while(!parser.IsType(TokenType::CloseParam))
             {
-                if(!parser.Match(TokenType::Comma)) break;
-                if(!param.Parse(parser))
+                param = {};
+                if (!parser.Match(TokenType::Comma))
                 {
-                    parser.PreviousToken();
+                    parser.WarningMsg("Expected parameter separator");
                     break;
                 }
-                params.push_back(param);
+                if(!param.Parse(parser))
+                {
+                    parser.WarningMsg("Failed to parse function parameter");
+                    (void)parser.PreviousToken();
+                    break;
+                }
+                params.push_back(new Parameter(param));
             }
         }
 
@@ -455,13 +918,14 @@ namespace Silent
             return false;
         }
 
-        DEBUG("Finished parsing function parameters\n");
+        parser.DebugMsg("Finished parsing function parameters");
+
         return true;
     }
 
     bool Function::Parameter::Parse(Parser &parser)
     {
-        DEBUG("Parsing parameter\n");
+        parser.DebugMsg("Parsing function parameter");
         uint64_t revertPtr = parser.GetTokenCursor();
 
         if(!type.Parse(parser)) return false;
@@ -471,22 +935,29 @@ namespace Silent
             return false;
         }
         id = parser.GetTokenVal();
-        parser.NextToken();
+        (void)parser.NextToken();
 
-        DEBUG("Finished parsing parameter\n");
+        parser.DebugMsg("Finished parsing function parameter: " + id);
         return true;
     }
 
     bool Function::ParseScope(Parser &parser)
     {
-        DEBUG("Parsing function scope\n");
+        parser.DebugMsg("Parsing function scope");
         uint64_t revertPtr = parser.GetTokenCursor();
+
+        symTable->SetParent(SymbolTable::currentTable);
+        SymbolTable::currentTable->AddChild(symTable);
+        SymbolTable::currentTable->
+            AddItem(new TableNode(this, TableNode::Type::Function));
+        SymbolTable::currentTable = symTable;
 
         // Syntax check
         if(!parser.Match(TokenType::OpenScope))
         {
             parser.ErrorMsg("Expected open scope");
             parser.Revert(revertPtr);
+            SymbolTable::currentTable = symTable->GetParent();
             return false;
         }
 
@@ -499,20 +970,30 @@ namespace Silent
         }
 
 
-        DEBUG("Finished parsing function scope\n");
+        parser.DebugMsg("Finished parsing function scope");
         return true;
     }
 
     bool Function::LocalStatement::Parse(Parser &parser)
     {
-        if(varDec.Parse(parser)) type = Type::VariableDeclaration;
-        else if(expression.Parse(parser)) type = Type::Expression;
-        else 
+        VariableDeclaration newVarDec;
+        if (newVarDec.Parse(parser))
         {
-            parser.ErrorMsg("Invalid local statement");
-            return false;
+            varDec = new VariableDeclaration(newVarDec);
+            type = Type::VariableDeclaration;
+            return true;
         }
-        return true;
+
+        Expression newExpression;
+        if (newExpression.Parse(parser))
+        {
+            expression = new Expression(newExpression);
+            type = Type::Expression;
+            return true;
+        }
+
+        parser.ErrorMsg("Invalid local statement");
+        return false;
     }
 
 
@@ -522,37 +1003,35 @@ namespace Silent
         {
             type = Type::Primitive;
             value = parser.GetTokenVal();
-            parser.NextToken();
+            (void)parser.NextToken();
             return true;
         }
         else if(parser.IsType(TokenType::Identifier))
         {
             value = parser.GetTokenVal();
-            parser.NextToken();
+            (void)parser.NextToken();
             if(parser.Match(TokenType::ScopeResolution))
             {
                 if(parser.IsType(TokenType::Identifier))
                 {
                     value += "::" + parser.GetTokenVal();
-                    parser.NextToken();
+                    (void)parser.NextToken();
                     return true;
                 }
 
                 else
                 {
-                    parser.PreviousToken(2);
+                    (void)parser.PreviousToken(2);
                     parser.ErrorMsg("Invalid syntax for type name");
                     return false;
                 }
             }
             else
             {
-                parser.PreviousToken();
+                (void)parser.PreviousToken();
                 return false;
             }
         }
         return true;
     }
-
-
 }

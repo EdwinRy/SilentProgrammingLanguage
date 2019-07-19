@@ -15,44 +15,44 @@ namespace Silent
     class TableNode
     {
         public:
-        enum class NodeType
+        enum class Type
         {
             Namespace,
             Function,
             Structure,
             Variable,
             Literal,
-            Expression
+            Expression,
+            ExpressionLHS,
+            Null
         }nodeType;
 
         template <class T>
-        TableNode(T* node, NodeType type);
-        TableNode(){}
+        TableNode(T* node, Type type);
+        TableNode();
         void* GetNode(){return node;}
 
         private:
-        // ScopeResolution scopeRes;
         void* node;
     };
 
     class SymbolTable
     {
         public:
-        void AddItem(TableNode node);
-        void AddChild(SymbolTable child);
-        TableNode GetItemBack(){return items.back();}
+        SymbolTable();
+        void AddItem(TableNode *node);
+        void AddChild(SymbolTable *child);
+        TableNode* GetItemBack(){return items.back();}
         void SetParent(SymbolTable* parent);
-        void SetupChild();
-        void AddCurrentChild();
         SymbolTable* GetParent();
 
         static thread_local SymbolTable* currentTable;
+        TableNode self;
 
         private:
-        std::vector<SymbolTable> children;
+        std::vector<SymbolTable*> children;
         SymbolTable* parent;
-
-        std::vector<TableNode> items;
+        std::vector<TableNode*> items;
     };
 
     class Parser
@@ -60,8 +60,12 @@ namespace Silent
         public:
         Parser();
         Program* Parse(std::vector<Silent::Token> tokensPtr);
+        bool errorsEnabled;
         void ErrorMsg(std::string msg);
+        bool warningsEnabled;
         void WarningMsg(std::string msg);
+        bool debuggingEnabled;
+        void DebugMsg(std::string msg);
 
         Token GetToken();
         uint64_t GetTokenCursor();
@@ -107,36 +111,45 @@ namespace Silent
     class Program
     {
         public:
+        Program(); ~Program();
         bool Parse(Parser &parser);
-        std::vector<Namespace> namespaces;
-        std::vector<Function> functions;
-        std::vector<Type> types;
-        SymbolTable table;
+        std::vector<Namespace*> namespaces;
+        std::vector<Function*> functions;
+        std::vector<Type*> types;
+        SymbolTable* table;
     };
 
     class Namespace
     {
         public:
+        Namespace(); ~Namespace();
         bool Parse(Parser &parser);
 
         private:
         bool ParseDeclaration(Parser &parser);
         bool ParseScope(Parser &parser);
         bool ParseIdentifier(Parser &parser);
-        std::vector<Function> functions;
-        std::vector<Type> types;
-        SymbolTable symTable;
+        std::vector<Function*> functions;
+        std::vector<Type*> types;
+        SymbolTable *symTable;
         std::string id;
     };
 
-    class VariableDeclaration
-    {
-        public:
-        bool Parse(Parser &parser);
+    
 
-        private:
-        Type::Name type;
-        std::string id;
+    class Literal
+    {
+        enum class Type
+        {
+            Integer,
+            Float,
+            String,
+            None
+        }type = Type::None;
+
+        public:
+        bool Parse(Parser& parser);
+        std::string val;
     };
 
     class Operand
@@ -152,23 +165,20 @@ namespace Silent
             Sub,
             Mul,
             Div,
-            None,
 
-            Literal,
             Assign,
             AddAssign,
             SubtractAssign,
             MultiplyAssign,
             DivideAssign,
 
+            //Literal,
+            //Expression,
+            //ExpressionLHS,
+            //FunctionCall,
             Factor,
-            Term,
-            Sum,
-            Logic,
-            Comparison,
-            Conditional,
-            Expression
-        }type;
+            None,
+        }type = Type::None;
         static Operand* ParseFactor(Parser &parser);
         static Operand* ParseTerm(Parser &parser);
         static Operand* ParseSum(Parser &parser);
@@ -179,7 +189,7 @@ namespace Silent
 
         static Type TokenToOperandType(TokenType tokenType);
 
-        Operand *left, *right;
+        Operand *left = NULL, *right = NULL;
         TableNode node;
     };
 
@@ -191,9 +201,44 @@ namespace Silent
         Operand *op;
     };
 
+    class ExpressionLHS
+    {
+        public:
+        bool Parse(Parser& parser);
+
+        class ObjectAccess
+        {
+            public:
+            bool Parse(Parser& parser);
+            std::vector<std::string> access;
+        }*objectAccess;
+
+        class ArrayAccess
+        {
+            public:
+            bool Parse(Parser& parser);
+            std::vector<Expression> access;
+        }*arrayAccess;
+
+        private:
+        std::string id;
+    };
+
+    class VariableDeclaration
+    {
+        public:
+        bool Parse(Parser& parser);
+
+        private:
+        Type::Name type;
+        std::string id;
+        Expression init;
+    };
+
     class Function
     {
         public:
+        Function(); ~Function();
         bool Parse(Parser &parser);
 
         private:
@@ -201,7 +246,7 @@ namespace Silent
         bool ParseParameters(Parser &parser);
         bool ParseScope(Parser &parser);
 
-        SymbolTable symTable;
+        SymbolTable *symTable;
         std::string id;
 
         class Parameter
@@ -214,7 +259,7 @@ namespace Silent
             std::string id;
         };
 
-        std::vector<Parameter> params;
+        std::vector<Parameter*> params;
         
         class LocalStatement
         {
@@ -228,17 +273,15 @@ namespace Silent
                 Expression
             }type;
 
-            VariableDeclaration varDec;
-            Expression expression;
+            union
+            {
+                VariableDeclaration *varDec;
+                Expression *expression;
+            };
 
         };
 
         std::vector<LocalStatement> statements;
-
-    };
-
-    class Variable
-    {
 
     };
 }

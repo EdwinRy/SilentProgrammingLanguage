@@ -131,12 +131,30 @@ namespace Silent
                     }
                 break;
                 case '&':
-                    token.type = TokenType::And;
-                    token.value = "&";
+                    if (source[i + 1] == '&&')
+                    {
+                        i++;
+                        token.type = TokenType::ConditionalAnd;
+                        token.value = "&&";
+                    }
+                    else
+                    {
+                        token.type = TokenType::And;
+                        token.value = "&";
+                    }
                 break;
                 case '|':
-                    token.type = TokenType::Or;
-                    token.value = "|";
+                    if (source[i + 1] == '|')
+                    {
+                        i++;
+                        token.type = TokenType::ConditionalOr;
+                        token.value = "||";
+                    }
+                    else
+                    {
+                        token.type = TokenType::Or;
+                        token.value = "|";
+                    }
                 break;
                 case '^':
                     token.type = TokenType::Xor;
@@ -258,11 +276,11 @@ namespace Silent
                     token.value = "}";
                 break;
                 case '\"':
-                    token.type = TokenType::String;
+                    token.type = TokenType::StringValue;
                     token.value = this->TokenizeString(source, i);
                 break;
                 case ':':
-                    if((source[++i] = ':'))
+                    if((source[++i] == ':'))
                     {
                         token.type = TokenType::ScopeResolution;
                         token.value = "::";

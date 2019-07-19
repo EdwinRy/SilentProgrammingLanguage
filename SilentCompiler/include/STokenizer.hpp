@@ -56,6 +56,10 @@ namespace Silent
         Xor,
         Not,
 
+        // Conditional Operator
+        ConditionalAnd,
+        ConditionalOr,
+
         // Bit Shift Operators
         RightShift,
         LeftShift,
