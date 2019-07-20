@@ -36,7 +36,7 @@ void SilentCompiler::CompileSource(std::string source, char* outFile)
     Program* ast = parser.Parse(tokenizer.GetTokens());
 
     CodeGenerator codeGen;
-    codeGen.GenBytecode(ast);
+    codeGen.Compile(ast);
     // if(!parser.Parse(tokenizer.GetTokens()))
     // {
     //     std::cout << "Parsing unsuccessful\n";

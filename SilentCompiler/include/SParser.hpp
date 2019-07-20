@@ -17,6 +17,7 @@ namespace Silent
         public:
         enum class Type
         {
+            Program,
             Namespace,
             Function,
             Structure,
@@ -40,9 +41,9 @@ namespace Silent
     {
         public:
         SymbolTable();
-        void AddItem(TableNode *node);
+        void AddItem(TableNode node);
         void AddChild(SymbolTable *child);
-        TableNode* GetItemBack(){return items.back();}
+        TableNode GetItemBack(){return items.back();}
         void SetParent(SymbolTable* parent);
         SymbolTable* GetParent();
 
@@ -50,9 +51,9 @@ namespace Silent
         TableNode self;
 
         private:
-        std::vector<SymbolTable*> children;
         SymbolTable* parent;
-        std::vector<TableNode*> items;
+        std::vector<SymbolTable*> children;
+        std::vector<TableNode> items;
     };
 
     class Parser
@@ -111,7 +112,6 @@ namespace Silent
     class Program
     {
         public:
-        Program(); ~Program();
         bool Parse(Parser &parser);
         std::vector<Namespace*> namespaces;
         std::vector<Function*> functions;
@@ -122,10 +122,10 @@ namespace Silent
     class Namespace
     {
         public:
-        Namespace(); ~Namespace();
         bool Parse(Parser &parser);
 
         private:
+        friend class CodeGenerator;
         bool ParseDeclaration(Parser &parser);
         bool ParseScope(Parser &parser);
         bool ParseIdentifier(Parser &parser);
@@ -238,10 +238,10 @@ namespace Silent
     class Function
     {
         public:
-        Function(); ~Function();
         bool Parse(Parser &parser);
 
         private:
+        friend class CodeGenerator;
         bool ParseIdentifier(Parser &parser);
         bool ParseParameters(Parser &parser);
         bool ParseScope(Parser &parser);

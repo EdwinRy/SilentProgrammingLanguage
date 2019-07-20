@@ -7,11 +7,21 @@ namespace Silent
     class CodeGenerator
     {
         public:
-        char* GenBytecode(Program* ast);
+        char* Compile(Program* ast);
 
         private:
-        bool TraverseNode(Program* node);
+        SymbolTable* symTable;
         std::vector<char> code;
         char* bytecodeOut = NULL;
+        
+        
+        // Compile functions
+        bool CompileProgram(Program* program);
+        bool CompileNamespace(Namespace* scope);
+        bool CompileFunction(Function* function);
+
+        // Helper functions
+
+        
     };
 }

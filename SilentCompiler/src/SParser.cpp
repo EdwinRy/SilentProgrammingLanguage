@@ -23,7 +23,7 @@ namespace Silent
         parent = NULL;
     }
 
-    void SymbolTable::AddItem(TableNode *node)
+    void SymbolTable::AddItem(TableNode node)
     {
          items.push_back(node);
     }
@@ -63,9 +63,9 @@ namespace Silent
         Program* program = new Program();
         if (program->Parse(*this)) 
         {
-            DebugMsg("Parsing Finished with:");
-            DebugMsg(std::to_string(errorCount) + " Errors and");
-            DebugMsg(std::to_string(warningCount) + " Warnings");
+            DebugMsg("\033[1;34mParsing Finished with:");
+            DebugMsg("\033[1;31m" + std::to_string(errorCount) + " Errors\033[0m and");
+            DebugMsg("\033[1;33m" + std::to_string(warningCount) + " Warnings\033[0m");
             return program;
         }
         else return NULL;
@@ -76,9 +76,11 @@ namespace Silent
         errorCount++;
         if (errorsEnabled)
         {
-            std::cout << "Parser error on line " << ct.line << "\n";
-            std::cout << msg << "\n";
-            std::cout << "At token: " << ct.value << "\n";
+            std::cout 
+                << "\033[1;31m" << "Parser error on " << "\033[1;4;31m"
+                << "line " << ct.line << ":\033[0m\n"
+                << "\033[4;31m" << msg << "\033[0m\n"
+                << "\033[1;31mAt token: " << ct.value << "\033[0m\n";
         }
         if (errorCount > 5000) (void)NextToken(2);
     }
@@ -89,9 +91,11 @@ namespace Silent
         warningCount++;
         if (warningsEnabled)
         {
-            std::cout << "Parser warning on line " << ct.line << "\n";
-            std::cout << msg << "\n";
-            std::cout << "At token: " << ct.value << "\n";
+            std::cout 
+                << "\033[1;33m" << "Parser warning on " << "\033[1;4;33m" 
+                << "line " << ct.line << ":\033[0m\n"
+                << "\033[4;33m" << msg << "\033[0m\n"
+                << "\033[1;33m" << "At token: " << ct.value << "\033[0m\n";
         }
     }
 
@@ -186,22 +190,15 @@ namespace Silent
         return ct.type;
     }
 
-    Program::Program()
-    {
-        table = new SymbolTable();
-    }
-
-    Program::~Program()
-    {
-        delete table;
-    }
-
 
     // Parse program
     bool Program::Parse(Parser &parser)
     {
-        parser.DebugMsg("Parsing program");
+        // TODO: Add self functionality to the rest of the parser
+        
+        parser.DebugMsg("\033[36mParsing program\033[0m");
         table = new SymbolTable();
+        table->self = TableNode(this, TableNode::Type::Program);
         SymbolTable::currentTable = table;
 
         while(!parser.IsType(TokenType::EndOfFile))
@@ -211,14 +208,13 @@ namespace Silent
                 // Parse namespace definition
                 case TokenType::Namespace:
                 {
-                    Namespace *newNamespace = new Namespace();
-                    if(newNamespace->Parse(parser))
+                    Namespace newNamespace = Namespace();
+                    if(newNamespace.Parse(parser))
                     {
-                        namespaces.push_back(newNamespace);
+                        namespaces.push_back(new Namespace(newNamespace));
                     }
                     else
                     {
-                        delete newNamespace;
                         parser.WarningMsg("Invalid namespace definition");
                         (void)parser.NextToken();
                     }
@@ -229,14 +225,13 @@ namespace Silent
                 // Parse function definition
                 case TokenType::Function:
                 {
-                    Function *function = new Function();
-                    if(function->Parse(parser))
+                    Function function = Function();
+                    if(function.Parse(parser))
                     {
-                        functions.push_back(function);
+                        functions.push_back(new Function(function));
                     }
                     else
                     {
-                        delete function;
                         parser.WarningMsg("Invalid function definition");
                         (void)parser.NextToken();
                     }
@@ -258,13 +253,13 @@ namespace Silent
                 break;
             }
         }
+        parser.DebugMsg("\033[32mFinished parsing program\033[0m");
         return true;
-        parser.DebugMsg("Finished parsing program");
     }
 
     bool Namespace::Parse(Parser &parser)
     {
-        parser.DebugMsg("Parsing namespace");
+        parser.DebugMsg("\033[36mParsing namespace\033[0m");
         uint64_t revertPtr = parser.GetTokenCursor();
 
         if(!ParseDeclaration(parser))
@@ -273,23 +268,25 @@ namespace Silent
             parser.Revert(revertPtr);
             return false;
         }
-        parser.DebugMsg("Finished parsing namespace");
+
+        // Parse namespace scope
+        if (!ParseScope(parser))
+        {
+            // TODO: delete symbol table
+            SymbolTable::currentTable = symTable->GetParent();
+            SymbolTable::currentTable->AddChild(symTable);
+            parser.ErrorMsg("Failed to parse namespace scope");
+            parser.Revert(revertPtr);
+            return false;
+        }
+
+        parser.DebugMsg("\033[32mFinished parsing namespace\033[0m");
         return true;
-    }
-
-    Namespace::Namespace()
-    {
-        symTable = new SymbolTable();
-    }
-
-    Namespace::~Namespace()
-    {
-        delete symTable;
     }
 
     bool Namespace::ParseDeclaration(Parser &parser)
     {
-        parser.DebugMsg("Parsing namespace declaration");
+        parser.DebugMsg("\033[36mParsing namespace declaration\033[0m");
         uint64_t revertPtr = parser.GetTokenCursor();
         // Check syntax
         parser.Match(TokenType::Namespace);
@@ -302,50 +299,34 @@ namespace Silent
             return false;
         }
 
-        SymbolTable::currentTable->
-            AddItem(new TableNode(this, TableNode::Type::Namespace));
-
-        symTable->SetParent(SymbolTable::currentTable);
-        SymbolTable::currentTable = symTable;
-
-        // Parse namespace scope
-        if(!ParseScope(parser))
-        {
-            // TODO: delete symbol table
-            SymbolTable::currentTable = symTable->GetParent();
-            SymbolTable::currentTable->AddChild(symTable);
-            parser.ErrorMsg("Failed to parse namespace scope");
-            parser.Revert(revertPtr);
-            return false;
-        }
-
-        SymbolTable::currentTable = symTable->GetParent();
-        SymbolTable::currentTable->AddChild(symTable);
-        parser.DebugMsg("Finished parsing namespace declaration");
+        parser.DebugMsg(
+            "\033[32mFinished parsing namespace declaration\033[0m");
         return true;
     }
 
     bool Namespace::ParseIdentifier(Parser &parser)
     {
-        parser.DebugMsg("Parsing namespace identifier");
+        parser.DebugMsg("\033[36mParsing namespace identifier\033[0m");
         if(parser.GetTokenType() == TokenType::Identifier)
         {
             id = parser.GetTokenVal();
             (void)parser.NextToken();
-            parser.DebugMsg("Finished parsing namespace identifier");
+            parser.DebugMsg(
+                "\033[32mFinished parsing namespace identifier\033[0m");
             return true;
             
         }
         else
         {
-            parser.DebugMsg("Finished parsing namespace identifier");
+            parser.DebugMsg(
+                "\033[32mFinished parsing namespace identifier\033[0m");
             return false;
         }
     }
 
     bool Namespace::ParseScope(Parser &parser)
     {
-        parser.DebugMsg("Parsing namespace scope");
+        parser.DebugMsg("\033[36mParsing namespace scope\033[0m");
         uint64_t revertPtr = parser.GetTokenCursor();
 
         // Check for open scope
@@ -356,6 +337,13 @@ namespace Silent
             return false;
         }
 
+        symTable = new SymbolTable();
+        symTable->self = TableNode(this, TableNode::Type::Namespace);
+        symTable->SetParent(SymbolTable::currentTable);
+        SymbolTable::currentTable->AddChild(symTable);
+        SymbolTable::currentTable->AddItem(symTable->self);
+        SymbolTable::currentTable = symTable;
+
         while(!parser.Match(TokenType::CloseScope))
         {
             switch (parser.GetTokenType())
@@ -363,16 +351,16 @@ namespace Silent
                 // Parse function declaration
                 case TokenType::Function:
                 {
-                    Function *function = new Function();
-                    if(function->Parse(parser))
+                    Function function = Function();
+                    if(function.Parse(parser))
                     {
-                        functions.push_back(function);
+                        functions.push_back(new Function(function));
                     }
                     else 
                     {
-                        delete function;
                         parser.ErrorMsg("Invalid function declaration syntax");
                         parser.Revert(revertPtr);
+                        SymbolTable::currentTable = symTable->GetParent();
                         return false;
                     }
                 }
@@ -388,13 +376,15 @@ namespace Silent
                 {
                     parser.ErrorMsg("Invalid token in namespace scope");
                     parser.Revert(revertPtr);
+                    SymbolTable::currentTable = symTable->GetParent();
                     return false;
                 }
                 break;
             }
         }
 
-        parser.DebugMsg("Finished parsing namespace scope");
+        SymbolTable::currentTable = symTable->GetParent();
+        parser.DebugMsg("\033[32mFinished parsing namespace scope\033[0m");
         return true;
     }
 
@@ -413,6 +403,8 @@ namespace Silent
                 if (parser.Match(TokenType::Semicolon))
                 {
                     parser.DebugMsg("Finished parsing variable declaration");
+                    SymbolTable::currentTable->AddItem(
+                        TableNode(this, TableNode::Type::Variable));
                     return true;
                 }
                 else if (parser.Match(TokenType::Assign))
@@ -425,6 +417,8 @@ namespace Silent
                         }
                         parser.DebugMsg(
                             "Finished parsing variable declaration");
+                        SymbolTable::currentTable->AddItem(
+                            TableNode(this, TableNode::Type::Variable));
                         return true;
                     }
                     else
@@ -449,10 +443,7 @@ namespace Silent
                 return false;
             }
         }
-        else
-        {
-            return false;
-        }
+        else return false;
     }
 
     bool Literal::Parse(Parser& parser)
@@ -804,19 +795,10 @@ namespace Silent
         else return false;
     }
 
-    Function::Function()
-    {
-        symTable = new SymbolTable();
-    }
-
-    Function::~Function()
-    {
-        delete symTable;
-    }
 
     bool Function::Parse(Parser &parser)
     {
-        parser.DebugMsg("Parsing function");
+        parser.DebugMsg("\033[36mParsing function\033[0m");
 
         uint64_t revertPtr = parser.GetTokenCursor();
 
@@ -853,19 +835,20 @@ namespace Silent
         }
 
 
-        parser.DebugMsg("Finished parsing function");
+        parser.DebugMsg("\033[32mFinished parsing function\033[0m");
         return true;
     }
 
     bool Function::ParseIdentifier(Parser &parser)
     {
-        parser.DebugMsg("Parsing function identifier");
+        parser.DebugMsg("\033[36mParsing function identifier\033[0m");
         if(parser.GetTokenType() == TokenType::Identifier)
         {
             id = parser.GetTokenVal();
             (void)parser.NextToken();
             parser.DebugMsg("Got function identifier: " + id);
-            parser.DebugMsg("Finished parsing function identifier");
+            parser.DebugMsg(
+                "\033[32mFinished parsing function identifier\033[0m");
             return true;
         }
         else
@@ -877,7 +860,7 @@ namespace Silent
 
     bool Function::ParseParameters(Parser &parser)
     {
-        parser.DebugMsg("Parsing function parameters");
+        parser.DebugMsg("\033[36mParsing function parameters\033[0m");
 
         uint64_t revertPtr = parser.GetTokenCursor();
 
@@ -918,7 +901,7 @@ namespace Silent
             return false;
         }
 
-        parser.DebugMsg("Finished parsing function parameters");
+        parser.DebugMsg("\033[32mFinished parsing function parameters\033[0m");
 
         return true;
     }
@@ -943,13 +926,14 @@ namespace Silent
 
     bool Function::ParseScope(Parser &parser)
     {
-        parser.DebugMsg("Parsing function scope");
+        parser.DebugMsg("\033[36mParsing function scope\033[0m");
         uint64_t revertPtr = parser.GetTokenCursor();
 
+        symTable = new SymbolTable();
+        symTable->self = TableNode(this, TableNode::Type::Function);
         symTable->SetParent(SymbolTable::currentTable);
         SymbolTable::currentTable->AddChild(symTable);
-        SymbolTable::currentTable->
-            AddItem(new TableNode(this, TableNode::Type::Function));
+        SymbolTable::currentTable->AddItem(symTable->self);
         SymbolTable::currentTable = symTable;
 
         // Syntax check
@@ -970,7 +954,8 @@ namespace Silent
         }
 
 
-        parser.DebugMsg("Finished parsing function scope");
+        parser.DebugMsg("\033[32mFinished parsing function scope\033[0m");
+        SymbolTable::currentTable = symTable->GetParent();
         return true;
     }
 
