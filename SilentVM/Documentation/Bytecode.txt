@@ -1,0 +1,31 @@
+(x,...) - argument on stack
+[x,...] - argument in code
+x - size of argument in bytes
+
+Halt - Halt execution of the program
+
+Goto (8) - Change code pointer to arg
+
+Call [8,8] - Call function by saving the stack, 
+	pushing arg2 bytes of arguments and changing code ptr to arg1
+
+Return [8] - Return to previous subroutine and return arg1 bytes
+
+Push1 [1] - Push 1 byte onto the stack
+
+Push2 [2] - Push 2 bytes onto the stack
+
+Push4 [4] - Push 4 bytes onto the stack
+
+Push8 [8] - Push 8 bytes onto the stack
+
+PushX [8] [arg1] - Copy arg1 bytes onto stack
+
+
+
+
+
+
+
+
+

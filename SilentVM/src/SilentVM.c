@@ -128,6 +128,10 @@ void SilentStartVM(char* prog)
 				pc += 7;
 			break;
 
+            case PushX:
+                // TODO
+            break;
+
 			case Pop1:
 				sp--;
 			break;

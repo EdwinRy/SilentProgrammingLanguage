@@ -19,8 +19,7 @@ namespace Silent
         String,
 
         // Keywords
-        Function,
-        Method,
+        Subroutine,
         If,
         IfNot,
         Else,
@@ -33,6 +32,12 @@ namespace Silent
         Namespace,
         Import,
         Inline,
+        
+        // Access modifiers
+        Public,
+        Private,
+        Protected,
+
         // Export,
         Asm,
 
@@ -100,6 +105,7 @@ namespace Silent
 
         bool IsPrimitive();
         bool IsKeyword();
+        bool IsAccessModifier();
         bool IsArithmetic();
         bool IsSign();
         bool IsComparison();

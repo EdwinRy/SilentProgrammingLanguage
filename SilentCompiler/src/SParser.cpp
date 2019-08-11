@@ -95,7 +95,7 @@ namespace Silent
                 << "\033[1;33m" << "Parser warning on " << "\033[1;4;33m" 
                 << "line " << ct.line << ":\033[0m\n"
                 << "\033[4;33m" << msg << "\033[0m\n"
-                << "\033[1;33m" << "At token: " << ct.value << "\033[0m\n";
+                << "\033[1;33m" << "Near token: " << ct.value << "\033[0m\n";
         }
     }
 
@@ -208,13 +208,14 @@ namespace Silent
                 // Parse namespace definition
                 case TokenType::Namespace:
                 {
-                    Namespace newNamespace = Namespace();
-                    if(newNamespace.Parse(parser))
+                    Namespace* newNamespace = new Namespace();
+                    if(newNamespace->Parse(parser))
                     {
-                        namespaces.push_back(new Namespace(newNamespace));
+                        namespaces.push_back(newNamespace);
                     }
                     else
                     {
+                        delete newNamespace;
                         parser.WarningMsg("Invalid namespace definition");
                         (void)parser.NextToken();
                     }
@@ -223,15 +224,16 @@ namespace Silent
                 break;
 
                 // Parse function definition
-                case TokenType::Function:
+                case TokenType::Subroutine:
                 {
-                    Function function = Function();
-                    if(function.Parse(parser))
+                    Function* function = new Function();
+                    if(function->Parse(parser))
                     {
-                        functions.push_back(new Function(function));
+                        functions.push_back(function);
                     }
                     else
                     {
+                        delete function;
                         parser.WarningMsg("Invalid function definition");
                         (void)parser.NextToken();
                     }
@@ -241,7 +243,17 @@ namespace Silent
                 // Parse type definition
                 case TokenType::Type:
                 {
-
+                    Type* type = new Type();
+                    if (type->Parse(parser))
+                    {
+                        types.push_back(type);
+                    }
+                    else
+                    {
+                        delete type;
+                        parser.WarningMsg("Invalid type definition");
+                        (void)parser.NextToken();
+                    }
                 }
                 break;
 
@@ -318,8 +330,8 @@ namespace Silent
         }
         else
         {
-            parser.DebugMsg(
-                "\033[32mFinished parsing namespace identifier\033[0m");
+            parser.WarningMsg(
+                "\033[32mFailed parsing namespace identifier\033[0m");
             return false;
         }
     }
@@ -349,15 +361,16 @@ namespace Silent
             switch (parser.GetTokenType())
             {
                 // Parse function declaration
-                case TokenType::Function:
+                case TokenType::Subroutine:
                 {
-                    Function function = Function();
-                    if(function.Parse(parser))
+                    Function* function = new Function();
+                    if(function->Parse(parser))
                     {
-                        functions.push_back(new Function(function));
+                        functions.push_back(function);
                     }
                     else 
                     {
+                        delete function;
                         parser.ErrorMsg("Invalid function declaration syntax");
                         parser.Revert(revertPtr);
                         SymbolTable::currentTable = symTable->GetParent();
@@ -411,10 +424,6 @@ namespace Silent
                 {
                     if (init.Parse(parser))
                     {
-                        if (!parser.Match(TokenType::Semicolon))
-                        {
-                            parser.WarningMsg("Expected end of expression");
-                        }
                         parser.DebugMsg(
                             "Finished parsing variable declaration");
                         SymbolTable::currentTable->AddItem(
@@ -499,6 +508,7 @@ namespace Silent
     //              | <expression-lhs>
     Operand* Operand::ParseFactor(Parser& parser)
     {
+        parser.DebugMsg("Parsing factor");
         Operand* op = new Operand();
         op->type = Operand::Type::Factor;
         Literal lit = {};
@@ -533,6 +543,7 @@ namespace Silent
             case TokenType::Multiply:
             case TokenType::Divide:
             {
+                parser.DebugMsg("Parsing term");
                 op->type = Operand::TokenToOperandType(parser.GetTokenType());
                 (void)parser.NextToken();
                 op->right = ParseFactor(parser);
@@ -562,6 +573,7 @@ namespace Silent
             case TokenType::Add:
             case TokenType::Subtract:
             {
+                parser.DebugMsg("Parsing sum");
                 op->type = Operand::TokenToOperandType(parser.GetTokenType());
                 (void)parser.NextToken();
                 op->right = ParseTerm(parser);
@@ -592,6 +604,7 @@ namespace Silent
             case TokenType::Or:
             case TokenType::Not:
             {
+                parser.DebugMsg("Parsing logic");
                 op->type = Operand::TokenToOperandType(parser.GetTokenType());
                 (void)parser.NextToken();
                 op->right = ParseSum(parser);
@@ -625,6 +638,7 @@ namespace Silent
             case TokenType::MoreThan:
             case TokenType::MoreThanOrEqualTo:
             {
+                parser.DebugMsg("Parsing comparison");
                 op->type = Operand::TokenToOperandType(parser.GetTokenType());
                 (void)parser.NextToken();
                 op->right = ParseLogic(parser);
@@ -654,6 +668,7 @@ namespace Silent
             case TokenType::ConditionalAnd:
             case TokenType::ConditionalOr:
             {
+                parser.DebugMsg("Parsing conditional");
                 op->type = Operand::TokenToOperandType(parser.GetTokenType());
                 (void)parser.NextToken();
                 op->right = ParseComparison(parser);
@@ -680,9 +695,13 @@ namespace Silent
 
         switch (parser.GetTokenType())
         {
-            case TokenType::Add:
-            case TokenType::Subtract:
+            case TokenType::Assign:
+            case TokenType::AddAssign:
+            case TokenType::SubtractAssign:
+            case TokenType::MultiplyAssign:
+            case TokenType::DivideAssign:
             {
+                parser.DebugMsg("Parsing assignment");
                 op->type = Operand::TokenToOperandType(parser.GetTokenType());
                 (void)parser.NextToken();
                 op->right = ParseConditional(parser);
@@ -724,7 +743,12 @@ namespace Silent
 
     bool Expression::Parse(Parser &parser)
     {
+        parser.DebugMsg("Parsing expression");
         op = Operand::ParseAssignment(parser);
+        if (!parser.Match(TokenType::Semicolon))
+        {
+            parser.ErrorMsg("Semicolon expected at the end of expression");
+        }
         return op != NULL;
     }
 
@@ -803,7 +827,7 @@ namespace Silent
         uint64_t revertPtr = parser.GetTokenCursor();
 
         // Check for syntax
-        if(!parser.Match(TokenType::Function))
+        if(!parser.Match(TokenType::Subroutine))
         {
             parser.ErrorMsg("Invalid function definition");
             parser.Revert(revertPtr);
@@ -981,8 +1005,266 @@ namespace Silent
         return false;
     }
 
+    bool Type::Parse(Parser& parser)
+    {
+        parser.DebugMsg("\033[36mParsing type\033[0m");
+        uint64_t revertPtr = parser.GetTokenCursor();
 
-    bool Type::Name::Parse(Parser &parser)
+        if (!parser.Match(TokenType::Type))
+        {
+            parser.ErrorMsg("Invalid type definition");
+            parser.Revert(revertPtr);
+            return false;
+        }
+
+        if (!ParseIdentifier(parser))
+        {
+            parser.ErrorMsg("Failed to parse type identifier");
+            parser.Revert(revertPtr);
+            return false;
+        }
+
+        if (!ParseScope(parser))
+        {
+            parser.ErrorMsg("Failed to parse type scope");
+            parser.Revert(revertPtr);
+            return false;
+        }
+
+        parser.DebugMsg("\033[32mFinished parsing type\033[0m");
+        return true;
+    }
+
+    bool Type::ParseIdentifier(Parser& parser)
+    {
+        parser.DebugMsg("\033[36mParsing type identifier\033[0m");
+        if (parser.GetTokenType() == TokenType::Identifier)
+        {
+            id = parser.GetTokenVal();
+            (void)parser.NextToken();
+            parser.DebugMsg("Got type identifier: " + id);
+            parser.DebugMsg(
+                "\033[32mFinished parsing type identifier\033[0m");
+            return true;
+        }
+        else
+        {
+            parser.DebugMsg("Parsing type identifier has failed");
+            return false;
+        }
+    }
+
+
+    Type::Member::AccessModifier Type::Member::currentAccessModifier;
+    bool Type::ParseScope(Parser& parser)
+    {
+        parser.DebugMsg("\033[36mParsing type scope\033[0m");
+        uint64_t revertPtr = parser.GetTokenCursor();
+
+        symTable = new SymbolTable();
+        symTable->self = TableNode(this, TableNode::Type::Structure);
+        symTable->SetParent(SymbolTable::currentTable);
+        SymbolTable::currentTable->AddChild(symTable);
+        SymbolTable::currentTable->AddItem(symTable->self);
+        SymbolTable::currentTable = symTable;
+
+        // Syntax check
+        if (!parser.Match(TokenType::OpenScope))
+        {
+            parser.ErrorMsg("Expected open scope");
+            parser.Revert(revertPtr);
+            SymbolTable::currentTable = symTable->GetParent();
+            return false;
+        }
+
+        // Parse scope body
+        while (!parser.Match(TokenType::CloseScope))
+        {
+            if (parser.GetToken().IsAccessModifier() &&
+                parser.PeakToken().type == TokenType::Semicolon)
+            {
+                Member::currentAccessModifier = 
+                    Member::TokenToAccess(parser.GetTokenType());
+                (void)parser.NextToken(2);
+            }
+
+            Member member;
+            if (member.Parse(parser, this))
+            {
+                members.push_back(new Member(member));
+            }
+            else
+            {
+                parser.ErrorMsg("Failed to parse type member");
+                parser.Revert(revertPtr);
+                SymbolTable::currentTable = symTable->GetParent();
+                return false;
+            }
+        }
+
+        parser.DebugMsg("\033[32mFinished parsing type scope\033[0m");
+        SymbolTable::currentTable = symTable->GetParent();
+        return true;
+    }
+
+    bool Type::Member::Parse(Parser& parser, Type* parent)
+    {
+        parser.DebugMsg("\033[36mParsing type member\033[0m");
+        uint64_t revertPtr = parser.GetTokenCursor();
+        parentType = parent;
+        // Get access modifier
+        if (parser.GetToken().IsAccessModifier())
+        {
+            accessModifier = TokenToAccess(parser.GetTokenType());
+            (void)parser.NextToken();
+        }
+        
+        // Parse method
+        if (parser.GetTokenType() == TokenType::Subroutine)
+        {
+            Method tempMethod;
+            if (tempMethod.Parse(parser))
+            {
+                memberType = MemberType::Method;
+                method = new Method(tempMethod);
+                return true;
+            }
+            else
+            {
+                parser.ErrorMsg("Failed to parse type method");
+                parser.Revert(revertPtr);
+                return false;
+            }
+        }
+
+        // Parse attribute
+        else
+        {
+            Attribute attrib;
+            if (attrib.Parse(parser))
+            {
+                memberType = MemberType::Attribute;
+                attribute = new Attribute(attrib);
+                return true;
+            }
+            else
+            {
+                parser.ErrorMsg("Failed to parse type attribute");
+                parser.Revert(revertPtr);
+                return false;
+            }
+        }
+
+        parser.DebugMsg("\033[32mFinished parsing type member\033[0m");
+    }
+
+    Type::Member::AccessModifier Type::Member::TokenToAccess(TokenType type)
+    {
+        switch (type)
+        {
+            case TokenType::Public:
+                return AccessModifier::Public;
+            break;
+            case TokenType::Private:
+                return AccessModifier::Protected;
+            break;
+            case TokenType::Protected:
+                return AccessModifier::Protected;
+            break;
+            
+            default:
+                return AccessModifier::Public;
+            break;
+        }
+    }
+
+    bool Attribute::Parse(Parser& parser)
+    {
+        uint64_t revertPtr = parser.GetTokenCursor();
+        if (type.Parse(parser))
+        {
+            if (parser.IsType(TokenType::Identifier))
+            {
+                parser.DebugMsg("Parsing attribute declaration");
+                id = parser.GetTokenVal();
+                (void)parser.NextToken();
+                parser.DebugMsg("Got attribute identifier: " + id);
+
+                if (parser.Match(TokenType::Semicolon))
+                {
+                    parser.DebugMsg("Finished parsing attribute declaration");
+                    SymbolTable::currentTable->AddItem(
+                        TableNode(this, TableNode::Type::Variable));
+                    return true;
+                }
+                else
+                {
+                    parser.ErrorMsg(
+                        "Invalid token following attribute declaration");
+                    parser.Revert(revertPtr);
+                    return false;
+                }
+
+            }
+            else
+            {
+                parser.DebugMsg("Failed attribute declaration production");
+                parser.Revert(revertPtr);
+                return false;
+            }
+        }
+        else return false;
+    }
+
+    bool Method::Parse(Parser& parser)
+    {
+        parser.DebugMsg("\033[36mParsing method\033[0m");
+
+        uint64_t revertPtr = parser.GetTokenCursor();
+
+        // Check for syntax
+        if (!parser.Match(TokenType::Subroutine))
+        {
+            parser.ErrorMsg("Invalid method definition");
+            parser.Revert(revertPtr);
+            return false;
+        }
+
+        // Get function identifier
+        if (!ParseIdentifier(parser))
+        {
+            parser.ErrorMsg("Could not parse method identifier");
+            parser.Revert(revertPtr);
+            return false;
+        }
+
+        // Get function parameters
+        if (!ParseParameters(parser))
+        {
+            parser.ErrorMsg("Could not parse method parameters");
+            parser.Revert(revertPtr);
+            return false;
+        }
+
+        // Parse function scope
+        if (!ParseScope(parser))
+        {
+            parser.ErrorMsg("Could not parse method scope");
+            parser.Revert(revertPtr);
+            return false;
+        }
+
+        parser.DebugMsg("\033[32mFinished parsing method\033[0m");
+        return true;
+    }
+
+    void Method::SetParent(Type* type)
+    {
+        self = type;
+    }
+
+
+    bool TypeName::Parse(Parser &parser)
     {
         if(parser.GetToken().IsPrimitive())
         {

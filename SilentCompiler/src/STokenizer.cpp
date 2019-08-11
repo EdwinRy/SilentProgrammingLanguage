@@ -305,13 +305,9 @@ namespace Silent
 
                         //  Keywords
 
-                        if(token.value == "function")
+                        if(token.value == "sub")
                         {
-                            token.type = TokenType::Function;
-                        }
-                        else if(token.value == "method")
-                        {
-                            token.type = TokenType::Method;
+                            token.type = TokenType::Subroutine;
                         }
                         else if(token.value == "if")
                         {
@@ -364,6 +360,18 @@ namespace Silent
                         else if(token.value == "asm")
                         {
                             token.type = TokenType::Asm;
+                        }
+                        else if (token.value == "public")
+                        {
+                            token.type = TokenType::Public;
+                        }
+                        else if (token.value == "private")
+                        {
+                            token.type = TokenType::Private;
+                        }
+                        else if (token.value == "protected")
+                        {
+                            token.type = TokenType::Protected;
                         }
 
                         // Primitives
@@ -468,8 +476,7 @@ namespace Silent
     {
         switch(type)
         {
-            case TokenType::Function:
-            case TokenType::Method:
+            case TokenType::Subroutine:
             case TokenType::If:
             case TokenType::IfNot:
             case TokenType::Else:
@@ -482,6 +489,22 @@ namespace Silent
             case TokenType::Namespace:
             case TokenType::Import:
             // case TokenType::Export:
+                return true;
+            break;
+
+            default:
+                return false;
+            break;
+        }
+    }
+
+    bool Token::IsAccessModifier()
+    {
+        switch (type)
+        {
+            case TokenType::Public:
+            case TokenType::Private:
+            case TokenType::Protected:
                 return true;
             break;
 

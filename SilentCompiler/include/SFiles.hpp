@@ -17,11 +17,15 @@ char* readAllText(char* path)
     }
     fseek(f,0,SEEK_END);
     text = (char*)malloc(ftell(f) + 1l);
-    fseek(f,0,SEEK_SET);
-    long count = 0;
-    char c;
-    while((c = fgetc(f))!=EOF) { text[count++] = (char)c; }
-    text[count] = '\0';
+    if (text != NULL)
+    {
+
+        fseek(f,0,SEEK_SET);
+        long count = 0;
+        char c;
+        while((c = fgetc(f))!=EOF) { text[count++] = (char)c; }
+        text[count] = '\0';
+    }
     fclose(f);
     return text;
 }
