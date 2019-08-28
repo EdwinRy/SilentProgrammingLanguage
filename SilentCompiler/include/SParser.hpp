@@ -5,16 +5,16 @@
 #include <unordered_map>
 #pragma once
 
-namespace Silent
+namespace Silent {
+namespace Parser
 {
-
     class Program;
     class Namespace;
-    class Function;
     class Type;
-    class VariableDeclaration;
-    class Method;
+    class Variable;
+    class Subroutine;
     class Attribute;
+    class Parameter;
 
     class TableNode
     {
@@ -23,7 +23,7 @@ namespace Silent
         {
             Program,
             Namespace,
-            Function,
+            Subroutine,
             Structure,
             Variable,
             Literal,
@@ -35,10 +35,13 @@ namespace Silent
         template <class T>
         TableNode(T* node, Type type);
         TableNode();
-        void* GetNode(){return node;}
-
+        
         private:
         void* node;
+
+        // Getters and Setters
+        public:
+        void* GetNode() { return node; }
     };
 
     class SymbolTable
@@ -47,9 +50,6 @@ namespace Silent
         SymbolTable();
         void AddItem(TableNode node);
         void AddChild(SymbolTable *child);
-        TableNode GetItemBack(){return items.back();}
-        void SetParent(SymbolTable* parent);
-        SymbolTable* GetParent();
 
         static thread_local SymbolTable* currentTable;
         TableNode self;
@@ -58,6 +58,13 @@ namespace Silent
         SymbolTable* parent;
         std::vector<SymbolTable*> children;
         std::vector<TableNode> items;
+
+        public:
+        SymbolTable* GetParent();
+        TableNode GetItemBack() { return items.back(); }
+        std::vector<TableNode> GetItems() { return items; }
+
+        void SetParent(SymbolTable* parent);
     };
 
     class Parser
@@ -100,7 +107,7 @@ namespace Silent
         public:
         bool Parse(Parser &parser);
         std::vector<Namespace*> namespaces;
-        std::vector<Function*> functions;
+        std::vector<Subroutine*> functions;
         std::vector<Type*> types;
         SymbolTable* table;
     };
@@ -109,13 +116,15 @@ namespace Silent
     {
         public:
         bool Parse(Parser &parser);
+        std::string GetId() { return id; }
+        SymbolTable* GetTable() { return symTable; }
 
         private:
         friend class CodeGenerator;
         bool ParseDeclaration(Parser &parser);
         bool ParseScope(Parser &parser);
         bool ParseIdentifier(Parser &parser);
-        std::vector<Function*> functions;
+        std::vector<Subroutine*> functions;
         std::vector<Type*> types;
         SymbolTable *symTable;
         std::string id;
@@ -137,8 +146,6 @@ namespace Silent
     class Type
     {
         public:
-        Type(){}
-        Type(std::string id, uint64_t size);
         bool Parse(Parser &parser);
         bool ParseIdentifier(Parser& parser);
         bool ParseScope(Parser& parser);
@@ -156,7 +163,7 @@ namespace Silent
                 union
                 {
                     Attribute* attribute;
-                    Method* method;
+                    Subroutine* method;
                 };
 
                 enum class AccessModifier
@@ -177,8 +184,11 @@ namespace Silent
         SymbolTable* symTable;
         friend class CodeGenerator;
         std::string id;
-        uint64_t size;
         std::vector<Member*> members;
+
+        public:
+        std::string GetId() { return id; }
+        SymbolTable* GetTable() { return symTable; }
     };
 
     
@@ -271,78 +281,81 @@ namespace Silent
         std::string id;
     };
 
-    class VariableDeclaration
+    class Variable
     {
         public:
+        Variable(){}
+        Variable(Parameter* param);
         bool Parse(Parser& parser);
+        
 
         private:
         friend class CodeGenerator;
         TypeName type;
         std::string id;
         Expression init;
+        uint64_t scopeIndex;
+
+        public:
+        std::string GetId() { return id; }
     };
 
-    class Function
+    class LocalStatement
+    {
+        public:
+        bool Parse(Parser& parser);
+
+        private:
+        friend class CodeGenerator;
+        enum class Type
+        {
+            VariableDeclaration,
+            Expression
+        }type;
+
+        union
+        {
+            Variable* varDec;
+            Expression* expression;
+        };
+
+    };
+
+    class Parameter
     {
         public:
         bool Parse(Parser &parser);
 
-        protected:
+        private:
+        friend class Variable;
+        TypeName type;
+        std::string id;
+    };
+
+    class Subroutine
+    {
+        public:
+        bool Parse(Parser &parser);
+        std::string GetId() { return id; }
+        SymbolTable* GetTable() { return symTable; }
+
+        private:
         friend class CodeGenerator;
         bool ParseIdentifier(Parser &parser);
+        bool ParseReturnType(Parser& parser);
         bool ParseParameters(Parser &parser);
         bool ParseScope(Parser &parser);
 
         SymbolTable *symTable;
         std::string id;
 
-        class Parameter
-        {
-            public:
-            bool Parse(Parser &parser);
-
-            private:
-            TypeName type;
-            std::string id;
-        };
-
+        TypeName returnType;
         std::vector<Parameter*> params;
-        
-        class LocalStatement
-        {
-            public:
-            bool Parse(Parser &parser);
-
-            private:
-            friend class CodeGenerator;
-            enum class Type
-            {
-                VariableDeclaration,
-                Expression
-            }type;
-
-            union
-            {
-                VariableDeclaration *varDec;
-                Expression *expression;
-            };
-
-        };
-
         std::vector<LocalStatement> statements;
 
     };
 
-    class Method : Function
-    {
-        public:
-        bool Parse(Parser& parser);
-        void SetParent(Type* type);
 
-        private:
-        Type* self;
-    };
 
     class Attribute
     {
@@ -353,6 +366,7 @@ namespace Silent
         friend class CodeGenerator;
         TypeName type;
         std::string id;
+        
     };
     
-}
+}}

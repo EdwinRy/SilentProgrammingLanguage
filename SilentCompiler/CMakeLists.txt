@@ -3,6 +3,7 @@ SET(SOURCE
     src/Scompiler.cpp
     src/SParser.cpp
     src/STokenizer.cpp
+    src/SSemantics.cpp
 )
 
 SET(HEADERS
@@ -11,6 +12,8 @@ SET(HEADERS
     include/SFiles.hpp
     include/SParser.hpp
     include/STokenizer.hpp
+	include/SHelper.hpp
+	include/SSemantics.hpp
 )
 
 add_executable(

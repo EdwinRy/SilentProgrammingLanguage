@@ -32,11 +32,11 @@ void SilentCompiler::CompileSource(std::string source, char* outFile)
         std::cout << "Could not tokenize source\n";
     }
 
-    Parser parser;
-    Program* ast = parser.Parse(tokenizer.GetTokens());
+    Parser::Parser parser;
+    Parser::Program* ast = parser.Parse(tokenizer.GetTokens());
 
-    CodeGenerator codeGen = CodeGenerator(true, true, true);
-    codeGen.Compile(ast);
+    //CodeGenerator codeGen = CodeGenerator(true, true, true);
+    //codeGen.Compile(ast);
     // if(!parser.Parse(tokenizer.GetTokens()))
     // {
     //     std::cout << "Parsing unsuccessful\n";

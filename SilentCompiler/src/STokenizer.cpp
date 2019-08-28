@@ -375,6 +375,10 @@ namespace Silent
                         }
 
                         // Primitives
+                        else if (token.value == "void")
+                        {
+                            token.type = TokenType::Void;
+                        }
 
                         else if(token.value == "int8")
                         {
@@ -397,21 +401,28 @@ namespace Silent
                             token.value = "int32";
                             token.type = TokenType::I32;
                         }
-                        else if(token.value == "uint32")
+                        else if(token.value == "uint32" ||
+                            token.value == "uint")
                         {
+                            token.value = "uint32";
                             token.type = TokenType::UI32;
                         }
-                        else if(token.value == "int64" || token.value == "long")
+                        else if(token.value == "int64" || 
+                            token.value == "long")
                         {
                             token.value = "int64";
                             token.type = TokenType::I64;
                         }
-                        else if(token.value == "uint64")
+                        else if(token.value == "uint64" || 
+                            token.value == "ulong")
                         {
+                            token.value = "uint64";
                             token.type = TokenType::UI64;
                         }
-                        else if(token.value == "float32")
+                        else if(token.value == "float32" ||
+                            token.value == "float")
                         {
+                            token.value = "float32";
                             token.type = TokenType::F32;
                         }
                         else if(token.value == "float64")
@@ -452,6 +463,7 @@ namespace Silent
     {
         switch(type)
         {
+            case TokenType::Void:
             case TokenType::I8:
             case TokenType::UI8:
             case TokenType::I16:

@@ -1,7 +1,10 @@
 #include "SParser.hpp"
+#include "SHelper.hpp"
 #include <string>
 
 namespace Silent
+{
+namespace Parser
 {
     thread_local SymbolTable* SymbolTable::currentTable = 0;
 
@@ -201,6 +204,19 @@ namespace Silent
         table->self = TableNode(this, TableNode::Type::Program);
         SymbolTable::currentTable = table;
 
+        /*types.push_back(new Type("Void", 0));
+        types.push_back(new Type("int8", 1));
+        types.push_back(new Type("uint8", 1));
+        types.push_back(new Type("int16", 2));
+        types.push_back(new Type("uint16", 2));
+        types.push_back(new Type("int32", 4));
+        types.push_back(new Type("uint32", 4));
+        types.push_back(new Type("int64", 8));
+        types.push_back(new Type("uint64", 8));
+        types.push_back(new Type("float32", 4));
+        types.push_back(new Type("float64", 8));
+        types.push_back(new Type("string", 8));*/
+
         while(!parser.IsType(TokenType::EndOfFile))
         {
             switch(parser.GetTokenType())
@@ -226,7 +242,7 @@ namespace Silent
                 // Parse function definition
                 case TokenType::Subroutine:
                 {
-                    Function* function = new Function();
+                    Subroutine* function = new Subroutine();
                     if(function->Parse(parser))
                     {
                         functions.push_back(function);
@@ -266,6 +282,8 @@ namespace Silent
             }
         }
         parser.DebugMsg("\033[32mFinished parsing program\033[0m");
+        parser.DebugMsg("Resulting parse tree:");
+        //SymTablePrinter::PrintSymTable(this->table);
         return true;
     }
 
@@ -363,7 +381,7 @@ namespace Silent
                 // Parse function declaration
                 case TokenType::Subroutine:
                 {
-                    Function* function = new Function();
+                    Subroutine* function = new Subroutine();
                     if(function->Parse(parser))
                     {
                         functions.push_back(function);
@@ -401,7 +419,14 @@ namespace Silent
         return true;
     }
 
-    bool VariableDeclaration::Parse(Parser &parser)
+    Variable::Variable(Parameter* param)
+    {
+        this->id = param->id;
+        this->type = param->type;
+        this->scopeIndex = 0;
+    }
+
+    bool Variable::Parse(Parser &parser)
     {
         uint64_t revertPtr = parser.GetTokenCursor();
         if (type.Parse(parser))
@@ -514,16 +539,16 @@ namespace Silent
         Literal lit = {};
         if (lit.Parse(parser))
         {
-            op->node = TableNode(new Literal(lit), TableNode::Type::Literal);
+            //op->node = TableNode(new Literal(lit), TableNode::Type::Literal);
             return op;
         }
 
         ExpressionLHS expName = {};
         if (expName.Parse(parser))
         {
-            op->node = TableNode(
-                new ExpressionLHS(expName), 
-                TableNode::Type::ExpressionLHS);
+            //op->node = TableNode(
+            //    new ExpressionLHS(expName), 
+            //    TableNode::Type::ExpressionLHS);
             return op;
         }
         // TODO: Add other productions
@@ -820,16 +845,24 @@ namespace Silent
     }
 
 
-    bool Function::Parse(Parser &parser)
+    bool Subroutine::Parse(Parser &parser)
     {
-        parser.DebugMsg("\033[36mParsing function\033[0m");
+        parser.DebugMsg("\033[36mParsing subroutine\033[0m");
 
         uint64_t revertPtr = parser.GetTokenCursor();
 
         // Check for syntax
         if(!parser.Match(TokenType::Subroutine))
         {
-            parser.ErrorMsg("Invalid function definition");
+            parser.ErrorMsg("Invalid subroutine definition");
+            parser.Revert(revertPtr);
+            return false;
+        }
+
+        // Get function return type
+        if (!ParseReturnType(parser))
+        {
+            parser.ErrorMsg("Could not parse subroutine return type");
             parser.Revert(revertPtr);
             return false;
         }
@@ -837,7 +870,7 @@ namespace Silent
         // Get function identifier
         if(!ParseIdentifier(parser))
         {
-            parser.ErrorMsg("Could not parse function identifier");
+            parser.ErrorMsg("Could not parse subroutine identifier");
             parser.Revert(revertPtr);
             return false;
         }
@@ -845,7 +878,7 @@ namespace Silent
         // Get function parameters
         if(!ParseParameters(parser))
         {
-            parser.ErrorMsg("Could not parse function parameters");
+            parser.ErrorMsg("Could not parse subroutine parameters");
             parser.Revert(revertPtr);
             return false;
         }
@@ -853,38 +886,53 @@ namespace Silent
         // Parse function scope
         if(!ParseScope(parser))
         {
-            parser.ErrorMsg("Could not parse function scope");
+            parser.ErrorMsg("Could not parse subroutine scope");
             parser.Revert(revertPtr);
             return false;
         }
 
-
-        parser.DebugMsg("\033[32mFinished parsing function\033[0m");
+        parser.DebugMsg("\033[32mFinished parsing subroutine\033[0m");
         return true;
     }
 
-    bool Function::ParseIdentifier(Parser &parser)
+    bool Subroutine::ParseIdentifier(Parser &parser)
     {
-        parser.DebugMsg("\033[36mParsing function identifier\033[0m");
+        parser.DebugMsg("\033[36mParsing subroutine identifier\033[0m");
         if(parser.GetTokenType() == TokenType::Identifier)
         {
             id = parser.GetTokenVal();
             (void)parser.NextToken();
-            parser.DebugMsg("Got function identifier: " + id);
+            parser.DebugMsg("Got subroutine identifier: " + id);
             parser.DebugMsg(
-                "\033[32mFinished parsing function identifier\033[0m");
+                "\033[32mFinished parsing subroutine identifier\033[0m");
             return true;
         }
         else
         {
-            parser.DebugMsg("Parsing function identifier has failed");
+            parser.DebugMsg("Parsing subroutine identifier has failed");
             return false;
         }
     }
 
-    bool Function::ParseParameters(Parser &parser)
+    bool Subroutine::ParseReturnType(Parser& parser)
     {
-        parser.DebugMsg("\033[36mParsing function parameters\033[0m");
+        parser.DebugMsg("\033[36mParsing subroutine return type\033[0m");
+        uint64_t revertPtr = parser.GetTokenCursor();
+
+        if (!returnType.Parse(parser))
+        {
+            parser.WarningMsg("Parsing subroutine return type has failed");
+            parser.Revert(revertPtr);
+            return false;
+        }
+
+        parser.DebugMsg("Got subroutine return type: " + returnType.value);
+        return true;
+    }
+
+    bool Subroutine::ParseParameters(Parser &parser)
+    {
+        parser.DebugMsg("\033[36mParsing subroutine parameters\033[0m");
 
         uint64_t revertPtr = parser.GetTokenCursor();
 
@@ -910,7 +958,7 @@ namespace Silent
                 }
                 if(!param.Parse(parser))
                 {
-                    parser.WarningMsg("Failed to parse function parameter");
+                    parser.WarningMsg("Failed to parse subroutine parameter");
                     (void)parser.PreviousToken();
                     break;
                 }
@@ -925,14 +973,15 @@ namespace Silent
             return false;
         }
 
-        parser.DebugMsg("\033[32mFinished parsing function parameters\033[0m");
+        parser.DebugMsg(
+            "\033[32mFinished parsing subroutine parameters\033[0m");
 
         return true;
     }
 
-    bool Function::Parameter::Parse(Parser &parser)
+    bool Parameter::Parse(Parser &parser)
     {
-        parser.DebugMsg("Parsing function parameter");
+        parser.DebugMsg("Parsing subroutine parameter");
         uint64_t revertPtr = parser.GetTokenCursor();
 
         if(!type.Parse(parser)) return false;
@@ -944,17 +993,17 @@ namespace Silent
         id = parser.GetTokenVal();
         (void)parser.NextToken();
 
-        parser.DebugMsg("Finished parsing function parameter: " + id);
+        parser.DebugMsg("Finished parsing subroutine parameter: " + id);
         return true;
     }
 
-    bool Function::ParseScope(Parser &parser)
+    bool Subroutine::ParseScope(Parser &parser)
     {
-        parser.DebugMsg("\033[36mParsing function scope\033[0m");
+        parser.DebugMsg("\033[36mParsing subroutine scope\033[0m");
         uint64_t revertPtr = parser.GetTokenCursor();
 
         symTable = new SymbolTable();
-        symTable->self = TableNode(this, TableNode::Type::Function);
+        symTable->self = TableNode(this, TableNode::Type::Subroutine);
         symTable->SetParent(SymbolTable::currentTable);
         SymbolTable::currentTable->AddChild(symTable);
         SymbolTable::currentTable->AddItem(symTable->self);
@@ -978,28 +1027,31 @@ namespace Silent
         }
 
 
-        parser.DebugMsg("\033[32mFinished parsing function scope\033[0m");
+        parser.DebugMsg("\033[32mFinished parsing subroutine scope\033[0m");
         SymbolTable::currentTable = symTable->GetParent();
         return true;
     }
 
-    bool Function::LocalStatement::Parse(Parser &parser)
+    bool LocalStatement::Parse(Parser &parser)
     {
-        VariableDeclaration newVarDec;
-        if (newVarDec.Parse(parser))
+
+        Variable *newVarDec = new Variable();
+        if (newVarDec->Parse(parser))
         {
-            varDec = new VariableDeclaration(newVarDec);
+            varDec = newVarDec;
             type = Type::VariableDeclaration;
             return true;
         }
+        delete newVarDec;
 
-        Expression newExpression;
-        if (newExpression.Parse(parser))
+        Expression *newExpression = new Expression();
+        if (newExpression->Parse(parser))
         {
-            expression = new Expression(newExpression);
+            expression = newExpression;
             type = Type::Expression;
             return true;
         }
+        delete newExpression;
 
         parser.ErrorMsg("Invalid local statement");
         return false;
@@ -1056,6 +1108,7 @@ namespace Silent
 
 
     Type::Member::AccessModifier Type::Member::currentAccessModifier;
+
     bool Type::ParseScope(Parser& parser)
     {
         parser.DebugMsg("\033[36mParsing type scope\033[0m");
@@ -1122,15 +1175,16 @@ namespace Silent
         // Parse method
         if (parser.GetTokenType() == TokenType::Subroutine)
         {
-            Method tempMethod;
-            if (tempMethod.Parse(parser))
+            Subroutine* sub = new Subroutine();
+            if (sub->Parse(parser))
             {
                 memberType = MemberType::Method;
-                method = new Method(tempMethod);
+                method = sub;
                 return true;
             }
             else
             {
+                delete sub;
                 parser.ErrorMsg("Failed to parse type method");
                 parser.Revert(revertPtr);
                 return false;
@@ -1140,15 +1194,16 @@ namespace Silent
         // Parse attribute
         else
         {
-            Attribute attrib;
-            if (attrib.Parse(parser))
+            Attribute *attrib = new Attribute();
+            if (attrib->Parse(parser))
             {
                 memberType = MemberType::Attribute;
-                attribute = new Attribute(attrib);
+                attribute = attrib;
                 return true;
             }
             else
             {
+                delete attrib;
                 parser.ErrorMsg("Failed to parse type attribute");
                 parser.Revert(revertPtr);
                 return false;
@@ -1204,8 +1259,8 @@ namespace Silent
                     parser.Revert(revertPtr);
                     return false;
                 }
-
             }
+
             else
             {
                 parser.DebugMsg("Failed attribute declaration production");
@@ -1215,54 +1270,6 @@ namespace Silent
         }
         else return false;
     }
-
-    bool Method::Parse(Parser& parser)
-    {
-        parser.DebugMsg("\033[36mParsing method\033[0m");
-
-        uint64_t revertPtr = parser.GetTokenCursor();
-
-        // Check for syntax
-        if (!parser.Match(TokenType::Subroutine))
-        {
-            parser.ErrorMsg("Invalid method definition");
-            parser.Revert(revertPtr);
-            return false;
-        }
-
-        // Get function identifier
-        if (!ParseIdentifier(parser))
-        {
-            parser.ErrorMsg("Could not parse method identifier");
-            parser.Revert(revertPtr);
-            return false;
-        }
-
-        // Get function parameters
-        if (!ParseParameters(parser))
-        {
-            parser.ErrorMsg("Could not parse method parameters");
-            parser.Revert(revertPtr);
-            return false;
-        }
-
-        // Parse function scope
-        if (!ParseScope(parser))
-        {
-            parser.ErrorMsg("Could not parse method scope");
-            parser.Revert(revertPtr);
-            return false;
-        }
-
-        parser.DebugMsg("\033[32mFinished parsing method\033[0m");
-        return true;
-    }
-
-    void Method::SetParent(Type* type)
-    {
-        self = type;
-    }
-
 
     bool TypeName::Parse(Parser &parser)
     {
@@ -1301,4 +1308,4 @@ namespace Silent
         }
         return true;
     }
-}
+}}

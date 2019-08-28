@@ -6,6 +6,7 @@ namespace Silent
     enum class TokenType
     {
         // Primitives
+        Void,
         I8,
         UI8,
         I16,
