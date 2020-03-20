@@ -1,0 +1,36 @@
+<digit> ::= [0-9]
+<digits> ::= <digit> {<digit>}
+
+<letter> ::= [a-zA-Z]
+<letters> ::= <letter> {<letter>}
+
+<id-symbol> ::= "_"
+
+<id-character> ::= <id-symbol> | <letter> | <letter>
+
+<identifier> ::= (<letter> | <id-symbol>) {id-character}
+
+
+<variable-declaration> ::= <type-identifier> <identifier> ";"
+
+<namespace-scope> ::= "{" { <namespace> | <function> | <class> | <variable-declaration> } "}"
+
+<namespace-name> ::= <identifier> {"::" <identifier>} 
+<namespace> ::= "namespace" <namespace-name> <namespace-scope>
+
+<program> ::= {<namespace> | <function> | <class> | <variable-declaration> }
+
+
+----------------------------------------------------------------------------------
+
+
+namespace ns1
+{
+	
+
+}
+
+void main()
+{
+
+}

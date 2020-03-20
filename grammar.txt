@@ -1,0 +1,52 @@
+program = { 
+		namespace definition,
+		type definition,
+		enum definition,
+		function definition
+	 }
+
+// Namespaces
+
+namespace definition = "namespace", identifier, "{", [namespace scope], "}"
+
+namespace scope = { 
+		namespace definition,
+		enum definition,
+		type definition,
+		function definition
+ }
+
+// Enums
+
+enum definition = "enum", identifier, [type name ], "{", [enum scope], "}"
+
+enum scope = enum member, { "," , enum member }
+
+enum member = identifier | ( identifier, "=", )
+
+
+
+
+
+
+
+
+type definition = [access modifier], "type", identifier, "{", [type scope], "}"
+
+
+function definition = [access modifier], "static", type list, identifier, [parameters], 
+						"{", function scope, "}"
+
+
+
+type scope = { type member definition }
+
+
+
+
+
+fn main (int8 x, int64 y) : string
+{
+	var x = add(5, 3);
+}
+

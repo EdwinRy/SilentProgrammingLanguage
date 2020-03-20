@@ -1,0 +1,20 @@
+namespace jeff
+{
+	sub void heff(int8 n)
+	{
+		int8 x = 5;
+		x = 5 + 2;
+	}
+}
+
+type test
+{
+
+	int8 n;
+
+	sub void keff()
+	{
+	
+	}
+}
+

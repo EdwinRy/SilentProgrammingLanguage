@@ -1,0 +1,29 @@
+// comment
+
+/* comment */
+
+
+// namespace declaration
+namespace SampleNamespace
+{
+	...
+}
+
+// type declaration
+type Vec2
+{
+	var x: int,
+	var y: int
+}
+
+type Vec3
+{
+	private var x, y, z : int,
+	public fn getX : int
+	{
+		return x;
+	}
+}
+
+
+
