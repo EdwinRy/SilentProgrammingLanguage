@@ -118,6 +118,11 @@ typedef struct Tokenizer
 
 Tokenizer TokenizerInit(char* src);
 
+Token GetToken(Tokenizer* tokenizer);
+char AcceptToken(Tokenizer* tokenizer, TokenType type);
+char ExpectToken(Tokenizer* tokenizer, TokenType type);
+
+
 
 char SkipComment(char* src, unsigned long long *i, unsigned long long *line);
 

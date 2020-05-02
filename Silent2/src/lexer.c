@@ -17,6 +17,35 @@ Tokenizer TokenizerInit(char* src)
     return t;
 }
 
+Token GetToken(Tokenizer* tokenizer)
+{
+    return tokenizer->tokens.tokens[tokenizer->tokens.ptr];
+}
+
+void NextToken(Tokenizer* tokenizer)
+{
+    if(tokenizer->tokens.ptr < tokenizer->tokens.count)
+        tokenizer->tokens.ptr++;
+}
+
+char AcceptToken(Tokenizer* tokenizer, TokenType type)
+{
+    if (GetToken(tokenizer).type == type)
+    {
+        NextToken(tokenizer);
+        return 1;
+    }
+    else return 0;
+}
+
+char ExpectToken(Tokenizer* tokenizer, TokenType type)
+{
+    if (AcceptToken(tokenizer, type) == 1)
+        return 1;
+    printf("Lexer Error: Unexpected token on line %i", tokenizer->line);
+    return 0;
+}
+
 TokenType GetTokenType(char* str)
 {
     switch (str[0])
@@ -177,138 +206,3 @@ inline char IsNumStart(char c)
     else if (c == '.') return 1;
     return 0;
 }
-
-
-
-//TokenList* tokenlist_init()
-//{
-//    TokenList* tokenList = calloc(1, sizeof(TokenList));
-//    tokenList->count = 0;
-//    tokenList->allocated = 10;
-//    tokenList->tokens = calloc(10, sizeof(Token));
-//}
-//
-//void tokenlist_add(TokenList* list, Token* token)
-//{
-//    if (list->allocated <= list->count)
-//    {
-//        list->allocated += 1 + list->allocated * 0.1;
-//        list->tokens = realloc(
-//            list->tokens, 
-//            list->allocated * sizeof(Token));
-//    }
-//
-//    memcpy(list->tokens + list->count, token, sizeof(Token));
-//    list->count++;
-//
-//
-//}
-//
-//void tokenlist_resize(TokenList* list)
-//{
-//
-//}
-//
-//
-//TokenList* silent_tokenize(char* src)
-//{
-//    TokenList* tokenList = calloc(1, sizeof(TokenList));
-//    tokenList->count = 0;
-//    tokenList->tokens = calloc(TOKEN_LIST_CHUNK, sizeof(Token));
-//    uint64 tokensAllocated = TOKEN_LIST_CHUNK;
-//
-//    uint64 srcLen = strlen(src);
-//    uint64 line = 0;
-//
-//    for(uint64 i = 0; i < srcLen; i++)
-//    {
-//        //Skip next line
-//        if(src[i] == '\n')
-//        {
-//            line++;
-//            continue;
-//        }
-//        //One line comment
-//        if(src[i] == '/' && src[i+1] == '/')
-//        {
-//            while(src[i] != '\n')
-//            {
-//                i++;
-//            }
-//            i--;
-//            continue;
-//        }
-//        //Multi-line comment
-//        if(src[i] == '/' && src[i+1] == '*')
-//        {
-//            while(!(src[i] == '*' && src[i+1] == '/'))
-//            {
-//                if(src[i] == '\n')
-//                {
-//                    line++;
-//                }
-//                i++;
-//            }
-//            i++;
-//            continue;
-//        }
-//
-//        Token token = {0};
-//        token.type = tkn_id;
-//        token.line = line;
-//
-//        switch(src[i])
-//        {
-//            case ';':
-//                token.type = tkn_semicolon;
-//            break;
-//
-//            case ',':
-//                token.type = tkn_comma;
-//            break;
-//
-//            case '.':
-//                token.type = tkn_fullstop;
-//            break;
-//
-//            case '=':
-//                if(src[i+1] == '=')
-//                {
-//                    i++;
-//                    token.type = tkn_equal;
-//                }
-//                else
-//                {
-//                    token.type = tkn_assign;
-//                }
-//            break;
-//
-//            case '&':
-//                if(src[i+1] == '&')
-//                {
-//                    i++;
-//                    token.type = tkn_cond_and;
-//                }
-//                else
-//                {
-//                    token.type = tkn_and; 
-//                }
-//            break;
-//
-//            default:
-//                
-//            break;
-//        }
-//
-//        if(tokenList->count == tokensAllocated)
-//        {
-//            tokensAllocated += TOKEN_LIST_CHUNK;
-//            Token* temp = (Token*)realloc(tokenList->tokens, tokensAllocated);
-//            if(temp == NULL)
-//            {
-//                // TODO: Handle a catastrophe
-//            }
-//            else tokenList->tokens = temp;
-//        }
-//    }
-//}

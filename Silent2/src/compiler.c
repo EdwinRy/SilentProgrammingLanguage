@@ -2,9 +2,15 @@
 #include "silent_lexer.h"
 #include "stdlib.h"
 
-char* CompileBytes(char* src)
+SilentCompiler CompilerInit(char* src)
 {
-    TokenList tokens = Tokenize(src);
+    SilentCompiler compiler;
+    Tokenizer tokenizer = TokenizerInit(src);
+    compiler.parser = ParserInit(tokenizer);
+}
 
-
+char* CompileBytes(SilentCompiler* compiler)
+{
+    ParserTest(compiler->parser);
+    return NULL;
 }

@@ -6,23 +6,24 @@
 char* readAllText(char* path)
 {
     char* text;
-    FILE *f;
+    FILE* f;
 
-    fopen_s(&f,path,"r");
-    if(f == NULL)
+
+    fopen_s(&f, path, "r");
+    if (f == NULL)
     {
         printf("File %s could not be opened!\n", path);
         return NULL;
     }
-    fseek(f,0,SEEK_END);
+    fseek(f, 0, SEEK_END);
     text = malloc(ftell(f) + 1ll);
     if (text != NULL)
     {
 
-        fseek(f,0,SEEK_SET);
+        fseek(f, 0, SEEK_SET);
         long count = 0;
         char c;
-        while((c = fgetc(f))!=EOF) { text[count++] = (char)c; }
+        while ((c = fgetc(f)) != EOF) { text[count++] = (char)c; }
         text[count] = '\0';
     }
     fclose(f);
@@ -33,20 +34,20 @@ char* readAllText(char* path)
 char* readAllBytes(char* path)
 {
     char* text;
-    FILE *f;
+    FILE* f;
 
     fopen_s(&f, path, "rb");
-    if(f == NULL)
+    if (f == NULL)
     {
         printf("File %s could not be opened!\n", path);
         exit(-1);
     }
-    fseek(f,0,SEEK_END);
+    fseek(f, 0, SEEK_END);
     text = (char*)malloc(ftell(f) + 1);
-    fseek(f,0,SEEK_SET);
+    fseek(f, 0, SEEK_SET);
     long count = 0;
     char c;
-    while((c = fgetc(f))!=EOF) { text[count++] = (char)c; }
+    while ((c = fgetc(f)) != EOF) { text[count++] = (char)c; }
     text[count] = '\0';
     fclose(f);
     return text;
