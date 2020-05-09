@@ -6,6 +6,7 @@ Parser ParserInit(Tokenizer tokenizer)
 	Parser parser = { 0 };
 	parser.tokenizer = tokenizer;
 	parser.root.type = PARSER_TYPE_GLOBAL;
+	parser.root.global = calloc(1, sizeof(ParserGlobal));
 	parser.root.global->node = &parser.root.global;
 	parser.root.parent = NULL;
 }
