@@ -1,7 +1,7 @@
 {
+    "version": "2.0.0",
     "tasks":[
         {
-            "type": "shell",
             "label": "Make Debug",
             "command": "make",
             "options": {
@@ -16,7 +16,6 @@
             ]
         },
         {
-            "type": "shell",
             "label": "Make Release",
             "command": "make",
             "options": {
@@ -31,7 +30,6 @@
             ]
         },
         {
-            "type": "shell",
             "label": "Clean Debug",
             "command": "make clean",
             "options": {
@@ -39,7 +37,6 @@
             }
         },
         {
-            "type": "shell",
             "label": "Clean Release",
             "command": "make clean",
             "options": {

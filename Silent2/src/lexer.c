@@ -14,13 +14,15 @@ Tokenizer TokenizerInit(char* src)
 {
     Tokenizer t = {0};
     t.src = src;
-
+    t.tokens = TokenListInit();
     return t;
 }
 
 TokenList TokenListInit()
 {
-
+    TokenList tl = {0};
+    tl.tokens = calloc(sizeof(Token), ARR_BLOCK_SIZE);
+    tl.allocated = ARR_BLOCK_SIZE;
 }
 
 Token GetToken(Tokenizer* tokenizer)
@@ -30,8 +32,26 @@ Token GetToken(Tokenizer* tokenizer)
 
 void NextToken(Tokenizer* tokenizer)
 {
-    if(tokenizer->tokens.ptr < tokenizer->tokens.count)
-        tokenizer->tokens.ptr++;
+    // Allocate more space if needed
+    if(tokenizer->tokens.ptr + 1 > tokenizer->tokens.allocated)
+    {
+        Token* temp = realloc(
+            tokenizer->tokens.tokens, 
+            tokenizer->tokens.allocated + ARR_BLOCK_SIZE);
+        
+        // If reallocation failed
+        if(temp == NULL)
+        {
+            printf("CRITICAL ERROR: FAILED TO REALLOC MEMORY\n");
+            exit(-1);
+        }
+
+        tokenizer->tokens.tokens = temp;
+        tokenizer->tokens.allocated += ARR_BLOCK_SIZE;
+    }
+
+    // Fetch another token
+    
 }
 
 char IsTokenType(Tokenizer* tokenizer, TokenType type)
@@ -58,7 +78,7 @@ char ExpectToken(Tokenizer* tokenizer, TokenType type)
 {
     if (AcceptToken(tokenizer, type) == 1)
         return 1;
-    printf("Lexer Error: Unexpected token on line %i", tokenizer->line);
+    printf("Lexer Error: Unexpected token on line %lli", tokenizer->line);
     return 0;
 }
 
@@ -103,6 +123,204 @@ TokenType GetTokenType(char* str)
     return tkn_Identifier;
 }
 
+void LoadToken(Tokenizer* tokenizer)
+{
+    // Skip comments
+    char* src = tokenizer->src;
+    while(SkipComment(src, &tokenizer->srcptr, &tokenizer->line));
+
+    Token token;
+    switch(src[tokenizer->srcptr])
+    {
+        case ';':
+            token.type = tkn_Semicolon;
+        break;
+
+        case ',':
+            token.type = tkn_Comma;
+        break;
+
+        case '.':
+            token.type = tkn_Fullstop;
+        break;
+
+        case '=':
+            if (src[tokenizer->srcptr + 1] == '=')
+            {
+                tokenizer->srcptr++;
+                token.type = tkn_Equal;
+            }
+            else
+            {
+                token.type = tkn_Assign;
+            }
+            break;
+
+        case '&':
+            if (src[tokenizer->srcptr + 1] == '&')
+            {
+                tokenizer->srcptr++;;
+                token.type = tkn_ConditionalAnd;
+            }
+            else
+            {
+                token.type = tkn_And;
+            }
+            break;
+
+        case '|':
+            if (src[tokenizer->srcptr + 1] == '|')
+            {
+                tokenizer->srcptr++;;
+                token.type = tkn_ConditionalOr;
+            }
+            else
+            {
+                token.type = tkn_Or;
+            }
+        break;
+
+        case '^':
+            token.type = tkn_Xor;
+        break;
+
+        case '!':
+            if (src[tokenizer->srcptr + 1] == '=')
+            {
+                tokenizer->srcptr++;;
+                token.type = tkn_NotEqual;
+            }
+            else
+            {
+                token.type = tkn_Not;
+            }
+        break;
+
+        case '+':
+            if (src[tokenizer->srcptr + 1] == '=')
+            {
+                tokenizer->srcptr++;;
+                token.type = tkn_AddAssign;
+            }
+            else
+            {
+                token.type = tkn_Add;
+            }
+        break;
+
+        case '-':
+            if (src[tokenizer->srcptr + 1] == '=')
+            {
+                tokenizer->srcptr++;;
+                token.type = tkn_SubtractAssign;
+            }
+            else
+            {
+                token.type = tkn_Subtract;
+            }
+        break;
+
+        case '*':
+            if (src[tokenizer->srcptr + 1] == '=')
+            {
+                tokenizer->srcptr++;;
+                token.type = tkn_MultiplyAssign;
+            }
+            else
+            {
+                token.type = tkn_Multiply;
+            }
+        break;
+
+        case '/':
+            if (src[tokenizer->srcptr + 1] == '=')
+            {
+                tokenizer->srcptr++;;
+                token.type = tkn_DivideAssign;
+            }
+            else
+            {
+                token.type = tkn_Divide;
+            }
+        break;
+
+        case '<':
+            if (src[tokenizer->srcptr + 1] == '=')
+            {
+                tokenizer->srcptr++;;
+                token.type = tkn_LessThanOrEqualTo;
+            }
+            else
+            {
+                token.type = tkn_LessThan;
+            }
+        break;
+
+        case '>':
+            if (src[tokenizer->srcptr + 1] == '=')
+            {
+                tokenizer->srcptr++;;
+                token.type = tkn_MoreThanOrEqualTo;
+            }
+            else
+            {
+                token.type = tkn_MoreThan;
+            }
+        break;
+
+        case '(':
+            token.type = tkn_OpenParam;
+        break;
+
+        case ')':
+            token.type = tkn_CloseParam;
+        break;
+
+        case '[':
+            token.type = tkn_OpenBracket;
+        break;
+
+        case ']':
+            token.type = tkn_CloseBracket;
+        break;
+
+        case '{':
+            token.type = tkn_OpenScope;
+        break;
+
+        case '}':
+            token.type = tkn_CloseScope;
+        break;
+
+        case ':':
+            token.type = tkn_Colon;
+        break;
+
+        case '\"':
+            token.type = tkn_StringValue;
+            token.val = ParseStringValue(tokenizer);
+        break;
+
+        default:
+            if (IsIdStart(src[tokenizer->srcptr]))
+            {
+                token.val = ParseIdentifier(tokenizer);
+                token.type = GetTokenType(token.val);
+            }
+            else if (IsNumStart(src[tokenizer->srcptr]))
+            {
+                
+            }
+        break;
+    }
+}
+
+void SkipWhitespaces(Tokenizer* tokenizer)
+{
+    while(isspace(tokenizer->src[tokenizer->srcptr]))
+        tokenizer->srcptr++;
+}
+
 char SkipComment(char* src, unsigned long long* i, unsigned long long* line)
 {
     if (src[*i] == '/')
@@ -144,15 +362,14 @@ char SkipComment(char* src, unsigned long long* i, unsigned long long* line)
     return 0;
 }
 
-char* ParseStringValue(char* source, uint64* i, uint64* line)
+char* ParseIdentifier(Tokenizer* tokenizer)
 {
-    // skip "
-    (*i)++;
     char* buff = malloc(ARR_BLOCK_SIZE);
-    if (buff == NULL) exit(-1);
     int buffPtr = 0;
     int buffAlloc = ARR_BLOCK_SIZE;
-    while (source[*i] != '\"')
+
+    while(IsIdStart(tokenizer->src[tokenizer->srcptr]) || 
+            isdigit(tokenizer->src[tokenizer->srcptr]))
     {
         if (buffPtr == buffAlloc)
         {
@@ -161,10 +378,82 @@ char* ParseStringValue(char* source, uint64* i, uint64* line)
             if(temp == NULL) exit(-1);
             buff = temp;
         }
-        if (source[*i] == '\\')
+
+        buff[buffPtr++] = tokenizer->src[tokenizer->srcptr++];
+    }
+    
+    char* id = realloc(buff, buffPtr);
+    id[buffPtr] = '\0';
+    return id;
+}
+
+char* ParseNumber(Tokenizer* tokenizer)
+{
+    char* buff = malloc(ARR_BLOCK_SIZE);
+    int buffPtr = 0;
+    int buffAlloc = ARR_BLOCK_SIZE;
+
+    char dotHit = 0;
+    char parsing = 1;
+
+    while(parsing)
+    {
+        if (buffPtr == buffAlloc)
         {
-            (*i)++;
-            switch (source[*i])
+            buffAlloc += ARR_BLOCK_SIZE;
+            char* temp = realloc(buff, buffAlloc);
+            if(temp == NULL) exit(-1);
+            buff = temp;
+        }
+
+        if(isdigit(tokenizer->src[tokenizer->srcptr]))
+        {
+            buff[buffPtr++] = tokenizer->src[tokenizer->srcptr++];
+        }
+
+        else if(tokenizer->src[tokenizer->srcptr] == '.')
+        {
+            if(dotHit == 1)
+            {
+                printf("Unexpected '.' on line %lli skipped\n", 
+                    tokenizer->line);
+                tokenizer->srcptr++;
+                continue;
+            }
+            buff[buffPtr++] = '.';
+            tokenizer->srcptr++;
+            dotHit = 1;
+        }
+
+        else parsing = 0;
+    }
+
+    char* num = realloc(buff, buffPtr);
+    num[buffPtr] = '\0';
+    return num;
+}
+
+char* ParseStringValue(Tokenizer* tokenizer)
+{
+    tokenizer->srcptr++;
+    char* buff = malloc(ARR_BLOCK_SIZE);
+    if (buff == NULL) exit(-1);
+    int buffPtr = 0;
+    int buffAlloc = ARR_BLOCK_SIZE;
+
+    while (tokenizer->src[tokenizer->srcptr] != '\"')
+    {
+        if (buffPtr == buffAlloc)
+        {
+            buffAlloc += ARR_BLOCK_SIZE;
+            char* temp = realloc(buff, buffAlloc);
+            if(temp == NULL) exit(-1);
+            buff = temp;
+        }
+        if (tokenizer->src[tokenizer->srcptr] == '\\')
+        {
+            tokenizer->srcptr++;
+            switch (tokenizer->src[tokenizer->srcptr])
             {
                 case 'n':
                     buff[buffPtr++] = '\n';
@@ -190,23 +479,25 @@ char* ParseStringValue(char* source, uint64* i, uint64* line)
                 case '0':
                     buff[buffPtr++] = '\0';
                 break;
-            default:
-                printf("Incorrect string formatting on line %i\n",
-                    (int)*line);
+
+                default:
+                    printf("Incorrect string formatting on line %lli\n",
+                        tokenizer->line);
                 break;
             }
-            (*i)++;
+            tokenizer->srcptr++;
             continue;
         }
-        if (source[*i] == '\n')
-        {
-            (*line)++;
-        }
+        if (tokenizer->src[tokenizer->srcptr] == '\n')
+            tokenizer->line++;
 
-        buff[buffPtr++] = source[(*i)++];
+        buff[buffPtr++] = tokenizer->src[tokenizer->srcptr++];
     }
-    (*i)++;
-    return buff;
+    tokenizer->srcptr++;
+
+    char* str = realloc(buff, buffPtr);
+    str[buffPtr] = '\0';
+    return str;
 }
 
 inline char IsIdStart(char c) 
