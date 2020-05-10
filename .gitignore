@@ -1,6 +1,7 @@
-.vscode
 .vs
 build
 out
+debug
+release
 /CMakeSettings.json
 launch.json

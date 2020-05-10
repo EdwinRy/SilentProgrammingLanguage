@@ -25,3 +25,69 @@ ParserNode ParseNamespace()
 {
 
 }
+
+ParserNode ParseFunction()
+{
+
+}
+
+ParserNode ParseWhileLoop()
+{
+
+}
+
+ParserNode ParseForLoop()
+{
+
+}
+
+ParserNode ParseType()
+{
+
+}
+
+ParserNode ParseMethod()
+{
+
+}
+
+ParserNode ParseStatement()
+{
+
+}
+
+ParserNode ParseCall()
+{
+
+}
+
+ParserNode ParseExpression()
+{
+
+}
+
+ParserNode ParseMultiplication()
+{
+
+}
+
+ParserNode ParseAddition()
+{
+
+}
+
+ParserNode ParseCondition()
+{
+
+}
+
+ParserNode ParseLogicalOp()
+{
+
+}
+
+char ParseFactor(Parser parser)
+{
+	
+	return 0;
+}

@@ -92,6 +92,8 @@ typedef enum TokenType
     tkn_StringValue,
     tkn_Unrecognised,
     tkn_EndOfFile
+
+
 }TokenType;
 
 typedef struct Token
@@ -117,8 +119,10 @@ typedef struct Tokenizer
 
 
 Tokenizer TokenizerInit(char* src);
+TokenList TokenListInit();
 
 Token GetToken(Tokenizer* tokenizer);
+char IsTokenType(Tokenizer* tokenizer, TokenType type);
 char AcceptToken(Tokenizer* tokenizer, TokenType type);
 char ExpectToken(Tokenizer* tokenizer, TokenType type);
 
@@ -130,5 +134,5 @@ char* ParseStringValue(
     char* source, unsigned long long* i, unsigned long long* line);
 
 TokenType GetTokenType(char* str);
-inline char IsIdstart(char c);
+inline char IsIdStart(char c);
 inline char IsNumStart(char c);

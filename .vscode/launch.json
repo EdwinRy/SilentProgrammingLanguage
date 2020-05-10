@@ -1,19 +1,42 @@
 {
     "configurations": [
         {
-            "name": "Test",
-            "type": "cppvsdbg",
+            "name": "Debug",
+            "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Silent2/Silent.exe",
-            "args": ["${workspaceFolder}/build/Silent2/test.silent"],
-            "stopAtEntry": false,
+            "program": "${workspaceFolder}/debug/Silent2/Silent",
+            "args": [],
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "MIMode": "gdb",
             "externalConsole": false,
-            "windows": {
-                "MIMode":"gdb",
-                "miDebuggerPath": "C:/MinGW/bin/gdb.exe"
-            }
+            "setupCommands": [
+                {
+                    "description": "Enable prettz printing",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": false
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb"
+            
+        },
+        {
+            "name": "Release",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/release/Silent2/Silent",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb",
+            "externalConsole": false,
+            "setupCommands": [
+                {
+                    "description": "Enable prettz printing",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": false
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb"
+            
         }
     ]
 }

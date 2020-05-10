@@ -14,7 +14,13 @@ Tokenizer TokenizerInit(char* src)
 {
     Tokenizer t = {0};
     t.src = src;
+
     return t;
+}
+
+TokenList TokenListInit()
+{
+
 }
 
 Token GetToken(Tokenizer* tokenizer)
@@ -26,6 +32,16 @@ void NextToken(Tokenizer* tokenizer)
 {
     if(tokenizer->tokens.ptr < tokenizer->tokens.count)
         tokenizer->tokens.ptr++;
+}
+
+char IsTokenType(Tokenizer* tokenizer, TokenType type)
+{
+    TokenType tknType = GetToken(tokenizer).type;
+    switch (tknType)
+    {
+    default:
+        return tknType == type;
+    }
 }
 
 char AcceptToken(Tokenizer* tokenizer, TokenType type)
@@ -193,7 +209,7 @@ char* ParseStringValue(char* source, uint64* i, uint64* line)
     return buff;
 }
 
-inline char IsIdstart(char c) 
+inline char IsIdStart(char c) 
 {
     if (isalpha(c)) return 1;
     else if (c == '_') return 1;

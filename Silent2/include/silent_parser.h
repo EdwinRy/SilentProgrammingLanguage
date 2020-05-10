@@ -16,6 +16,13 @@ typedef enum ParserNodeType {
 
 }ParserNodeType;
 
+typedef enum ParserFactorType
+{
+	PARSER_FACTOR_NUM,
+	PARSER_FACTOR_ID,
+	PARSER_FACTOR_EXPRESSION
+}ParserFactorType;
+
 typedef struct ParserNode ParserNode;
 
 typedef struct ParserNamespace
@@ -67,6 +74,12 @@ typedef struct ParserGlobal {
 	int member_c;
 }ParserGlobal;
 
+typedef struct ParserFactor {
+	ParserNode* node;
+	ParserFactorType type;
+
+};
+
 typedef struct ParserNode
 {
 	ParserNode* parent;
@@ -84,6 +97,7 @@ typedef struct Parser
 {
 	Tokenizer tokenizer;
 	ParserNode root;
+	ParserNode* current;
 }Parser;
 
 Parser ParserInit(Tokenizer tokenizer);

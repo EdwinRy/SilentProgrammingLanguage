@@ -6,10 +6,8 @@
 char* readAllText(char* path)
 {
     char* text;
-    FILE* f;
+    FILE* f = fopen(path, "r");
 
-
-    fopen_s(&f, path, "r");
     if (f == NULL)
     {
         printf("File %s could not be opened!\n", path);
@@ -34,9 +32,8 @@ char* readAllText(char* path)
 char* readAllBytes(char* path)
 {
     char* text;
-    FILE* f;
+    FILE* f = fopen(path, "rb");
 
-    fopen_s(&f, path, "rb");
     if (f == NULL)
     {
         printf("File %s could not be opened!\n", path);
