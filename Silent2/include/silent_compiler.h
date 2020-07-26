@@ -2,7 +2,7 @@
 #pragma once
 
 typedef struct SilentCompiler {
-	Parser parser;
+    Parser parser;
 }SilentCompiler;
 
 SilentCompiler CompilerInit(char* src);

@@ -6,7 +6,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/debug/Silent2/Silent",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/debug/Silent2",
             "MIMode": "gdb",
             "externalConsole": false,
             "setupCommands": [
@@ -16,8 +16,8 @@
                     "ignoreFailures": false
                 }
             ],
-            "miDebuggerPath": "/usr/bin/gdb"
-            
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "Make Debug"
         },
         {
             "name": "Release",
@@ -25,7 +25,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/release/Silent2/Silent",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/debug/Silent2",
             "MIMode": "gdb",
             "externalConsole": false,
             "setupCommands": [
@@ -35,7 +35,8 @@
                     "ignoreFailures": false
                 }
             ],
-            "miDebuggerPath": "/usr/bin/gdb"
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "Make Release"
             
         }
     ]

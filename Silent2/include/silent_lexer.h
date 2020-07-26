@@ -88,7 +88,7 @@ typedef enum TokenType
     
     // Other
     tkn_Identifier,
-    tkn_Digits,
+    tkn_Number,
     tkn_StringValue,
     tkn_Unrecognised,
     tkn_EndOfFile
@@ -125,7 +125,7 @@ Token GetToken(Tokenizer* tokenizer);
 char IsTokenType(Tokenizer* tokenizer, TokenType type);
 char AcceptToken(Tokenizer* tokenizer, TokenType type);
 char ExpectToken(Tokenizer* tokenizer, TokenType type);
-
+void NextToken(Tokenizer* tokenizer);
 
 
 char SkipComment(char* src, unsigned long long *i, unsigned long long *line);
@@ -134,6 +134,7 @@ char* ParseIdentifier(Tokenizer* tokenizer);
 char* ParseNumber(Tokenizer* tokenizer);
 char* ParseStringValue(Tokenizer* tokenizer);
 
-TokenType GetTokenType(char* str);
+TokenType GetTokenType(Tokenizer* tokenizer);
+TokenType GetStrTokenType(char* str);
 char IsIdStart(char c);
 char IsNumStart(char c);

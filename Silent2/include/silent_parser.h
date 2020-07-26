@@ -12,7 +12,8 @@ typedef enum ParserNodeType {
     PARSER_TYPE_WHILE_LOOP,
     PARSER_TYPE_FUNC_CALL,
     PARSER_TYPE_VAR_DEC,
-    PARSER_TYPE_GLOBAL
+    PARSER_TYPE_GLOBAL,
+    PARSER_TYPE_STATEMENT
 
 }ParserNodeType;
 
@@ -78,7 +79,7 @@ typedef struct ParserFactor {
     ParserNode* node;
     ParserFactorType type;
 
-};
+}ParserFactor;
 
 typedef struct ParserNode
 {
@@ -89,6 +90,7 @@ typedef struct ParserNode
     {
         ParserNamespace* parserNamespace;
         ParserGlobal* global;
+        void* nodeObj;
     };
 
 }ParserNode;
@@ -103,6 +105,6 @@ typedef struct Parser
 Parser ParserInit(Tokenizer tokenizer);
 void Parse(Parser parser);
 void ParserTest(Parser parser);
-ParserNode ParseNamespace();
+char ParseNamespace(Parser* parser);
 
 

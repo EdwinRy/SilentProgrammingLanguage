@@ -4,9 +4,10 @@
 
 SilentCompiler CompilerInit(char* src)
 {
-    SilentCompiler compiler;
+    SilentCompiler compiler = {0};
     Tokenizer tokenizer = TokenizerInit(src);
     compiler.parser = ParserInit(tokenizer);
+    return compiler;
 }
 
 char* CompileBytes(SilentCompiler* compiler)
