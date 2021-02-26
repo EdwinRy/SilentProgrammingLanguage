@@ -1,0 +1,47 @@
+{
+    "version": "2.0.0",
+    "tasks":[
+        {
+            "label": "Make Debug",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}/debug"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Make Release",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}/release"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Clean Debug",
+            "command": "make clean",
+            "options": {
+                "cwd": "${workspaceFolder}/debug"
+            }
+        },
+        {
+            "label": "Clean Release",
+            "command": "make clean",
+            "options": {
+                "cwd": "${workspaceFolder}/release"
+            }
+        }
+    ]
+}

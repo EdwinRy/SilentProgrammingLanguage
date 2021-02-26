@@ -1,0 +1,41 @@
+(* The grammar rules in this file are largely predicated on the
+    token definition in include/lexer.h*)
+
+
+
+num-sign = tkn_add | tkn_subtract
+integer = [num-sign] tkn_number
+float = [num-sign] [tkn_number] tkn_fullstop tkn_number
+literal = interger | float | tkn_stringValue
+
+
+
+memberAccess = identifier tkn_fullstop identifier
+arrayAccess = identifier tkn_openBracket addition tkn_closeBracket
+identifier = tkn_identifier
+
+
+
+varDeclaration = 
+
+statement = varDeclaration 
+
+expression = (varDecl | assignment) tkn_semicolon
+
+assignmentLhs = identifier | memberAccess | arrayAccess
+
+assignment = assignmentLhs [{ tkn_assign condition }]
+
+condition = addition [{
+    (tkn_equal | tkn_notEqual | tkn_lessThan | tkn_modeThan 
+    | tkn_lessThanOrEqualTo | tkn_moreThanOrEqualTo)
+    addition}]
+
+addition = multiplication [{ (tkn_add | tkn_subtract) multiplication }]
+
+multiplication = factor [{ (tkn_multiply | tkn_divide) factor }]
+
+factor = literal | tkn_openParam expression tkn_closeParam
+        | identifier
+
+

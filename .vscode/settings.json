@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.h": "c",
+        "unordered_map": "c"
+    },
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
+}

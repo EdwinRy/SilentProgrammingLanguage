@@ -1,12 +1,12 @@
 {
     "configurations": [
         {
-            "name": "Debug",
+            "name": "Debug Silent Compiler",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/debug/Silent2/Silent",
+            "program": "${workspaceFolder}/SilentCompiler/out/SilentC",
             "args": [],
-            "cwd": "${workspaceFolder}/debug/Silent2",
+            "cwd": "${workspaceFolder}/SilentCompiler",
             "MIMode": "gdb",
             "externalConsole": false,
             "setupCommands": [
@@ -17,27 +17,7 @@
                 }
             ],
             "miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "Make Debug"
-        },
-        {
-            "name": "Release",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/release/Silent2/Silent",
-            "args": [],
-            "cwd": "${workspaceFolder}/debug/Silent2",
-            "MIMode": "gdb",
-            "externalConsole": false,
-            "setupCommands": [
-                {
-                    "description": "Enable prettz printing",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": false
-                }
-            ],
-            "miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "Make Release"
-            
+            "preLaunchTask": "Make Compiler Debug"
         }
     ]
 }

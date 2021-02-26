@@ -2,10 +2,11 @@
     "version": "2.0.0",
     "tasks":[
         {
-            "label": "Make Debug",
-            "command": "make",
+            "label": "Make Compiler Debug",
+            "type": "shell",
+            "command": "make CFLAGS=-g",
             "options": {
-                "cwd": "${workspaceFolder}/debug"
+                "cwd": "${workspaceFolder}/SilentCompiler"
             },
             "group": {
                 "kind": "build",
@@ -16,10 +17,11 @@
             ]
         },
         {
-            "label": "Make Release",
-            "command": "make",
+            "label": "Make Compiler Clean",
+            "type": "shell",
+            "command": "make clean",
             "options": {
-                "cwd": "${workspaceFolder}/release"
+                "cwd": "${workspaceFolder}/SilentCompiler"
             },
             "group": {
                 "kind": "build",
@@ -28,20 +30,6 @@
             "problemMatcher": [
                 "$gcc"
             ]
-        },
-        {
-            "label": "Clean Debug",
-            "command": "make clean",
-            "options": {
-                "cwd": "${workspaceFolder}/debug"
-            }
-        },
-        {
-            "label": "Clean Release",
-            "command": "make clean",
-            "options": {
-                "cwd": "${workspaceFolder}/release"
-            }
         }
     ]
 }

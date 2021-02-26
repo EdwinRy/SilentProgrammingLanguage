@@ -1,0 +1,31 @@
+// Comment
+
+/* 
+    Multi
+    line
+    comment
+*/
+
+var x = 5;
+
+// properties of a variable can be listed after a ":"
+// in members can use as var x : private static <type>
+var y: int32 = 5;
+
+// optional parentheses
+fn testFunc
+{
+
+}
+
+fn testFuncArgs()
+{
+
+}
+
+
+fn testReturn : int32
+{
+    
+}
+
